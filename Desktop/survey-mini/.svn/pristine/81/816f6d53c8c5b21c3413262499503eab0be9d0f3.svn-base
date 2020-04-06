@@ -1,0 +1,20 @@
+<!--pages/search_index/search_index.wxml-->
+
+<!-- <import src="../../components/template/template.wxml"/>
+<template is="tabBar" data="{{tabBar:bindData.tabBar}}"/> -->
+<view class='searchtype-container'>
+  <view   class='title'  >
+    <label >房地产税基评估信息查勘系统</label>
+  </view>
+  <view  class='img-container' >
+    <view>
+      <image class="task-img" src="../images/pl.png" catchtap="pldc"></image>
+    </view>
+    <view>
+      <image class="task-img" src="../images/ga.png" catchtap="gadc"></image>
+    </view>
+    <view>
+      <image class="task-img" src="../images/ss.png" catchtap="zydc"></image>
+    </view>
+  </view>
+</view>

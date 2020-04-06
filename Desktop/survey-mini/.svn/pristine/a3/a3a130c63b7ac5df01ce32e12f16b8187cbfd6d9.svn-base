@@ -1,0 +1,24 @@
+import request from '/utils/request.js'
+
+module.exports = {
+  // 登录
+  login: (data) => request('/general/v1/survey/user/login', data),
+  // 用户修改密码
+  modifyPwd: (data) => request('/general/v1/survey/user/pw', data, 'PUT'),
+  // 获取查勘任务列表
+  getSurveyTasks: data => request('/general/v1/survey/tasks', data, 'GET'),
+  // 获取查勘信息（经营性）
+  getCommercialSurveyData: (data, id) => request('/general/v1/survey/business', data, 'GET', id),
+  // 获取查勘信息（住宅性）
+  getResidenceSurveyData: (data, id) => request('/general/v1/survey/residence', data, 'GET', id),
+  // 保存查勘信息（经营性）
+  saveCommercialSurveyData: (data, id) => request('/general/v1/survey/business', data, 'PUT', id),
+  // 保存查勘信息（住宅性）
+  saveResidenceSurveyData: (data, id) => request('/general/v1/survey/residence', data, 'PUT', id),
+  // 获取查勘图片
+  getSurveyImgs: (data, id) => request('/general/v1/survey/material', data, 'GET', id),
+  // 发送信息
+  sendMessage: (data) => request('/general/v1/survey/messages', data),
+  // 保存查勘任务人员路径
+  saveSurveyPaths: (data) => request('/general/v1/survey/location', data),
+} 

@@ -1,0 +1,127 @@
+/* pages/commercialsurveyform/commercialsurveyform.wxss */
+/* @import "../../styles/edit.wxss"; */
+.control {
+  overflow: hidden;
+  padding: 20rpx
+}
+.control button {
+  float: left;
+  width: 33.3%;
+}
+.section, .box {
+  padding: 20rpx
+}
+.section .item {
+  display: flex;
+  height: 100rpx;
+  line-height: 100rpx
+}
+
+.item view {
+  flex: 1;
+  font-size: 30rpx;
+}
+
+.item input {
+  flex: 2.5;
+  margin-top: 24rpx
+}
+
+.item radio-group {
+  flex: 2.5;
+}
+
+.box .item view, .item checkbox-group {
+  margin: 30rpx 0
+}
+
+.input-placeholder, .textarea-placeholder, .item radio-group, .item checkbox-group {
+  font-size: 28rpx;
+  color: #999
+}
+
+input {
+  font-size: 28rpx;
+  color: #333
+}
+
+.title {
+  margin-bottom: 20rpx
+}
+.sub_title {
+  font-size: 32rpx
+}
+
+.reference {
+  margin-top: 20rpx
+}
+
+.reference textarea {
+  width: 100%;
+  height: 100rpx;
+}
+
+.required {
+  color: red
+}
+
+.button-blue {
+  background-color: #6295C8;
+  color: #fff
+}
+
+.img-box image {
+  float: left;
+  width: 160rpx;
+  height: 160rpx;
+  margin: 0 0 10rpx 10rpx;
+  border-radius: 10rpx
+}
+
+.img-box, .upload, .upload-box {
+  overflow: hidden;
+}
+
+.upload {
+  padding: 20rpx 0
+}
+
+.upload-box {
+  padding: 20rpx
+}
+
+.upload view, .upload-box text, .upload-box button, .upload button {
+  float: left;
+}
+
+.upload-box text, .upload-box button {
+  font-size: 30rpx
+}
+
+.upload view {
+  width: 300rpx;
+}
+
+.upload-box text {
+  width: 280rpx
+}
+
+.upload button, .upload-box button {
+  width: 200rpx;
+	height: 60rpx;
+  padding: 0;
+  margin-left: 60rpx;
+  line-height: 1.8;
+  font-size: 30rpx;
+  color: #fff;
+  background: #1AAD19;
+	border-radius: 10rpx;
+}
+
+.dt-num, .flex {
+  display: flex;
+}
+
+.dt-num input, .flex label {
+  flex: 1;
+}

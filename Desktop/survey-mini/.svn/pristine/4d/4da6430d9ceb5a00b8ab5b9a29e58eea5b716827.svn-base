@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "住宅房地产实地查看记录表",
+  "usingComponents": {
+    "zan-tab": "../../zan-ui/tab/index",
+    "van-collapse": "../../dist/collapse/index",
+    "van-collapse-item": "../../dist/collapse-item/index"
+  }
+}

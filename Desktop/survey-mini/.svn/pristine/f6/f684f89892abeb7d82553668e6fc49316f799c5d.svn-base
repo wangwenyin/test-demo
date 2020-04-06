@@ -1,0 +1,73 @@
+<view class='container'>
+  <view class='search-box'>
+    <view class="section">
+      <icon class="searchcion" size='20' type='search'></icon>
+      <input placeholder="请输入任务名称" placeholder-class="input-placeholder" bindinput="bindKeyInput" auto-focus/>
+    </view>
+    <button class="search" bindtap="search">查询</button>
+  </view>
+  <view class="line"></view>
+ 
+  <view style='margin-top:-40rpx'>
+    <view class='page-body' bindtap='clicktask'>
+      <block>
+        <view class='item'>
+          <view class='meta'>
+            <view class='artists'>
+              <text>任务编号：</text>
+              <text style='color:#3d3d3d'>CK2018-01</text>
+              <text style='color:#FFA042;margin-left:320rpx'>待查勘</text>
+            </view>
+            <text class='title'>东方玫瑰花园4栋1102</text>
+            <view class='artists'>
+              <text>截止时间：</text>
+              <text style='color:#3d3d3d'>2019-04-03</text>
+            </view>
+          </view>
+        </view>
+        <view class='clear'></view>
+      </block>
+    </view>
+    <view class='page-body' bindtap='clicktask'>
+      <block>
+        <view class='item'>
+          <view class='meta'>
+            <view class='artists'>
+              <text>任务编号：</text>
+              <text style='color:#3d3d3d'>CK2018-01</text>
+              <text style='color:#53841A;margin-left:320rpx'>查勘中</text>
+            </view>
+            <text class='title'>东方玫瑰花园4栋1102</text>
+            <view class='artists'>
+              <text>截止时间：</text>
+              <text style='color:#3d3d3d'>2019-04-03</text>
+            </view>
+          </view>
+        </view>
+        <view class='clear'></view>
+      </block>
+    </view>
+    <view class='page-body' bindtap='clicktask'>
+      <block>
+        <view class='item'>
+          <view class='meta'>
+            <view class='artists'>
+              <text>任务编号：</text>
+              <text style='color:#3d3d3d'>CK2018-01</text>
+              <text style='color:#DB114D;margin-left:320rpx'>重新查勘</text>
+            </view>
+            <text class='title'>东方玫瑰花园4栋1102</text>
+            <view class='artists'>
+              <text>截止时间：</text>
+              <text style='color:#3d3d3d'>2019-04-03</text>
+            </view>
+          </view>
+        </view>
+        <view class='clear'></view>
+      </block>
+    </view>
+    <view class="loading" hidden="{{!searchLoading}}">正在载入更多...</view>
+    <view class="loading complete" hidden="{{!searchLoadingComplete}}">没有更多数据</view>
+  </view>
+</view>
+

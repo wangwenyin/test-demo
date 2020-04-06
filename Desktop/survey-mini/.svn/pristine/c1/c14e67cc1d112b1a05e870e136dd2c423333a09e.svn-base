@@ -1,0 +1,30 @@
+<!-- <import src="../../components/template/template.wxml"/>
+<template is="tabBar" data="{{tabBar:bindData.tabBar}}"/> -->
+
+<view class='container'>
+<view class='user-info'>
+  <view>
+    <image wx:if='{{hasUserInfo}}' class='avatar' src="{{userInfo.avatarUrl}}"></image>
+    <image wx:else  class='avatar' src="../images/tx.png"></image>
+  </view>
+  <view>
+    <view class='username'>花木槿</view>
+    <view class='phone'>18320776124</view>
+  </view>
+  <!-- <text class='phone'>18320776124</text> -->
+  <!-- <text wx:if='{{hasUserInfo}}' class='username'>{{userInfo.nickName}}</text>
+  <text wx:else class='username' >{{userName}}</text> -->
+</view>
+<view class='about'>
+  <view>
+    <text>修改密码</text>
+    <image src='../images/suggest.png'></image> 
+  </view>
+  <view>
+    <text>关于我们</text>
+    <image src='../images/about_us.png'></image>
+  </view>
+</view>
+<view class='logout' bindtap='logout'>退出登录</view>
+<view class='logout1' bindtap='logout'></view>
+</view>

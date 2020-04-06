@@ -1,0 +1,201 @@
+/* .van-collapse-item .van-cell {
+  font-size: 32rpx 
+} */
+.bar {
+  height: 20rpx;
+  background: #f7f7f9;
+}
+van-collapse .item view {
+  margin-bottom: 20rpx;
+}
+
+.radio {
+  font-size: 26rpx
+}
+
+.radio radio {
+  transform: scale(.8)
+}
+
+.control {
+  display: flex;
+  padding: 20rpx;
+  font-size: 30rpx;
+}
+
+.control button {
+  flex: 1;
+  margin-left: 10rpx;
+  font-size: 30rpx;
+  opacity: 1;
+}
+
+.control button:first-child {
+  margin-left: 0
+}
+
+.section, .box {
+  padding: 0 20rpx
+}
+
+.item {
+  margin-bottom: 20rpx
+}
+
+.section .item {
+  display: flex;
+  height: 100rpx;
+  line-height: 100rpx
+}
+
+.item view {
+  flex: 1;
+  font-size: 28rpx;
+}
+
+.item input {
+  flex: 3;
+  margin-top: 10rpx;
+  padding-left: 20rpx;
+  background: #f7f7f9;
+  height: 100rpx;
+}
+
+input, textarea {
+  font-size: 28rpx;
+  color: #333
+}
+
+.input-placeholder, .textarea-placeholder, .item radio-group, .item checkbox-group {
+  font-size: 28rpx;
+  color: #999
+}
+
+.item radio-group, .item .picker {
+  flex: 2.5;
+}
+
+.box .item view {
+  margin-top: 30rpx
+}
+
+.inline {
+  display: flex;
+}
+
+.inline input {
+  flex: 1;
+  margin-top: 10rpx;
+  padding-left: 20rpx;
+  background: #f7f7f9;
+  height: 100rpx;
+}
+
+.item checkbox-group, .item radio-group {
+  margin: 30rpx 0
+}
+
+checkbox-group checkbox {
+  margin-bottom: 10rpx
+}
+
+.title {
+  font-size: 32rpx
+}
+
+.sub_title {
+  margin-bottom: 20rpx;
+  font-size: 30rpx
+}
+
+.reference {
+  margin-top: 20rpx
+}
+
+.reference textarea {
+  width: 100%;
+  height: 100rpx;
+}
+
+.required {
+  color: red
+}
+
+.button-blue {
+  background-color: #6295C8;
+  color: #fff
+}
+
+.img-box image {
+  float: left;
+  width: 160rpx;
+  height: 160rpx;
+  margin: 0 0 10rpx 10rpx;
+  border-radius: 10rpx
+}
+
+.img-box, .upload, .upload-box {
+  overflow: hidden;
+}
+
+.upload {
+  padding: 20rpx 0;
+}
+
+.upload-box {
+  padding: 20rpx
+}
+
+.upload, .upload-box {
+  line-height: 60rpx
+}
+
+.upload view, .upload-box text, .upload-box button, .upload button, .upload image {
+  float: left;
+}
+
+.upload-box text, .upload-box button {
+  font-size: 30rpx
+}
+
+.upload view {
+  width: 300rpx
+}
+
+.section .upload view, .box .upload view {
+  width: 150rpx;
+}
+
+.upload-box text {
+  width: 280rpx
+}
+
+.upload button, .upload-box button, .upload image {
+  width: 160rpx;
+  height: 60rpx;
+  margin-left: 60rpx;
+  border-radius: 10rpx;
+}
+
+.upload button, .upload-box button {
+  padding: 0;
+  line-height: 1.8;
+  font-size: 30rpx;
+  color: #fff;
+  background: #1AAD19;
+}
+
+.dt-num, .flex {
+  display: flex;
+}
+
+.dt-num input, .flex label {
+  flex: 1;
+}
+
+.modal textarea {
+  position: relative;
+  height: 200rpx;
+  /* 解决在真机上被其它textarea的placeholder遮挡 */
+  z-index: 999;
+}

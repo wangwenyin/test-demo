@@ -1,0 +1,79 @@
+/* pages/user_center/user_center.wxss */
+page {
+  background: #efeff4;
+  font-size: 30rpx
+}
+.user-info {
+  display: flex;
+  background: #fff;
+  padding: 70rpx 40rpx;
+  overflow: hidden
+}
+
+.user-info view:first-child {
+  flex: 1;
+}
+.user-info view:last-child {
+  flex: 3;
+}
+.user-info view:last-child .phone {
+  margin-top: 20rpx
+}
+.user-info view:last-child .username {
+  display: block;
+  color: #3d3d3d;
+  font-size: 32rpx
+}
+
+.user-info view:first-child .upgrade {
+  display: block;
+  margin-top: 20rpx;
+  color: #707070
+}
+
+.user-info .avatar {
+  margin-right: 40rpx
+}
+
+.user-info .avatar open-data {
+  float: left;
+  width: 150rpx;
+  height: 150rpx;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.about {
+  margin-top: 20rpx;
+  padding: 0 40rpx;
+  background: #fff
+}
+
+.about view {
+  height: 120rpx;
+  line-height: 120rpx;
+  border-bottom: 1rpx solid #eee;
+  overflow: hidden
+}
+
+.about view text {
+  float: left;
+  color: #3d3d3d
+}
+
+.about view image {
+  float: right;
+  width: 46rpx;
+  height: 46rpx;
+  margin-top: 37rpx
+}
+
+.logout {
+  height: 88rpx;
+  line-height: 88rpx;
+  margin-top: 40rpx;
+  color: #e94f4f;
+  font-weight: bold;
+  background: #fff;
+  text-align: center
+}

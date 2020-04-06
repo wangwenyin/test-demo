@@ -1,0 +1,462 @@
+// pages/surveyform/surveyform.js
+Page({
+
+  /**
+   * 页面的初始数据
+   */
+  data: {
+    list: [
+      {
+        id: '1',
+        title: '基本信息'
+      },
+      {
+        id: '2',
+        title: '外部环境'
+      },
+      {
+        id: '3',
+        title: '内部状况'
+      },
+      {
+        id: '4',
+        title: '限制情况说明'
+      },
+      {
+        id: '5',
+        title: '签名'
+      }
+    ],
+    usingStatus: [
+      { value: '自用', checked: 'true' },
+      { value: '出租' },
+      { value: '空置' }
+    ],
+    usages: [
+      { value: '住宅', checked: 'true' },
+      { value: '办公' },
+      { value: '商铺' }
+    ],
+    prop_types: [
+      { value: '小区', checked: 'true' },
+      { value: '大院' },
+      { value: '单体楼' }
+    ],
+    maintenances: [
+      { value: '良好', checked: 'true' },
+      { value: '一般' },
+      { value: '较差' }
+    ],
+    daylightings: [
+      { value: '良好', checked: 'true' },
+      { value: '一般' },
+      { value: '较差' }
+    ],
+    roundSupportings: [
+      { value: '商场', checked: 'true' },
+      { value: '学校' },
+      { value: '幼儿园' },
+      { value: '医院' },
+      { value: '邮局' },
+      { value: '银行' },
+      { value: '菜市场' },
+      { value: '超市' },
+      { value: '公园' },
+      { value: '体育设施' }
+    ],
+    landscapes: [
+      { value: '小区公园', checked: 'true' },
+      { value: '望江' },
+      { value: '人工湖' },
+      { value: '山' },
+      { value: '球场' },
+      { value: '泳池' },
+      { value: '无' }
+    ],
+    dtStatus2: [
+      { value: '完好', checked: 'true' },
+      { value: '轻度破损' },
+      { value: '一般破损' },
+      { value: '严重破损' }
+    ],
+    communications: [
+      { value: '网络', checked: 'true' },
+      { value: '有线电视' },
+      { value: '电话' },
+      { value: '完好' }
+    ],
+    pipingGas: [
+      { value: '有', checked: 'true' },
+      { value: '无' },
+      { value: '轻度破损' },
+      { value: '完好' }
+    ],
+    prop_manage: [
+      { value: '防盗门', checked: 'true' },
+      { value: '自动对讲系统' },
+      { value: '可视对讲系统' },
+      { value: '小区监控系统' },
+      { value: '24小时安保' },
+      { value: '无' }
+    ],
+    decorate: [
+      { value: '精装', checked: 'true' },
+      { value: '豪装' },
+      { value: '普通' },
+      { value: '毛坯' }
+    ],
+    outside_wall: [
+      { value: '条形砖', checked: 'true' },
+      { value: '玻璃幕墙' },
+      { value: '水刷石' },
+      { value: '涂料' },
+      { value: '其它' }
+    ],
+    sdStatus: [
+      { value: '明敷', checked: 'true' },
+      { value: '暗敷' },
+      { value: '无' }
+    ],
+    sdStatus2: [
+      { value: '完好', checked: 'true' },
+      { value: '轻度破损' },
+      { value: '一般破损' },
+      { value: '严重破损' }
+    ],
+    xfStatus: [
+      { value: '消防栓', checked: 'true' },
+      { value: '自动喷淋' },
+      { value: '烟感报警' },
+      { value: '无' }
+    ],
+    xfStatus2: [
+      { value: '完好', checked: 'true' },
+      { value: '轻度破损' },
+      { value: '一般破损' },
+      { value: '严重破损' }
+    ],
+    scales2: [
+      { value: '大', checked: 'true' },
+      { value: '较大' },
+      { value: '一般' },
+      { value: '较小' },
+      { value: '小' }
+    ],
+    passengers: [
+      { value: '多', checked: 'true' },
+      { value: '较多' },
+      { value: '一般' },
+      { value: '较少' },
+      { value: '少' }
+    ],
+    distances1: [
+      { value: '近', checked: 'true' },
+      { value: '较近' },
+      { value: '一般' },
+      { value: '较远' },
+      { value: '远' }
+    ],
+    distances2: [
+      { value: '近', checked: 'true' },
+      { value: '较近' },
+      { value: '一般' },
+      { value: '较远' },
+      { value: '远' }
+    ],
+    fdStystems: [
+      { value: '防盗门对进', checked: 'true' },
+      { value: '闭路监控' },
+      { value: '无' }
+    ],
+    fdStystems2: [
+      { value: '正常', checked: 'true' },
+      { value: '破损' },
+      { value: '无法使用' }
+    ],
+    gpsStystems: [
+      { value: '明敷', checked: 'true' },
+      { value: '暗敷' }
+    ],
+    gpsStystems2: [
+      { value: '正常', checked: 'true' },
+      { value: '破损' },
+      { value: '无法使用' }
+    ],
+    gdStystems: [
+      { value: '明敷', checked: 'true' },
+      { value: '暗敷' }
+    ],
+    gdStystems2: [
+      { value: '正常', checked: 'true' },
+      { value: '破损' },
+      { value: '无法使用' }
+    ],
+    zmStystems: [
+      { value: '吊灯', checked: 'true' },
+      { value: '吸顶灯' },
+      { value: '格栅灯' },
+      { value: '日光灯' },
+      { value: '其它' }
+    ],
+    zmStystems2: [
+      { value: '正常', checked: 'true' },
+      { value: '破损' },
+      { value: '无法使用' }
+    ],
+    ktStystems: [
+      { value: '市政集中供应', checked: 'true' },
+      { value: '中央空调' },
+      { value: '独立空调' },
+      { value: '无' }
+    ],
+    ktStystems2: [
+      { value: '正常', checked: 'true' },
+      { value: '破损' },
+      { value: '无法使用' }
+    ],
+    txStystems: [
+      { value: '电话', checked: 'true' },
+      { value: '有线电视' },
+      { value: '网络' },
+      { value: '无' }
+    ],
+    txStystems2: [
+      { value: '正常', checked: 'true' },
+      { value: '破损' },
+      { value: '无法使用' }
+    ],
+    xfStystems: [
+      { value: '消防栓', checked: 'true' },
+      { value: '灭火器' },
+      { value: '自动喷淋' },
+      { value: '烟感报警' }
+    ],
+    xfStystems2: [
+      { value: '正常', checked: 'true' },
+      { value: '破损' },
+      { value: '无法使用' }
+    ],
+    outerWalls: [
+      { value: '清水', checked: 'true' },
+      { value: '刷白' },
+      { value: '壁纸' },
+      { value: '乳胶漆' },
+      { value: '墙面装饰' },
+      { value: '壁橱隔断' },
+      { value: '其它' }
+    ],
+    outerWalls2: [
+      { value: '完好', checked: 'true' },
+      { value: '轻度破损' },
+      { value: '一般破损' },
+      { value: '严重破损' }
+    ],
+    cf_walls: [
+      { value: '刷白', checked: 'true' },
+      { value: '乳胶漆' },
+      { value: '釉面砖' },
+      { value: '其它' }
+    ],
+    wc_walls: [
+      { value: '釉面砖', checked: 'true' },
+      { value: '其它' }
+    ],
+    cf_walls2: [
+      { value: '完好', checked: 'true' },
+      { value: '轻度破损' },
+      { value: '一般破损' },
+      { value: '严重破损' }
+    ],
+    wc_walls2: [
+      { value: '完好', checked: 'true' },
+      { value: '轻度破损' },
+      { value: '一般破损' },
+      { value: '严重破损' }
+    ],
+    ceilings: [
+      { value: '清水', checked: 'true' },
+      { value: '刷白' },
+      { value: '栅格' },
+      { value: '塑板' },
+      { value: '艺术造型' },
+      { value: '抹灰' },
+      { value: '吊顶' },
+      { value: '其它' },
+    ],
+    cf_ceilings: [
+      { value: '刷白', checked: 'true' },
+      { value: '塑板' },
+      { value: '艺术造型' },
+      { value: '吊顶' },
+      { value: '其它' },
+    ],
+    wc_ceilings: [
+      { value: '刷白', checked: 'true' },
+      { value: '塑板' },
+      { value: '艺术造型' },
+      { value: '其它' },
+    ],
+    cf_ceilings2: [
+      { value: '完好', checked: 'true' },
+      { value: '轻度破损' },
+      { value: '一般破损' },
+      { value: '严重破损' }
+    ],
+    wc_ceilings2: [
+      { value: '完好', checked: 'true' },
+      { value: '轻度破损' },
+      { value: '一般破损' },
+      { value: '严重破损' }
+    ],
+    ceilings2: [
+      { value: '完好', checked: 'true' },
+      { value: '轻度破损' },
+      { value: '一般破损' },
+      { value: '严重破损' }
+    ],
+    floors: [
+      { value: '复合地板', checked: 'true' },
+      { value: '地砖' },
+      { value: '石材' },
+      { value: '水泥' },
+      { value: '实木' },
+      { value: '其它' }
+    ],
+    cf_floors: [
+      { value: '复合地板', checked: 'true' },
+      { value: '地砖' },
+      { value: '石材' },
+      { value: '水泥' },
+      { value: '实木' },
+      { value: '其它' }
+    ],
+    wc_floors: [
+      { value: '地砖', checked: 'true' },
+      { value: '大理石' },
+      { value: '其它' }
+    ],
+    cf_floors2: [
+      { value: '完好', checked: 'true' },
+      { value: '轻度破损' },
+      { value: '一般破损' },
+      { value: '严重破损' }
+    ],
+    wc_floors2: [
+      { value: '完好', checked: 'true' },
+      { value: '轻度破损' },
+      { value: '一般破损' },
+      { value: '严重破损' }
+    ],
+    floors2: [
+      { value: '完好', checked: 'true' },
+      { value: '轻度破损' },
+      { value: '一般破损' },
+      { value: '严重破损' }
+    ],
+    out_doors: [
+      { value: '木', checked: 'true' },
+      { value: '防盗门' },
+      { value: '钢' },
+      { value: '铝' },
+      { value: '夹板门' },
+      { value: '其它' }
+    ],
+    out_doors2: [
+      { value: '完好', checked: 'true' },
+      { value: '轻度破损' },
+      { value: '一般破损' },
+      { value: '严重破损' }
+    ],
+    windows: [
+      { value: '木', checked: 'true' },
+      { value: '塑钢' },
+      { value: '铝合金' },
+      { value: '钢' },
+      { value: '彩铝' },
+      { value: '防盗网' },
+      { value: '门窗套' },
+      { value: '其它' }
+    ],
+    windows2: [
+      { value: '完好', checked: 'true' },
+      { value: '轻度破损' },
+      { value: '一般破损' },
+      { value: '严重破损' }
+    ],
+    structures: [
+      { value: '打通双拼', checked: 'true' },
+      { value: '隔断为房中房' },
+      { value: '其它' }
+    ],
+    decorations: [
+      { value: '精装', checked: 'true' },
+      { value: '豪装' },
+      { value: '简装' },
+      { value: '毛坯' }
+    ],
+    selectedId: '1',
+    scroll: true,
+    fixed: false
+  },
+
+  /**
+   * 生命周期函数--监听页面加载
+   */
+  onLoad: function (options) {
+
+  },
+  handleTabChange(e) {
+    this.setData({
+      selectedId: e.detail
+    })
+  },
+
+  /**
+   * 生命周期函数--监听页面初次渲染完成
+   */
+  onReady: function () {
+
+  },
+
+  /**
+   * 生命周期函数--监听页面显示
+   */
+  onShow: function () {
+
+  },
+
+  /**
+   * 生命周期函数--监听页面隐藏
+   */
+  onHide: function () {
+
+  },
+
+  /**
+   * 生命周期函数--监听页面卸载
+   */
+  onUnload: function () {
+
+  },
+
+  /**
+   * 页面相关事件处理函数--监听用户下拉动作
+   */
+  onPullDownRefresh: function () {
+
+  },
+
+  /**
+   * 页面上拉触底事件的处理函数
+   */
+  onReachBottom: function () {
+
+  },
+
+  /**
+   * 用户点击右上角分享
+   */
+  onShareAppMessage: function () {
+
+  }
+})

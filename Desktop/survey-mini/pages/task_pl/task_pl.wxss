@@ -1,0 +1,33 @@
+
+@import "../../styles/list.wxss";
+
+.search-box input {
+	color: #333;
+	font-size: 30rpx
+}
+.noData {
+	margin: 100rpx 0;
+	text-align: center;
+	color: #999;
+	font-size: 28rpx
+}
+
+.item .meta .artists .jd{
+	color: #ff7d27;
+}
+
+.percent{
+	font-size: 34rpx;
+	font-weight: normal;
+	color: #ff7d27;
+  font-family: PingFang-SC-Bold;
+  font-stretch: normal;
+	letter-spacing: 0rpx;
+}
+
+
+
+
+
+
+

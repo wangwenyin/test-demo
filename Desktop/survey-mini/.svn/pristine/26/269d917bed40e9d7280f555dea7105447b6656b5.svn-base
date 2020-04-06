@@ -1,0 +1,118 @@
+// pages/login/login.js
+var app = getApp();
+const { hexMD5 } = require('../../utils/md5.js')
+const { login } = require('../../api.js')
+
+Page({
+
+  /**
+   * 页面的初始数据
+   */
+  data: {
+  },
+
+  // 登录(form)
+  login(e) {
+    const form = e.detail.value
+    const reg = /^1\d{10}$/
+    if (!form.mobile) {
+      wx.showToast({
+        title: '账号不能为空！',
+        icon: 'none'
+      })
+      return
+    } else if (form.mobile.length !== 11 || !reg.test(form.mobile)) {
+      wx.showToast({
+        title: '手机号不正确！',
+        icon: 'none'
+      })
+      return
+    } else if (!form.pw) {
+      wx.showToast({
+        title: '密码不能为空！',
+        icon: 'none'
+      })
+      return
+    }
+    app.globalData.phoneNum = form.mobile
+    form.pw = hexMD5(form.pw)
+    const data = {
+      ...form,
+      type: 'form'
+    }
+    login(data).then(res => {
+      if (res.code === 200) {
+        wx.setStorageSync('wx_token', JSON.stringify(res.data))
+        app.globalData.token = res.data.token
+        app.globalData.isFirstLogin = true
+        wx.showToast({
+          title: res.msg,
+          image: '../images/success.png'
+        })
+        wx.switchTab({
+          url: '/pages/task_pl/task_pl'
+        })
+      } else {
+        wx.showToast({
+          title: res.msg,
+          icon: 'none'
+        })
+      }
+    })
+  },
+  /**
+   * 生命周期函数--监听页面加载
+   */
+  onLoad: function(options) {
+    //this.$wuxToast = app.wux(this).$wuxToast;
+  },
+
+  /**
+   * 生命周期函数--监听页面初次渲染完成
+   */
+  onReady: function() {
+
+  },
+
+  /**
+   * 生命周期函数--监听页面显示
+   */
+  onShow: function() {
+
+  },
+
+  /**
+   * 生命周期函数--监听页面隐藏
+   */
+  onHide: function() {
+
+  },
+
+  /**
+   * 生命周期函数--监听页面卸载
+   */
+  onUnload: function() {
+
+  },
+
+  /**
+   * 页面相关事件处理函数--监听用户下拉动作
+   */
+  onPullDownRefresh: function() {
+
+  },
+
+  /**
+   * 页面上拉触底事件的处理函数
+   */
+  onReachBottom: function() {
+
+  },
+
+  /**
+   * 用户点击右上角分享
+   */
+  onShareAppMessage: function() {
+
+  }
+})

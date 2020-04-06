@@ -1,0 +1,9 @@
+<!--pages/modifyPwd/modifyPwd.wxml-->
+<form class="form" bindsubmit="formSubmit" bindreset="formReset">
+  <input class='phone' name='login_name' type="number" value="{{phoneNum}}" placeholder-class="input-placeholder" placeholder="请输入手机号码" />
+  <input name="new_pwd" password='true' bindinput="checkPwd" placeholder-class="input-placeholder" placeholder="请输入新密码" />
+  <!-- <input name="repeatPwd" password='true' bindinput="checkTwo" placeholder-class="input-placeholder" placeholder="请确认新密码" /> -->
+  <input name="old_pwd" password='true' placeholder-class="input-placeholder" placeholder="请输入旧密码" />
+  <view class='tip' wx:if='{{showTip}}'>{{tip}}</view>
+  <button class='next' formType="submit" type="primary" disabled='{{disabled}}'>完成修改</button>
+</form>

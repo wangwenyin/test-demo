@@ -1,0 +1,80 @@
+import request from '/utils/request.js'
+
+module.exports = {
+  // 用户登录
+  login: data => request('/i/survey/user/login', data, 'GET'),
+  // 任务-查询批量查勘任务信息列表
+  batch_taskList: data => request('/survey/batch/tasks', data, 'GET'),
+  // 根据字典项名称查询数据字典内容(好坏等级)
+  getLevelDictionary: data => request('/dictionary', data, 'GET','好坏等级'),
+  // 根据字典项名称查询数据字典内容(水体情况)
+  getWaterBodyDictionary: data => request('/dictionary', data, 'GET', '水体情况'),
+  // 根据字典项名称查询数据字典内容(小区规模)
+  getXqgmDictionary: data => request('/dictionary', data, 'GET', '小区规模'),
+  // 根据字典项名称查询数据字典内容(新旧程度)
+  getXjcdDictionary: data => request('/dictionary', data, 'GET', '新旧程度'),
+  // 根据字典项名称查询数据字典内容(私密情况)
+  getSmqkDictionary: data => request('/dictionary', data, 'GET', '私密情况'),
+  // 根据字典项名称查询数据字典内容(建筑类型)
+  getJzlxDictionary: data => request('/dictionary', data, 'GET', '建筑类型'),
+  // 根据字典项名称查询数据字典内容(附加空间)
+  getFjkjDictionary: data => request('/dictionary', data, 'GET', '附加空间'),
+  // 根据字典项名称查询数据字典内容(朝向)
+  getCxDictionary: data => request('/dictionary', data, 'GET', '朝向'),
+  // 根据字典项名称查询数据字典内容(户型)
+  getHxDictionary: data => request('/dictionary', data, 'GET', '户型'),
+  // 根据字典项名称查询数据字典内容(户型结构)
+  getHxjgDictionary: data => request('/dictionary', data, 'GET', '户型结构'),
+  // 根据字典项名称查询数据字典内容(门禁情况)
+  getMjqkDictionary: data => request('/dictionary', data, 'GET', '门禁情况'),
+  // 根据字典项名称查询数据字典内容(商业用途细类)
+  getSylxDictionary: data => request('/dictionary', data, 'GET', '商业用途细类'),
+  // 根据字典项名称查询数据字典内容(工业主要产业)
+  getZycyDictionary: data => request('/dictionary', data, 'GET', '工业主要产业'),
+  // 根据字典项名称查询数据字典内容(住宅用途细类)
+  getZzytxlDictionary: data => request('/dictionary', data, 'GET', '住宅用途细类'),
+  // 根据字典项名称查询数据字典内容(住宅相对位置)
+  getZzxdwzDictionary: data => request('/dictionary', data, 'GET', '住宅相对位置'), 
+  // 根据字典项名称查询数据字典内容(商业特殊用途)
+  getSytsytDictionary: data => request('/dictionary', data, 'GET', '商业特殊用途'), 
+  // 根据字典项名称查询数据字典内容(商业临街类型)
+  getSyljlxDictionary: data => request('/dictionary', data, 'GET', '商业临街类型'),
+  // 根据字典项名称查询数据字典内容(商业楼栋相对位置)
+  getSyldxdwzDictionary: data => request('/dictionary', data, 'GET', '商业楼栋相对位置'),
+  // 根据字典项名称查询数据字典内容(工业用途细类)
+  getGyytzlDictionary: data => request('/dictionary', data, 'GET', '工业用途细类'),
+  // 根据字典项名称查询数据字典内容(工业临街类型)
+  getGyljlxDictionary: data => request('/dictionary', data, 'GET', '工业临街类型'),
+  // 根据字典项名称查询数据字典内容(办公相对位置)
+  getBgxdwzDictionary: data => request('/dictionary', data, 'GET', '办公相对位置'),
+  // 根据字典项名称查询数据字典内容(写字楼等级)
+  getXzldjDictionary: data => request('/dictionary', data, 'GET', '写字楼等级'),
+  // 根据字典项名称查询数据字典内容(办公用途细类)
+  getBgytzlDictionary: data => request('/dictionary', data, 'GET', '办公用途细类'),
+  // 根据字典项名称查询数据字典内容(可视景观)
+  getKsjgDictionary: data => request('/dictionary', data, 'GET', '可视景观'),
+  // 根据字典项名称查询数据字典内容(商业户开面数)
+  getSykmsDictionary: data => request('/dictionary', data, 'GET', '商业户开面数'),
+  // 根据字典项名称查询数据字典内容(商铺类型)
+  getSysplxDictionary: data => request('/dictionary', data, 'GET', '商铺类型'),
+  // 根据字典项名称查询数据字典内容(商业户相对位置-批量)
+  getSyplxdwzDictionary: data => request('/dictionary', data, 'GET', '商业户相对位置-批量'),
+  // 根据字典项名称查询数据字典内容(装修情况)
+  getZxqkDictionary: data => request('/dictionary', data, 'GET', '装修情况'),
+  // 根据字典项名称查询数据字典内容(建筑类型)
+  getJzlxDictionary: data => request('/dictionary', data, 'GET', '建筑类型'),
+  // 根据字典项名称查询数据字典内容(成新率)
+  getCxlDictionary: data => request('/dictionary', data, 'GET', '成新率'),
+  // 根据字典项名称查询数据字典内容(房屋结构)
+  getJzjgDictionary: data => request('/dictionary', data, 'GET', '房屋结构'),
+  // 根据字典项名称查询数据字典内容(工业仓储细类)
+  getCflxDictionary: data => request('/dictionary', data, 'GET', '工业仓储细类'),
+  // 根据字典项名称查询数据字典内容(工业产业聚集度)
+  getCyjjdDictionary: data => request('/dictionary', data, 'GET', '工业产业聚集度'),
+  // 根据字典项名称查询数据字典内容(数据来源)
+  getSjlyDictionary: data => request('/dictionary', data, 'GET', '数据来源'),
+  // 根据字典项名称查询数据字典内容(商铺使用现状)
+  getSpsyxzDictionary: data => request('/dictionary', data, 'GET', '商铺使用现状'),
+  // 根据字典项名称查询数据字典内容(商业户相对位置-个案)
+  getSygaxdwzDictionary: data => request('/dictionary', data, 'GET', '商业户相对位置-个案'),
+} 

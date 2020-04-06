@@ -1,0 +1,48 @@
+{
+  "pages": [
+    "pages/login/login",
+    "pages/modifyPwd/modifyPwd",
+    "pages/task_pl/task_pl",
+    "pages/residencesurveyform/residencesurveyform",
+    "pages/my/my",
+    "pages/register/register",
+    "pages/index/index",
+    "pages/logs/logs",
+    "pages/search_index/search_index",
+    "pages/icon/index",
+    "pages/baidu-map/baidu-map",
+    "pages/commercialsurveyform/commercialsurveyform",
+    "pages/handWriting/handWriting"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#fff",
+    "navigationBarTitleText": "",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#8A8A8A",
+    "selectedColor": "#19AD1A",
+    "borderStyle": "black",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/task_pl/task_pl",
+        "text": "查勘任务",
+        "iconPath": "pages/images/ico-pl.png",
+        "selectedIconPath": "pages/images/ico-pl-d.png"
+      },
+      {
+        "pagePath": "pages/my/my",
+        "text": "个人中心",
+        "iconPath": "pages/images/ico-my.png",
+        "selectedIconPath": "pages/images/ico-my-d.png"
+      }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "你的位置信息将用于小程序位置接口的效果展示"
+    }
+  }
+}

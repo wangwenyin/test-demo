@@ -1,0 +1,12 @@
+<!--pages/handWriting/handWriting.wxml-->
+<import src="../../components/handwriting/handwriting.wxml" />
+<view class='handwriting-box'>
+  <view class="handRight">
+    <view class="handTitle">手写板</view>
+  </view>
+  <template is="handwriting"></template>
+  <view class="handBtn">
+    <button catchtap="retDraw" type="primary" class="delBtn">重写</button>
+    <button catchtap="saveImg" type="primary" class="saveBtn">保存</button> 
+  </view>
+</view>

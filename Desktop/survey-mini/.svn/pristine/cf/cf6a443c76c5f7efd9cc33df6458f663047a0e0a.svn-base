@@ -1,0 +1,13 @@
+<!--pages/login/login.wxml-->
+
+<view class='login-container'>
+  <view class="login-icon">
+    <label>房地产税基评估信息查勘系统</label>
+  </view>
+  <view class='title'>登录</view>
+  <form bindsubmit="login" bindreset="formReset">
+    <input name="mobile" type="number" maxlength="11" value='13027905139' placeholder-class="input-placeholder" placeholder="请输入手机号" />
+    <input name="pw" password='true' value='wang7466538' placeholder-class="input-placeholder" placeholder="请输入密码" />
+    <button class='login' form-type="submit" open-type='getUserInfo' type="primary">登录</button>
+  </form>
+</view>

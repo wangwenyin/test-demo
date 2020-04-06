@@ -1,0 +1,3 @@
+/* pages/surveyform/surveyform.wxss */
+@import "../commercialsurveyform/commercialsurveyform.wxss";
+

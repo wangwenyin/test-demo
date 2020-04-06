@@ -1,0 +1,13 @@
+<!--pages/login/login.wxml-->
+
+<view class='login-container'>
+  <view class="login-icon">
+    <label>房地产税基评估信息查勘系统</label>
+  </view>
+  <view class='title'>登录</view>
+  <view class='form'>
+    <input name="username" bindinput="usernameInput" placeholder-class="input-placeholder"  value='user0009'    placeholder="请输入账号" />
+    <input name="password" password='true' bindinput="passwordInput"  value='666666' placeholder-class="input-placeholder" placeholder="请输入密码" />
+    <button class='login' bindtap="login" type="primary">登录</button>
+  </view>
+</view>

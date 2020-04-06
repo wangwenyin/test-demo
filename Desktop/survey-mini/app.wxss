@@ -1,0 +1,9 @@
+@import "components/template/template.wxss";
+
+/* 防止form宽高塌陷（小程序里form默认行内元素） */
+form {
+  display: block 
+}
+
+
+

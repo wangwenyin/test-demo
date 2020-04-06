@@ -1,0 +1,357 @@
+<view class='container'>
+  <view class="line"></view>
+    <button type="default" style='width:30%;margin-left:30rpx;'>异常报告</button>
+    <button class="button-blue">保存数据</button>
+    <button class="button-green">完成提交</button>
+  <view class="line"></view>
+  <form bindsubmit="formSubmit" bindreset="formReset">
+    <view class='base'>
+      <text>基本信息</text>
+    </view>
+    <view class='inputview'>
+      <view class='inputcommon'>
+        <text class="input__title">标的坐落：</text>
+        <input type="text" name='hh' placeholder="请输入坐落" value='{{zzhys_base.hh}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">楼盘名称：</text>
+        <input type="text" name='sjc' placeholder="请输入名称" value='{{zzhys_base.sjc}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">建筑面积：</text>
+        <input type="text" name='sjc' placeholder="请输入建筑面积" value='{{zzhys_base.sjc}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">建筑结构：</text>
+        <input type="text" name='fwxz' placeholder="请输入建筑结构" value='{{zzhys_base.fwxz}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">使用状况：</text>
+        <input type="text" name='hx' placeholder="请输入现状用途" value='{{zzhys_base.hx}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">现状用途：</text>
+        <input type="text" name='hx' placeholder="请输入现状用途" value='{{zzhys_base.hx}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">楼齡：</text>
+        <input type="text" name='jzmj' placeholder="请输入楼齡" value='{{zzhys_base.jzmj}}' />
+      </view>
+
+      <view class='inputcommon'>
+        <text class="input__title">朝向：</text>
+        <input type="text" name='tnjzmj' placeholder="请输入朝向" value='{{zzhys_base.tnjzmj}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">维修保养：</text>
+        <input type="text" name='ftjzmj' placeholder="请输入维修保养" value='{{zzhys_base.ftjzmj}}' />
+      </view>
+
+      <view class='inputcommon'>
+        <text class="input__title">通风采光：</text>
+        <input type="text" name='fttdmj' placeholder="请输入通风采光" value='{{zzhys_base.fttdmj}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">物业类型：</text>
+        <input type="text" name='fttdmj' placeholder="请输入物业类型" value='{{zzhys_base.fttdmj}}' />
+      </view>
+    </view>
+    <view class='base'>
+      <text>楼层</text>
+    </view>
+    <view class='inputview'>
+      <view class='inputcommon'>
+        <text class="input__title">总层： </text>
+        <input type="text" placeholder="请输入总层" name='hxbj_f' value='{{zzhys_factor.hxbj_f}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">所在层： </text>
+        <input type="text" placeholder="请输入所在层" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+    </view>
+    <view class='base'>
+      <text>户型结构</text>
+    </view>
+    <view class='inputview'>
+      <view class='inputcommon'>
+        <text class="input__title">房： </text>
+        <input type="text" placeholder="请输入房" name='hxbj_f' value='{{zzhys_factor.hxbj_f}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">厅： </text>
+        <input type="text" placeholder="请输入厅" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">厨： </text>
+        <input type="text" placeholder="请输入厨" name='hxbj_w' value='{{zzhys_factor.hxbj_w}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">卫： </text>
+        <input type="text" placeholder="请输入卫" name='hxbj_yt' value='{{zzhys_factor.hxbj_yt}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">阳： </text>
+        <input type="text" placeholder="请输入阳台" name='hxbj_yt' value='{{zzhys_factor.hxbj_yt}}' />
+      </view>
+    </view>
+    <view class='base'>
+      <text>四至</text>
+    </view>
+    <view class='inputview'>
+      <view class='inputcommon'>
+        <text class="input__title">东： </text>
+        <input type="text" placeholder="请输入东" name='hxbj_f' value='{{zzhys_factor.hxbj_f}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">西： </text>
+        <input type="text" placeholder="请输入西" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">南： </text>
+        <input type="text" placeholder="请输入南" name='hxbj_w' value='{{zzhys_factor.hxbj_w}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">北： </text>
+        <input type="text" placeholder="请输入北" name='hxbj_yt' value='{{zzhys_factor.hxbj_yt}}' />
+      </view>
+    </view>
+    
+
+
+    <view class='base'>
+      <text>外部环境</text>
+    </view>
+    <view class='inputview'>
+      <view class='inputcommon'>
+        <text class="input__title">景观：</text>
+        <input type="text" name='hh' placeholder="请输入景观" value='{{zzhys_base.hh}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">小区配套：</text>
+        <input type="text" name='sjc' placeholder="请输入小区配套" value='{{zzhys_base.sjc}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">通讯：</text>
+        <input type="text" name='sjc' placeholder="请输入通讯" value='{{zzhys_base.sjc}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">管道燃气：</text>
+        <input type="text" name='fwxz' placeholder="请输入管道燃气" value='{{zzhys_base.fwxz}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">物业管理：</text>
+        <input type="text" name='hx' placeholder="请输入物业管理" value='{{zzhys_base.hx}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">周边配套：</text>
+        <input type="text" name='jzmj' placeholder="请输入周边配套" value='{{zzhys_base.jzmj}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">物业外墙：</text>
+        <input type="text" name='tnjzmj' placeholder="请输入物业外墙" value='{{zzhys_base.tnjzmj}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">装修状况：</text>
+        <input type="text" name='ftjzmj' placeholder="请输入装修状况" value='{{zzhys_base.ftjzmj}}' />
+      </view>
+    </view>
+    <view class='base'>
+      <text>公交线路</text>
+    </view>
+    <view class='inputview'>
+      <view class='tt'>
+        <textarea style='width:750rpx' name='nbptss' placeholder="请输入公交线路" value='{{data.nbptss}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">公交总数： </text>
+        <input type="text" placeholder="请输入公交总数" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">步行距离： </text>
+        <input type="text" placeholder="请输入步行距离" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+    </view>
+    <view class='base'>
+      <text>地铁线路</text>
+    </view>
+    <view class='inputview'>
+      <view class='inputcommon'>
+        <text class="input__title">地铁站名： </text>
+        <input type="text" placeholder="请输入地铁站名" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">步行距离： </text>
+        <input type="text" placeholder="请输入步行距离" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+    </view>
+    <view class='base' >
+      <text>物业设施及管理</text>
+    </view>
+    <view class='inputview'>
+      <view class='inputcommon'>
+        <text class="input__title">客梯总数： </text>
+        <input type="text" placeholder="请输入客梯总数" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">货梯总数： </text>
+        <input type="text" placeholder="请输入货梯总数：" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">每层户数： </text>
+        <input type="text" placeholder="请输入每层户数" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">电梯破损： </text>
+        <input type="text" placeholder="请输入电梯破损" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">水电安装： </text>
+        <input type="text" placeholder="请输入水电安装" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">水电破损： </text>
+        <input type="text" placeholder="请输入水电破损" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">消防类型： </text>
+        <input type="text" placeholder="请输入消防类型" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">消防破损： </text>
+        <input type="text" placeholder="请输入消防破损" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+    </view>
+    <view class='base'>
+      <text>楼梯间</text>
+    </view>
+    <view class='inputview'>
+      <view class='inputcommon'>
+        <text class="input__title">地面： </text>
+        <input type="text" placeholder="请输入地面" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">墙面： </text>
+        <input type="text" placeholder="请输入墙面" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">天花： </text>
+        <input type="text" placeholder="请输入天花" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">其他： </text>
+        <input type="text" placeholder="请输入其他" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+    </view>
+    <view class='base'>
+      <text>公共通道</text>
+    </view>
+    <view class='inputview'>
+      <view class='inputcommon'>
+        <text class="input__title">地面： </text>
+        <input type="text" placeholder="请输入地面" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">墙面： </text>
+        <input type="text" placeholder="请输入墙面" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">天花： </text>
+        <input type="text" placeholder="请输入天花" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">其他： </text>
+        <input type="text" placeholder="请输入步行其他" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+    </view>
+    <view class='base'>
+      <text>客厅房间</text>
+    </view>
+    <view class='inputview'>
+      <view class='inputcommon'>
+        <text class="input__title">地面： </text>
+        <input type="text" placeholder="请输入地面" name='hxbj_f' value='{{zzhys_factor.hxbj_f}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">使用现状： </text>
+        <input type="text" placeholder="请输入使用现状" name='hxbj_f' value='{{zzhys_factor.hxbj_f}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">墙面： </text>
+        <input type="text" placeholder="请输入墙面" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">使用现状： </text>
+        <input type="text" placeholder="请输入使用现状" name='hxbj_f' value='{{zzhys_factor.hxbj_f}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">天花： </text>
+        <input type="text" placeholder="请输入天花" name='hxbj_w' value='{{zzhys_factor.hxbj_w}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">使用现状： </text>
+        <input type="text" placeholder="请输入使用现状" name='hxbj_f' value='{{zzhys_factor.hxbj_f}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">门： </text>
+        <input type="text" placeholder="请输入门" name='hxbj_yt' value='{{zzhys_factor.hxbj_yt}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">使用现状： </text>
+        <input type="text" placeholder="请输入使用现状" name='hxbj_f' value='{{zzhys_factor.hxbj_f}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">窗： </text>
+        <input type="text" placeholder="请输入窗" name='hxbj_yt' value='{{zzhys_factor.hxbj_yt}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">使用现状： </text>
+        <input type="text" placeholder="请输入使用现状" name='hxbj_f' value='{{zzhys_factor.hxbj_f}}' />
+      </view>
+    </view>
+    <view class='base'>
+      <text>厨房</text>
+    </view>
+    <view class='inputview'>
+      <view class='inputcommon'>
+        <text class="input__title">地面： </text>
+        <input type="text" placeholder="请输入地面" name='hxbj_f' value='{{zzhys_factor.hxbj_f}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">使用现状： </text>
+        <input type="text" placeholder="请输入使用现状" name='hxbj_f' value='{{zzhys_factor.hxbj_f}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">墙面： </text>
+        <input type="text" placeholder="请输入墙面" name='hxbj_t' value='{{zzhys_factor.hxbj_t}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">使用现状： </text>
+        <input type="text" placeholder="请输入使用现状" name='hxbj_f' value='{{zzhys_factor.hxbj_f}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">天花： </text>
+        <input type="text" placeholder="请输入天花" name='hxbj_w' value='{{zzhys_factor.hxbj_w}}' />
+      </view>
+      <view class='inputcommon'>
+        <text class="input__title">使用现状： </text>
+        <input type="text" placeholder="请输入使用现状" name='hxbj_f' value='{{zzhys_factor.hxbj_f}}' />
+      </view>
+    </view>
+    <view class='base'>
+      <text>阳台</text>
+    </view>
+    <view class='inputview'>
+      <view class='inputcommon'>
+        <text class="input__title">使用现状： </text>
+        <input type="text" placeholder="请输入使用现状" name='hxbj_f' value='{{zzhys_factor.hxbj_f}}' />
+      </view>
+    </view>
+    <view style='width:100%;margin-top:60rpx;height:90rpx'>
+    </view>
+    <!--  <button class="button-next" formType="submit">下一步</button> -->
+    <view class="detail-nav">
+      <button type="default" bindtap="clearInput">清空</button>
+      <button class="button-next" formType="submit">下一步</button>
+    </view>
+  </form>
+</view>

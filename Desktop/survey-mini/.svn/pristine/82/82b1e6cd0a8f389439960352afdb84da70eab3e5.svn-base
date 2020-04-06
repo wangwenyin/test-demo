@@ -1,0 +1,32 @@
+<view class='container'>
+  <view class='search-box'>
+    <view class="section">
+      <icon class="searchcion" size='20' type='search'></icon>
+      <input confirm-type="search" placeholder="请输入物业名称" placeholder-class="input-placeholder" bindinput="bindKeyInput" bindconfirm="searchTask"/>
+    </view>
+    <button class="search" bindtap="searchTask">查询</button>
+  </view>
+  <view class="line"></view>
+  <view>
+    <view wx:if="{{taskList.length}}" wx:for="{{taskList}}" wx:key="{{item.id}}" data-item="{{item}}" bindtap='clickTask' class='page-body'>
+      <view class='item'>
+        <view class='meta'>
+          <view class='artists'>
+            <text>任务编号：</text>
+            <text style='color:#3d3d3d'>{{item.task_id}}</text>
+            <text style="margin-left: 320rpx; color: {{ item.status === 1 ? '#FFA042' : (item.status === 2 ? '#1AAD19' : 'red') }}">{{item.status === 1 ? '待查勘' : (item.status === 2 ? '查勘中' : '重勘中')}}</text>
+          </view>
+          <text class='title'>{{item.property_name}}</text>
+          <view class='artists'>
+            <text>截止时间：</text>
+            <text style='color:#3d3d3d'>{{item.finish_date}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view wx:if="{{!taskList.length && isSearch}}" class="noData">暂无数据</view>
+    <view class="loading" hidden="{{!loadMore}}">正在载入更多...</view>
+    <view class="loading complete" hidden="{{!noMoreData}}">没有更多数据了</view>
+  </view>
+</view>
+

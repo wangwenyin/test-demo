@@ -1,0 +1,28 @@
+/* pages/surveyform/surveyform.wxss */
+@import "../../styles/edit.wxss";
+.container{
+   height: 100%;
+  /*  overflow: hidden */
+}
+.line {
+  width: 90%;
+  height: 1rpx;
+  display: inline-block;
+  margin: 20rpx 0rpx 20rpx 40rpx ;
+  background-color:  #eee;
+  text-align: center;
+}
+
+.button-blue {
+  background-color: #6295C8; /* 蓝色 */
+  width:30%;
+  margin-top:-80rpx;
+  color: white;
+}
+.button-green {
+  background-color: #8BC34A;
+  width:30%;
+  margin-right:30rpx;
+  margin-top:-80rpx;
+  color: white;
+}

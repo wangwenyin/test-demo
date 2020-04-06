@@ -1,0 +1,702 @@
+<!--pages/surveyview/surveyview.wxml-->
+<view class='container'>
+  <form bindsubmit="formSubmit" bindreset="formReset">
+    <view class="control">
+      <button type="default">发送消息</button>
+      <button class="button-blue" data-index='1' form-type="submit">保存数据</button>
+      <button type="primary" data-index='2' form-type="submit">完成提交</button>
+    </view>
+    <zan-tab
+      scroll="{{ scroll }}"
+      list="{{ list }}"
+      selected-id="{{ selectedId }}"
+      height="{{ height }}"
+      fixed="{{ fixed }}"
+      bindtabchange="handleTabChange"
+    />
+    <view hidden="{{selectedId !== '1'}}"> 
+      <view class='section'>
+        <view class='item'>
+          <view><text class="required">*</text>房产名称</view>
+          <input type="text" name='fdcmc' placeholder="请输入房产名称" value='{{zzhys_base.hh}}' />
+        </view>
+        <view class='item'>
+          <view><text class="required">*</text>权证编号</view>
+          <input type="text" name='qzbh' placeholder="请输入权证编号" value='{{zzhys_base.sjc}}' />
+        </view>
+        <view class='item'>
+          <view><text class="required">*</text>房产位置</view>
+          <input type="text" name='fdcwz' placeholder="请输入房产位置" value='{{zzhys_base.sjc}}' />
+        </view>
+        <view class='item'>
+          <view><text class="required">*</text>使用现状</view>
+          <radio-group class="flex" name='syzk' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{usingStatus}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view><text class="required">*</text>租金水平</view>
+          <input type="text" name='zjsp' placeholder="元/㎡月" value='{{zzhys_base.jzmj}}' />
+        </view>
+        <view class='item'>
+          <view><text class="required">*</text>现状用途</view>
+          <input type="text" name='xzyt' placeholder="请输入现状用途" value='{{zzhys_base.tnjzmj}}' />
+        </view>
+        <view class='item'>
+          <view>证载用途</view>
+          <input type="text" name='zzyt' placeholder="请输入证载用途" value='{{zzhys_base.hx}}' />
+        </view>
+        <view class='item'>
+          <view>建筑结构</view>
+          <input type="text" name='jzjg' placeholder="请输入建筑结构" value='{{zzhys_base.hx}}' />
+        </view>
+        <view class='item'>
+          <view>评估楼层</view>
+          <input type="text" name='pglc' placeholder="请输入评估楼层" value='{{zzhys_base.ftjzmj}}' />
+        </view>
+        <view class='item'>
+          <view>临街状况</view>
+          <radio-group class="flex" name='ljzk' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{streets}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>四至</view>
+          <input type="text" name='ftjzmj' placeholder="东西南北" value='{{zzhys_base.ftjzmj}}' />
+        </view>
+      </view>
+    </view>
+    <view hidden="{{selectedId !== '2'}}">
+      <view class="box">
+        <view class='title'>商业繁华度</view>
+        <view class='item'>
+          <view>距商业中心</view>
+          <radio-group class="flex" name='syfhd_jsyzx' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{howFars}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>规模</view>
+          <radio-group class="flex" name='syfhd_gm' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{scales1}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>客流量</view>
+          <radio-group class="flex" name='syfhd_kll' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{passengers}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>主要商业</view>
+          <input type="text" name='syfhd_zysy' placeholder="请输入主要商业" value='{{zzhys_base.fwxz}}' />
+        </view>
+        <view class='title'>办公集聚度</view>
+        <view class='item'>
+          <view>距商务区距离</view>
+          <radio-group class="flex" name='bgjjd_swjl' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{distances1}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>距政府部门</view>
+          <radio-group class="flex" name='bgjjd_zfbm' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{distances2}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>规模</view>
+          <radio-group class="flex" name='bgjjd_gm' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{scales2}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>主要写字楼</view>
+          <input type="text" name='bgjjd_zyxzl' placeholder="请输入主要写字楼" value='{{zzhys_base.fwxz}}' />
+        </view>
+        <view class='title'>交通便捷度</view>
+        <view class='item'>
+          <view>公交线路</view>
+          <input type="text" name='gjxl_xlm' placeholder="请输入线路名" value='{{zzhys_base.hh}}' />
+        </view>
+        <view class='item'>
+          <view>地铁站</view>
+          <input type="text" name='dtz_jl' placeholder="请输入距离" value='{{zzhys_base.sjc}}' />
+        </view>
+        <view class='item'>
+          <view>火车站</view>
+          <input type="text" name='hcz_jl' placeholder="请输入距离" value='{{zzhys_base.sjc}}' />
+        </view>
+        <view class='item'>
+          <view>飞机场</view>
+          <input type="text" name='fjc_jl' placeholder="请输入距离" value='{{zzhys_base.sjc}}' />
+        </view>
+        <view class='item'>
+          <view>主要交通干线</view>
+          <input type="text" name='zyjtgx' placeholder="请输入名称/距离" value='{{zzhys_base.fwxz}}' />
+        </view>
+        <view class='title'>公共设施</view>
+        <view class='item'>
+          <view>银行</view>
+          <input type="text" name='ggss_yh' placeholder="请输入银行" value='{{zzhys_base.hh}}' />
+        </view>
+        <view class='item'>
+          <view>超市</view>
+          <input type="text" name='ggss_cs' placeholder="请输入超市" value='{{zzhys_base.sjc}}' />
+        </view>
+        <view class='item'>
+          <view>餐饮</view>
+          <input type="text" name='ggss_cy' placeholder="请输入餐饮" value='{{zzhys_base.sjc}}' />
+        </view>
+        <view class='item'>
+          <view>医院</view>
+          <input type="text" name='ggss_yy' placeholder="请输入医院" value='{{zzhys_base.fwxz}}' />
+        </view>
+        <view class='title'>建筑物规模</view>
+        <view class='item'>
+          <view>整体概况</view>
+          <input type="text" name='jzwgm_ztgk' placeholder="请输入整体概况" value='{{zzhys_base.hh}}' />
+        </view>
+        <view class='item'>
+          <view>裙楼(层数)</view>
+          <input type="text" name='jzwgm_ql_cs' placeholder="请输入层数" value='{{zzhys_base.sjc}}' />
+        </view>
+        <view class='item'>
+          <view>裙楼(用途)</view>
+          <input type="text" name='jzwgm_ql_yt' placeholder="请输入用途" value='{{zzhys_base.sjc}}' />
+        </view>
+        <view class='item'>
+          <view>塔楼(层数)</view>
+          <input type="text" name='jzwgm_tl_cs' placeholder="请输入层数" value='{{zzhys_base.sjc}}' />
+        </view>
+        <view class='item'>
+          <view>塔楼(用途)</view>
+          <input type="text" name='jzwgm_tl_yt' placeholder="请输入用途" value='{{zzhys_base.sjc}}' />
+        </view>
+        <view class='item'>
+          <view>地下室(层数)</view>
+          <input type="text" name='jzwgm_dxs_cs' placeholder="请输入层数" value='{{zzhys_base.sjc}}' />
+        </view>
+        <view class='item'>
+          <view>地下室(用途)</view>
+          <input type="text" name='jzwgm_dxs_yt' placeholder="请输入用途" value='{{zzhys_base.sjc}}' />
+        </view>
+      </view>
+    </view>
+    <view hidden="{{selectedId !== '3'}}">
+      <view class='title'>设备设施</view>
+      <view class='sub_title'>1.基本状况</view>
+      <view class='box'>
+        <view class='item'>
+          <view>电梯 </view>
+          <view class="dt">
+            <view>1.自动扶梯：</view>
+            <radio-group class="flex" name='sbss_ywzdft' bindchange="zdft_radioChange">
+              <label class="radio" wx:key="{{index}}" wx:for="{{isornot}}">
+                <radio value="{{item.value}}" checked="{{item.checked}}" />
+                {{item.value}}
+              </label>
+            </radio-group>
+          </view>
+          <view wx:if="{{zdft_value === '有'}}" class="dt-num">
+            <input name="sbss_zdft_bs" type="number" placeholder="部" /><input name="sbss_zdft_cs" type="number" placeholder="层" />
+          </view>
+          <view class="dt">
+            <view>2.客梯：</view>
+            <radio-group class="flex" name='sbss_ywkt' bindchange="kt_radioChange">
+              <label class="radio" wx:key="{{index}}" wx:for="{{isornot}}">
+                <radio value="{{item.value}}" checked="{{item.checked}}" />
+                {{item.value}}
+              </label>
+            </radio-group>
+          </view>
+          <view wx:if="{{kt_value === '有'}}" class="dt-num">
+            <input name="sbss_kt_bs" type="number" placeholder="部" /><input name="sbss_kt_cs" type="number" placeholder="层" />
+          </view>
+          <view class="dt">
+            <view>3.货梯：</view>
+            <radio-group class="flex" name='sbss_ywht' bindchange="ht_radioChange">
+              <label class="radio" wx:key="{{index}}" wx:for="{{isornot}}">
+                <radio value="{{item.value}}" checked="{{item.checked}}" />
+                {{item.value}}
+              </label>
+            </radio-group>
+          </view>
+          <view wx:if="{{ht_value === '有'}}" class="dt-num">
+            <input name="sbss_ht_bs" type="number" placeholder="部" /><input name="sbss_ht_cs" type="number" placeholder="层" />
+          </view>
+        </view>
+        <view class='item'>
+          <view>防盗系统 </view>
+          <radio-group class="flex" name='sbss_fdxt' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{fdStystems}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>给排水系统 </view>
+          <radio-group class="flex" name='sbss_jpsxt' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{gpsStystems}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>供电系统 </view>
+          <radio-group class="flex" name='sbss_gdxt' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{gdStystems}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>照明系统 </view>
+          <radio-group name='sbss_zmxt' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{zmStystems}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>空调系统 </view>
+          <radio-group name='sbss_ktxt' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{ktStystems}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>通讯系统 </view>
+          <checkbox-group name='sbss_txxt' bindchange="checkboxChange">
+            <label class="checkbox" wx:key="{{index}}" wx:for="{{txStystems}}">
+              <checkbox value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </checkbox-group>
+        </view>
+        <view class='item'>
+          <view>消防系统 </view>
+          <checkbox-group name='sbss_xfxt' bindchange="checkboxChange">
+            <label class="checkbox" wx:key="{{index}}" wx:for="{{xfStystems}}">
+              <checkbox value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </checkbox-group>
+        </view>
+      </view>
+      <view class='sub_title'>2.使用现状</view>
+      <view class='box'>
+        <view class='item'>
+          <view>电梯 </view>
+          <view class="dt">
+            <view>1.自动扶梯：</view>
+            <radio-group class="flex" name='sbss_zdft_syxz'>
+              <label class="radio" wx:key="{{index}}" wx:for="{{dt_status}}">
+                <radio value="{{item.value}}" checked="{{item.checked}}" />
+                {{item.value}}
+              </label>
+            </radio-group>
+          </view>
+          <view class="dt">
+            <view>2.客梯：</view>
+            <radio-group class="flex" name='sbss_kt_syxz'>
+              <label class="radio" wx:key="{{index}}" wx:for="{{dt_status}}">
+                <radio value="{{item.value}}" checked="{{item.checked}}" />
+                {{item.value}}
+              </label>
+            </radio-group>
+          </view>
+          <view class="dt">
+            <view>3.货梯：</view>
+            <radio-group class="flex" name='sbss_ht_syxz'>
+              <label class="radio" wx:key="{{index}}" wx:for="{{dt_status}}">
+                <radio value="{{item.value}}" checked="{{item.checked}}" />
+                {{item.value}}
+              </label>
+            </radio-group>
+          </view>
+        </view>
+        <view class='item'>
+          <view>防盗系统 </view>
+          <radio-group class="flex" name='sbss_fdxt_syxz' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{fdStystems2}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>防盗系统 </view>
+          <radio-group class="flex" name='sbss_fdxt_syxz' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{fdStystems2}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>给排水系统 </view>
+          <radio-group class="flex" name='sbss_jpsxt_syxz' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{gpsStystems2}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>供电系统 </view>
+          <radio-group class="flex" name='sbss_gdxt_syxz' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{gdStystems2}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>照明系统 </view>
+          <radio-group class="flex" name='sbss_zmxt_syxz' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{zmStystems2}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>空调系统 </view>
+          <radio-group class="flex" name='sbss_ktxt_syxz' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{ktStystems2}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>通讯系统 </view>
+          <checkbox-group class="flex" name='sbss_txxt_syxz' bindchange="checkboxChange">
+            <label class="checkbox" wx:key="{{index}}" wx:for="{{txStystems2}}">
+              <checkbox value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </checkbox-group>
+        </view>
+        <view class='item'>
+          <view>消防系统 </view>
+          <checkbox-group class="flex" name='sbss_xfxt_syxz' bindchange="checkboxChange">
+            <label class="checkbox" wx:key="{{index}}" wx:for="{{xfStystems2}}">
+              <checkbox value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </checkbox-group>
+        </view>
+      </view>
+      <view class='title'>装修情况</view>
+      <view class='sub_title'>1.基本状况</view>
+      <view class='box'>
+        <view class='item'>
+          <view>外墙 </view>
+          <checkbox-group name='zxqk_wq' bindchange="checkboxChange">
+            <label class="checkbox" wx:key="{{index}}" wx:for="{{outerWalls}}">
+              <checkbox value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </checkbox-group>
+        </view>
+        <view class='item'>
+          <view>内墙 </view>
+          <checkbox-group name='zxqk_nq' bindchange="checkboxChange">
+            <label class="checkbox" wx:key="{{index}}" wx:for="{{innerWalls}}">
+              <checkbox value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </checkbox-group>
+        </view>
+        <view class='item'>
+          <view>天花 </view>
+          <checkbox-group name='zxqk_th' bindchange="checkboxChange">
+            <label class="checkbox" wx:key="{{index}}" wx:for="{{ceilings}}">
+              <checkbox value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </checkbox-group>
+        </view>
+        <view class='item'>
+          <view>房间地面 </view>
+          <radio-group name='zxqk_fjdm' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{rooms}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>楼梯地面 </view>
+          <radio-group name='zxqk_ltdm' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{stairs}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>外门 </view>
+          <radio-group name='zxqk_wm' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{out_doors}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>内门 </view>
+          <radio-group name='zxqk_nm' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{in_doors}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>窗 </view>
+          <radio-group name='zxqk_c' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{windows}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        
+      </view>
+      <view class='sub_title'>2.使用现状</view>
+      <view class='box'>
+        <view class='item'>
+          <view>外墙 </view>
+          <radio-group name='zxqk_wq_syxz' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{outerWalls2}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>内墙 </view>
+          <radio-group name='zxqk_nq_syxz' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{innerWalls2}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>天花 </view>
+          <radio-group name='zxqk_th_syxz' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{ceilings2}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>房间地面 </view>
+          <radio-group name='zxqk_fjdm_qt' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{rooms2}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>楼梯地面 </view>
+          <radio-group name='zxqk_ltdm_syxz' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{stairs2}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>外门 </view>
+          <radio-group name='zxqk_wm_syxz' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{out_doors2}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>内门 </view>
+          <radio-group name='zxqk_nm_syxz' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{in_doors2}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>窗 </view>
+          <radio-group name='zxqk_c_syxz' bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{windows2}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='reference' >
+          <view style="margin-bottom: 20rpx; font-size: 30rpx">备注:</view>
+          <textarea name='bz' placeholder="请输入备注" />
+        </view>
+      </view>
+    </view>
+    <view hidden="{{selectedId !== '4'}}">
+      <view class='box'>
+        <view class='item'>
+          <view>是否明显改变原结构：</view>
+          <radio-group class="flex" bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{structures}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='item'>
+          <view>装修情况：</view>
+          <radio-group class="flex" bindchange="radioChange">
+            <label class="radio" wx:key="{{index}}" wx:for="{{decorations}}">
+              <radio value="{{item.value}}" checked="{{item.checked}}" />
+              {{item.value}}
+            </label>
+          </radio-group>
+        </view>
+        <view class='reference' >
+          <view style="margin-bottom: 20rpx; font-size: 30rpx">其它情况：</view>
+          <textarea focus placeholder="请输入其它情况" />
+        </view>
+      </view>
+    </view>
+    <view hidden="{{selectedId !== '5'}}" style="padding: 10rpx">
+      <view class="upload">
+        <view>物业位置图：</view>
+        <button bindtap='uploadFile' data-index='1'>上传</button>
+      </view>
+      <view wx:if="{{filePathList1.length}}" class="img-box">
+        <image wx:for="{{filePathList1}}" wx:key="{{index}}" src="{{item}}"></image>
+      </view>
+      <view class="upload">
+        <view>权属证明资料：</view>
+        <button bindtap='uploadFile' data-index='2'>上传</button>
+      </view>
+      <view wx:if="{{filePathList2.length}}" class="img-box">
+        <image wx:for="{{filePathList2}}" wx:key="{{index}}" src="{{item}}"></image>
+      </view>
+      <view style="padding-top: 20rpx">
+        <view>估价对象照片：</view>
+        <view class="upload-box">
+          <text>外部：</text>
+          <button bindtap='uploadFile' data-index='3'>上传</button>
+        </view>
+        <view wx:if="{{filePathList3.length}}" class="img-box">
+          <image wx:for="{{filePathList3}}" wx:key="{{index}}" src="{{item}}"></image>
+        </view>
+        <view class="upload-box">
+          <text>外立面：</text>
+          <button bindtap='uploadFile' data-index='4'>上传</button>
+        </view>
+        <view wx:if="{{filePathList4.length}}" class="img-box">
+          <image wx:for="{{filePathList4}}" wx:key="{{index}}" src="{{item}}"></image>
+        </view>
+        <view class="upload-box">
+          <text>景观：</text>
+          <button bindtap='uploadFile' data-index='5'>上传</button>
+        </view>
+        <view wx:if="{{filePathList5.length}}" class="img-box">
+          <image wx:for="{{filePathList5}}" wx:key="{{index}}" src="{{item}}"></image>
+        </view>
+        <view class="upload-box">
+          <text>入户大堂：</text>
+          <button bindtap='uploadFile' data-index='6'>上传</button>
+        </view>
+        <view wx:if="{{filePathList6.length}}" class="img-box">
+          <image wx:for="{{filePathList6}}" wx:key="{{index}}" src="{{item}}"></image>
+        </view>
+        <view class="upload-box">
+          <text>入户门：</text>
+          <button bindtap='uploadFile' data-index='7'>上传</button>
+        </view>
+        <view wx:if="{{filePathList7.length}}" class="img-box">
+          <image wx:for="{{filePathList7}}" wx:key="{{index}}" src="{{item}}"></image>
+        </view>
+        <view class="upload-box">
+          <text>电梯：</text>
+          <button bindtap='uploadFile' data-index='8'>上传</button>
+        </view>
+        <view wx:if="{{filePathList8.length}}" class="img-box">
+          <image wx:for="{{filePathList8}}" wx:key="{{index}}" src="{{item}}"></image>
+        </view>
+        <view class="upload-box">
+          <text>厨房：</text>
+          <button bindtap='uploadFile' data-index='9'>上传</button>
+        </view>
+        <view wx:if="{{filePathList9.length}}" class="img-box">
+          <image wx:for="{{filePathList9}}" wx:key="{{index}}" src="{{item}}"></image>
+        </view>
+        <view class="upload-box">
+          <text>客厅：</text>
+          <button bindtap='uploadFile' data-index='10'>上传</button>
+        </view>
+        <view wx:if="{{filePathList10.length}}" class="img-box">
+          <image wx:for="{{filePathList10}}" wx:key="{{index}}" src="{{item}}"></image>
+        </view>
+      </view>
+    </view>
+    <view hidden="{{selectedId !== '6'}}">
+      <view class='section'>
+        <view class='item'>
+          <view><text class="required">*</text>领勘人</view>
+          <input type="text" name='lcr' placeholder="请输入领勘人" value='{{zzhys_base.hh}}' />
+        </view>
+        <view class='item'>
+          <view><text class="required">*</text>查勘人</view>
+          <input type="text" name='ckr' placeholder="请输入领勘人" value='{{zzhys_base.hh}}' />
+        </view>
+        <view class='item'>
+          <view><text class="required">*</text>联系方式</view>
+          <input type="text" name='dzlxfs' placeholder="请输入联系方式" value='{{zzhys_base.hh}}' />
+        </view>
+        <view class='item'>
+          <view><text class="required">*</text>查勘日期</view>
+          <input type="text" name='ckrq' placeholder="请输入查勘日期" value='{{zzhys_base.hh}}' />
+        </view>
+      </view>
+    </view>
+  </form>
+</view>
+
