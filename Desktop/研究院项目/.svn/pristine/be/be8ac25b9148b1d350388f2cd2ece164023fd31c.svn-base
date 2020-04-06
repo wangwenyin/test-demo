@@ -1,0 +1,161 @@
+<template>
+  <div>
+    <el-row class="search-container" style="padding: 5px">
+      <el-select v-model="searchOption.logType" style="width:120px;float:left;margin-left:10px;" placeholder="请选择" size="small">
+        <el-option label="登录日志" value="登录日志"/>
+        <el-option label="异常日志" value="异常日志"/>
+        <el-option label="操作日志" value="操作日志"/>
+        <el-option label="数据日志" value="数据日志"/>
+      </el-select>
+      <date-picker :no-default-value="false" style="float:left;margin-left:10px;" />
+      <el-input v-model="searchOption.text" placeholder="请输入查询内容" size="small" style="width:400px;float:left;margin-left:10px;" >
+        <el-select slot="prepend" v-model="searchOption.clause" style="width:120px;" placeholder="请选择">
+          <el-option label="登录名" value="登录名"/>
+          <el-option label="姓名" value="姓名"/>
+          <el-option label="部门" value="部门"/>
+        </el-select>
+        <el-button slot="append" icon="el-icon-search" @click="onBtnLogSearchClick"/>
+      </el-input>
+    </el-row>
+    <div style="margin:10px;">
+      <el-table
+        :data="list"
+        :header-cell-style="changeHeaderStyle"
+        style="width: 100%;"
+        border
+        fit
+        size="small"
+      >
+        <el-table-column
+          label="序号"
+          type="index"
+          width="50"
+          align="center"
+        />
+        <el-table-column type="expand">
+          <template slot-scope="props">
+            <el-form
+              size="mini"
+              label-position="left"
+              inline
+              class="table-expand"
+            >
+              <el-form-item label="超长文本列">
+                <span>{{ props.row.example }}</span>
+              </el-form-item>
+            </el-form>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="XXX"
+          min-width="500"
+          prop="title"
+        />
+        <el-table-column
+          label="超长文本列"
+          min-width="500"
+          prop="example"
+          show-overflow-tooltip
+        />
+      </el-table>
+      <el-row
+        type="flex"
+        justify="center"
+        style="margin-top:5px"
+      >
+        <el-pagination
+          :current-page="listQuery.page"
+          :page-sizes="[10,20,30, 50]"
+          :page-size="listQuery.limit"
+          :total="listQuery.total"
+          background
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="onSizeChange"
+          @current-change="onCurrentChange"
+        />
+      </el-row>
+    </div>
+  </div>
+</template>
+<script>
+import DatePicker from '@/components/DateTimePicker'
+export default {
+  components: { DatePicker },
+  data() {
+    return {
+      searchOption: {
+        logType: '登陆日志',
+        clause: '登录名',
+        text: null
+      },
+      list: [
+        {
+          title: '选择的日志类型不同，表格包含的列不同，检索条件中的选项也不同',
+          example: '超长的内容在行内显示时show-overflow-tooltip，在展开行中显示全文。\r\n超长文本内容中可能存在换行。\r\n从后台读取longTextColumns，其中的列为超长文本列。\r\n例如异常日志中的异常追踪、请求参数、访问链接，操作日志中的访问链接等。'
+        },
+        {
+          title: '列名根据colNames动态生成，检索条件根据filterColumns动态生成'
+        },
+        {
+          title: '例如：'
+        },
+        {
+          title:
+            '　　登录日志包含列：用户名，真实姓名，部门，浏览器，登录IP，登录时间'
+        },
+        {
+          title: '　　登录日志检索列：用户名，真实姓名，部门'
+        },
+        {
+          title: '表格数据和检索条件选项均从后台读取'
+        },
+        {
+          title: '每种日志中只有一列名为date的列，用于按日期检索'
+        },
+        {
+          title: '日志仅可查询，不可修改'
+        },
+        {
+          title: '当窗口太窄时，上方的工具要自适应排成两行'
+        }
+      ],
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0
+      },
+      colNames: [],
+      filterColumns: [],
+      longTextColumns: []
+    }
+  },
+  methods: {
+    onBtnLogSearchClick() {
+
+    },
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    },
+    showChart() {
+      this.isChartVisible = !this.isChartVisible
+    },
+    onCurrentChange() {},
+    onSizeChange() {}
+
+  }
+}
+</script>
+<style lang="scss" scoped>
+.table-expand {
+  font-size: 0;
+}
+.table-expand label {
+  width: 200px;
+  color: #99a9bf;
+}
+.table-expand .el-form-item {
+  margin-right: 0;
+  margin-bottom: 0;
+  white-space: pre-line;
+}
+</style>

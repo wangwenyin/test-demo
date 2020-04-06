@@ -1,0 +1,322 @@
+<template>
+  <div :class="{'app':!detail} ">
+    <div class="margin10">
+      <el-button v-if="!detail" class="btn-topz" size="small" type="text" @click="onDownloadReportClick">下载</el-button>
+      <el-tabs type="card" >
+        <el-tab-pane label="报告信息">
+          <div>
+            <table class="table-report">
+              <tr class="tr">
+                <td class="td">
+                  <span class="normal" >注册房地产估价师</span>
+                </td>
+                <td colspan="3" class="td" >
+                  <el-select v-model="form.appraiser" :multiple-limit="3" multiple placeholder="请选择" style="width:100%">
+                    <el-option v-for="item in appraiserOption" :key="item.login_name" :label="item.real_name" :value="item.login_name"/>
+                  </el-select>
+                </td>
+                <td class="td">
+                  <span class="normal">估价作业日期</span>
+                </td>
+                <td colspan="3" class="td">
+                  <el-date-picker v-model="form.work_start" class="noborder" style="width:150px;" size="small" type="date" value-format="yyyy-MM-dd" placeholder="起始日期" />
+                  <span class="word">至</span>
+                  <el-date-picker v-model="form.work_end" class="noborder" style="width:150px;" size="small" type="date" value-format="yyyy-MM-dd" placeholder="终止日期" />
+                </td>
+              </tr>
+              <tr class="tr">
+                <td :colspan="colSpan1" class="td">
+                  <span class="normal">报告出具日期</span>
+                </td>
+                <td :colspan="colSpan3" class="td">
+                  <el-date-picker v-model="form.report_date" type="date" value-format="yyyy-MM-dd" size="small" placeholder="选择日期"/>
+                </td>
+                <td :colspan="colSpan1" class="td">
+                  <span class="normal">报告有效期</span>
+                </td>
+                <td :colspan="colSpan3" class="td">
+                  <el-date-picker v-model="form.effect_start" class="noborder" style="width:150px;" size="small" type="date" value-format="yyyy-MM-dd" placeholder="起始日期" />
+                  <span class="word">至</span>
+                  <el-date-picker v-model="form.effect_end" class="noborder" style="width:150px;" size="small" type="date" value-format="yyyy-MM-dd" placeholder="终止日期" />
+                </td>
+              </tr>
+              <tr class="tr" >
+                <td :colspan="colSpan1" class="td">
+                  <span class="normal">委托人</span>
+                </td>
+                <td :colspan="colSpan3" class="td">
+                  <el-input v-model="form.client_name" placeholder="请输入委托人"/>
+                </td>
+                <td :colspan="colSpan1" class="td">
+                  <span class="normal">委托人类型</span>
+                </td>
+                <td :colspan="colSpan3" class="td">
+                  <el-select v-model="form.client_type" placeholder="请选择委托人类型" style="width:100%">
+                    <el-option v-for="item in client_typeOption" :key="item" :label="item" :value="item"/>
+                  </el-select>
+                </td>
+              </tr>
+              <tr class="tr" >
+                <td :colspan="colSpan1" class="td">
+                  <span class="normal">委托人地址</span>
+                </td>
+                <td :colspan="colSpan3" class="td">
+                  <el-input v-model="form.address" placeholder="请输入委托人地址"/>
+                </td>
+                <td :colspan="colSpan1" class="td">
+                  <span class="normal">法人</span>
+                </td>
+                <td :colspan="colSpan3" class="td">
+                  <el-input v-model="form.legel_person" size="small" placeholder="请输入法人"/>
+                </td>
+              </tr>
+              <tr class="tr" >
+                <td :colspan="colSpan1" class="td">
+                  <span class="normal">区位状态描述</span>
+                </td>
+                <td :colspan="colSpan7" class="td">
+                  <el-input v-model="form.locate_desc" type="textarea" rows="3" placeholder="请输入区位状态描述"/>
+                </td>
+              </tr>
+              <tr class="tr" >
+                <td :colspan="colSpan1" class="td">
+                  <span class="normal">实物状况描述</span>
+                </td>
+                <td :colspan="colSpan7" class="td">
+                  <el-input v-model="form.entity_desc" type="textarea" rows="3" placeholder="请输入实物状况描述"/>
+                </td>
+              </tr>
+              <tr class="tr" >
+                <td :colspan="colSpan1" class="td">
+                  <span class="normal">权益状况描述</span>
+                </td>
+                <td :colspan="colSpan7" class="td">
+                  <el-input v-model="form.right_desc" type="textarea" rows="3" placeholder="请输入权益状况描述"/>
+                </td>
+              </tr>
+              <tr class="tr" >
+                <td :colspan="colSpan1" class="td">
+                  <span class="normal">调整原因</span>
+                </td>
+                <td :colspan="colSpan7" class="td">
+                  <el-input v-model="form.adjust_reason" type="textarea" rows="3" placeholder="请输入调整原因"/>
+                </td>
+              </tr>
+              <tr class="tr" >
+                <td :colspan="colSpan1" class="td">
+                  <span class="normal">估价方法选择理由</span>
+                </td>
+                <td :colspan="colSpan7" class="td">
+                  <el-input v-model="form.choose_reason" type="textarea" rows="3" placeholder="请输入估价方法选择理由"/>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </el-tab-pane>
+      </el-tabs>
+    </div>
+    <el-row style="margin-top:20px;margin-bottom:20px;">
+      <el-col :span="24">
+        <el-button v-if="editEnabled" size="small" class="btn-right" @click="onSaveReportClick">保存</el-button>
+        <el-button v-if="editEnabled" size="small" class="btn-right" type="primary" @click="onCompleteReportClick">提交</el-button>
+        <el-button v-if="editEnabled" size="small" class="btn-right" type="primary" @click="onPreviousStepClick">上一步</el-button>
+      </el-col>
+    </el-row>
+  </div>
+</template>
+<script>
+import ReportResults from './components/ReportResults'
+import ReportAttachment from './components/ReportAttachment'
+import { getUsers } from '@/api/user'
+import { getDictionary } from '@/api/common'
+import { getReport, saveReport, downloadReport, getTaskInfo } from '@/api/singleapp'
+export default {
+  components: { ReportResults, ReportAttachment },
+  props: {
+    detail: {
+      type: Boolean,
+      default: false
+    }
+  },
+  data() {
+    return {
+      form: {},
+      d_bgxm: false,
+      t_bxnlfx: false,
+      t_fxtsfx: false,
+      taskId: '',
+      editEnabled: true,
+      taskInfo: {},
+      colSpan1: '1',
+      colSpan3: '3',
+      colSpan7: '7',
+      appraiserOption: [],
+      client_typeOption: []
+    }
+  },
+  mounted() {
+    this.getOption()
+    this.getReport()
+    this.getTaskInfo()
+  },
+  methods: {
+    // 获取下拉选项
+    getOption() {
+      getDictionary('委托人类型').then(response => {
+        this.client_typeOption = response.data
+      })
+      // 初始化注册估价师列表 （注意把否改成是）
+      const param = { isCertified: '否', limit: 100, page: 1 }
+      getUsers(param).then(response => {
+        this.appraiserOption = response.data
+      })
+    },
+    // 获取估价报告内容
+    getReport() {
+      this.taskId = this.$route.query.taskId
+      getReport(this.taskId).then(response => {
+        this.form = response.report
+      })
+    },
+    // 获取个案估价任务详情
+    getTaskInfo() {
+      getTaskInfo(this.taskId).then(response => {
+        if (response.code === 200) {
+          this.taskInfo = response.data
+          if (this.taskInfo.status === '任务完成') {
+            this.editEnabled = false
+          }
+        } else {
+          this.$notify({
+            title: '错误',
+            message: response.msg,
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    },
+    // 上一步
+    onPreviousStepClick() {
+      // this.$router.push({ name: 'SingleappNetValue', query: { taskId: this.taskId }})
+      this.$router.push({ name: 'SingleappAdjustment', query: { taskId: this.taskId }})
+    },
+    // 提交
+    onCompleteReportClick() {
+      // 限制非空
+      if (this.form.report_date === null ||
+      this.form.work_start === null ||
+       this.form.work_end === null ||
+       this.form.effect_start === null ||
+       this.form.effect_end === null ||
+       this.form.appraiser.length === 0 ||
+       this.form.client_name === '' ||
+       this.form.client_type === '' ||
+       this.form.address === '' ||
+       this.form.locate_desc === '' ||
+       this.form.entity_desc === '' ||
+       this.form.right_desc === '' ||
+       this.form.adjust_reason === '' ||
+       this.form.choose_reason === ''
+      ) {
+        alert('请把数据填写完整')
+      } else {
+        this.form.submit = true
+        saveReport(this.$route.query.taskId, this.form).then(response => {
+          if (response.code === 200) {
+            this.$message({ message: '保存成功', type: 'success' })
+            this.$router.push({ name: 'SingleappTasks' })
+          } else {
+            alert(response.msg)
+          }
+        })
+      }
+    },
+    // 保存
+    onSaveReportClick() {
+      this.form.submit = false
+      console.log(this.form)
+      saveReport(this.$route.query.taskId, this.form).then(response => {
+        if (response.code === 200) {
+          this.$message({ message: '保存成功', type: 'success' })
+        } else {
+          alert(response.msg)
+        }
+      })
+    },
+    // 下载
+    onDownloadReportClick() {
+      downloadReport(this.$route.query.taskId).then(response => {
+        if (response.code === 200) {
+          console.log(response)
+          this.$message({ message: '下载成功', type: 'success' })
+          window.location.href = response.url
+        } else {
+          alert(response.msg)
+        }
+      })
+    }
+  }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss" scoped>
+  @import '@/styles/app.scss';
+  .btn-right{
+    float:right;
+    margin-right:10px;
+  }
+  .table-report{
+  border-spacing: 0;
+  border-collapse: collapse;
+  margin-left: 2%;
+  margin-top: 10px;
+  width: 96%;
+  .normal {
+    display: inline-block;
+    width: 130px;
+    margin-left:3px;
+    color:#7b7676;
+    text-align: center;
+    font-size: 15px;
+  }
+  .word {
+    font-size: 13px;
+    color: grey;
+  }
+  .nor{
+    display: inline-block;
+    margin-left:16px;
+    color:#7b7676;
+    text-align: center;
+    font-size: 15px;
+  }
+  .tr{
+    margin-top: 0px;
+    margin-bottom: 0px;
+  }
+  .td{
+    margin-top: 0px;
+    margin-bottom: 0px;
+    border: 0.2px solid #c0c4cc;
+    //  width: 6%;
+    // align-content: center;
+    height: 33px;
+  }
+  .noborder .el-input__inner {
+    border: 0px solid #b2b2b2 !important;
+  }
+  .noborder .el-select--small {
+    width: 100% !important;
+  }
+  .el-input__inner {
+    border: none;
+  }
+  .el-textarea__inner{
+    width: 100%;
+    border: none;
+    // text-align: center;
+    font-size: 13px;
+    color: grey;
+  }
+}
+</style>

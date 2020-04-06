@@ -1,0 +1,144 @@
+<template>
+  <div class="app">
+    <div class="margin10 ">
+      <!-- <el-row class="search-box">
+        <el-col :span="3">
+          <el-select v-model="cxlx" class="search" size="small" placeholder="楼盘名称">
+            <el-option label="楼盘名称" value="xmmc"></el-option>
+            <el-option label="楼栋名称" value="ldmc"></el-option>
+          </el-select>
+        </el-col>
+        <el-col :span="8">
+          <el-input placeholder="请输入要查询的内容" class="search" v-model.trim="cxnr" size="small">
+            <el-button slot="append" icon="el-icon-search" @click="handleSearchTask"></el-button>
+          </el-input>
+        </el-col>
+      </el-row> -->
+      <el-table :data="caseList.slice((currentpage-1)*pagesize,currentpage*pagesize)" border class="table" >
+        <el-table-column prop="id" label="序号" width="50">
+          <template slot-scope="scope">
+            <span>{{ scope.$index+1 }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column width="180" property="xmmc" label="楼盘名称" />
+        <el-table-column width="180" property="ldmc" label="楼栋名称" />
+        <el-table-column width="100" property="hh" label="房号" />
+        <el-table-column width="100" property="sjc" label="实际层" />
+        <el-table-column width="120" property="fwyt1" label="用途主类" />
+        <el-table-column width="120" property="jzmj" label="建筑面积"/>
+        <el-table-column width="120" property="dj" label="案例单价" />
+        <el-table-column label="案例时间" min-width="110">
+          <template slot-scope="scope">
+            <span>{{ scope.row.sj| formatDate }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column width="120" property="sl_type" label="案例类型" />
+        <el-table-column width="120" property="source" label="案例来源" />
+      </el-table>
+      <el-pagination :total="list.length" :current-page="currentpage" :page-sizes="[5,10, 20, 50, 100]" :page-size="pagesize" layout="total, sizes, prev, pager, next, jumper" style="margin-top:8px;text-align:center" small background @size-change="handleSizeChange" @current-change="handleCurrentChange" />
+    </div>
+  </div>
+</template>
+<script>
+import { formatDate } from '@/utils/date'
+import {
+  getCasePreview
+} from '@/api/ratio'
+export default {
+  filters: {
+    formatDate(currentDate) {
+      var date = new Date(currentDate)
+      return formatDate(date, 'yyyy-MM-dd')
+    },
+    formatYear(currentDate) {
+      var date = new Date(currentDate)
+      return formatDate(date, 'yyyy')
+    }
+  },
+  data() {
+    return {
+      cxlx: 'xmmc',
+      cxnr: '',
+      currentpage: 1,
+      pagesize: 10,
+      offset: 0,
+      taskName: '',
+      param: {},
+      caseList: []
+    }
+  },
+  mounted() {
+    this.params = {
+      propType: this.$route.query.propType,
+      propUsage: this.$route.query.propUsage,
+      district: this.$route.query.district,
+      valueDate: this.$route.query.valueDate,
+      caseType: this.$route.query.caseType,
+      startDate: this.$route.query.startDate,
+      endDate: this.$route.query.endDate,
+      offset: this.$route.query.offset
+    }
+    this.getCasePreview(this.params)
+  },
+  methods: {
+    getCasePreview(params) {
+      if (params.type && params.usage && params.district && params.value_date && params.case.type && params.case.start && params.case.end) {
+        getCasePreview(params).then(response => {
+          this.caseList = response.data
+        })
+      }
+    },
+    handleCurrentChange(val) {
+      this.currentpage = { val }.val
+    },
+    handleSizeChange(val) {
+      this.pagesize = { val }.val
+    },
+    typeIndex(index) {
+      return index + (this.currentpage - 1) * this.pagesize + 1
+    }
+    /* handleSearchTask() {
+      switch (this.cxlx) {
+        case 'xmmc':
+          this.param.xmmc = this.cxnr
+          break
+        case 'ldmc':
+          this.param.ldmc = this.cxnr
+          break
+        default:
+          break
+      }
+      this.getCasePreview(this.params)
+    } */
+  }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss" scoped>
+@import "../../../styles/app.scss";
+.margin60 {
+  margin-left: 60px;
+  margin-right: 60px;
+}
+.seach-row {
+  margin-bottom: 10px;
+}
+.table {
+  margin-left: 20px;
+  width: 96.5%;
+}
+.btn {
+  margin-top: 12px;
+}
+.search {
+  margin-top: 20px;
+}
+</style>
+<style>
+.item {
+  margin-top: 10px;
+  margin-right: 20px;
+}
+.search-box .item .el-badge__content.is-fixed {
+  right: 10px
+}
+</style>

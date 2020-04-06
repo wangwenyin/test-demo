@@ -1,0 +1,233 @@
+<template>
+  <div style="background: #fff">
+    <el-button v-if="hideBox" type="danger" style="position:absolute;bottom:50px;left:0;" @click="onHideComparableBoxClick(false)">显示可比实例</el-button>
+    <transition name="fade">
+      <div v-if="!hideBox">
+        <el-row>
+          <div style="font-size: 15px;margin:10px auto 0px 10px;color: #409EFF;float:left">可比实例</div>
+          <el-button type="text" style="float:right;margin-right:10px;" @click="onHideComparableBoxClick(true)">隐藏</el-button>
+        </el-row>
+        <el-row style="border: 1px solid #409EFF;"/>
+        <el-row :gutter="1">
+          <el-col v-for="i in 5" :span="4" :key="i">
+            <el-card v-if="i-1<comparablesList.length" class="box-card">
+              <div style="font-size: 15px;margin-left:-2%;font-weight: bold; margin-bottom: 8%;"> {{ getPropertyName(comparablesList[i-1]) }} </div>
+              <!-- <div style="font-size: 5px;margin-left:0%; margin-bottom: 5%;"> {{ comparablesList[i-1].bldg_name + comparablesList[i-1].unit_no }} </div> -->
+              <div style="font-size: 5px;margin-left:0%; margin-bottom: 5%;"> 建筑面积：{{ comparablesList[i-1].built_in_area }} </div>
+              <div style="font-size: 5px;margin-left:0%; margin-bottom: 5%;">交易时间：{{ comparablesList[i-1].ex_time }} </div>
+              <span style="font-size: 8px;margin-left:0%; color:red ;margin-bottom: 5%;">￥{{ comparablesList[i-1].each_price }}元</span>
+              <span> <el-button v-if="!isViewDetail" style="float: right;" size="mini" type="text" @click.stop="onDeleteComparableClick(comparablesList[i-1])">删除</el-button></span>
+            </el-card>
+            <el-card v-else class="box-card">
+              <div>
+                <div style="font-size: 6px;margin-left:10%; margin-top:28%;margin-bottom:36%" click.stop>{{ i }}您还可以继续添加</div>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :span="4" class="col">
+            <el-card class="box-card">
+              <div v-if="!isViewDetail">
+                <el-button type="primary" size="small" style="margin-left:20%;margin-top:10%;" @click="onStartAppraisalClick">价格评估</el-button>
+                <el-button icon="el-icon-delete" size="small" style="margin-left:20%;margin-top:10%;" @click.stop="onClearComparablesClick">清空</el-button>
+              </div>
+              <div v-else>
+                <el-button type="primary" size="small" style="margin-left:20%;margin-top:10%;" @click="goback">返回</el-button>
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
+      </div>
+    </transition>
+  </div>
+</template>
+<script>
+import { getComparables, saveComparable, deleteComparable, gotoAppraisal } from '@/api/singleapp'
+
+export default {
+  props: {
+    taskId: {
+      type: String,
+      default: ''
+    },
+    method: {
+      type: String,
+      default: ''
+    },
+    isViewDetail: {
+      type: Boolean,
+      default: false
+    }
+  },
+  data() {
+    return {
+      comparablesList: [],
+      hideBox: false
+    }
+  },
+  mounted() {
+    this.initializeData()
+  },
+  methods: {
+    onHideComparableBoxClick(val) {
+      this.hideBox = val
+    },
+    getPropertyName(item) {
+      return (item.prop_name ? item.prop_name : item.prj_name + item.bldg_name + item.unit_no)
+    },
+    initializeData() {
+      // 根据任务ID获取可比实例
+      getComparables(this.taskId).then(response => {
+        if (response.code === 200) {
+          this.comparablesList = response.data
+        } else {
+          this.$notify.error({
+            title: '错误',
+            message: response.msg
+          })
+        }
+      })
+    },
+    // 添加可比实例并提交(单个案例)
+    addComparable(item) {
+      console.log(item)
+      if (this.comparablesList.length <= 4) {
+        const obj = {
+          task_id: this.taskId,
+          prj_no: item.prj_no,
+          bldg_no: item.bldg_no,
+          house_no: item.unit_no,
+          prop_name: item.prj_name + item.bldg_name + item.unit_no,
+          address: item.address,
+          actual_floor: item.floor_no + '',
+          built_in_area: item.house_area,
+          house_usage: item.house_usage1,
+          case_no: item.case_no,
+          each_price: item.each_price,
+          total_price: item.total_price,
+          ex_time: item.ex_time
+        }
+        saveComparable(obj).then(res => {
+          if (res.code === 200) {
+            this.$message({
+              message: '添加成功!',
+              type: 'success'
+            })
+          } else {
+            this.$message({
+              message: res.msg,
+              type: 'error'
+            })
+          }
+        })
+        let addComparable = true
+        for (let i = 0; i < this.comparablesList.length; i++) {
+          if (this.comparablesList[i].case_no === obj.case_no) {
+            addComparable = false
+            break
+          }
+        }
+        if (addComparable) {
+          this.comparablesList.push(obj)
+        } else {
+          this.$notify({
+            title: '提示',
+            message: '不能添加重复案例！',
+            duration: 3000,
+            offset: 300
+          })
+        }
+      } else {
+        this.$notify({
+          title: '提示',
+          message: '最多可以添加5个可比案例！',
+          duration: 3000,
+          offset: 300
+        })
+      }
+    },
+    // 清空
+    onClearComparablesClick() {
+      this.comparablesList = []
+    },
+    // 单个删除
+    onDeleteComparableClick(item) {
+      const data = {
+        case_no: item.case_no
+      }
+      this.comparablesList.splice(this.comparablesList.indexOf(item), 1)
+      deleteComparable(this.taskId, data).then(res => {
+        if (res.code === 200) {
+          this.$message({
+            message: '删除成功!',
+            type: 'success'
+          })
+        } else {
+          this.$message({
+            message: res.msg,
+            type: 'error'
+          })
+        }
+      })
+    },
+    // 点击价格评估按钮到下一步
+    onStartAppraisalClick() {
+      if (this.comparablesList.length < 3) {
+        this.$notify({
+          title: '提示',
+          message: '至少要选取3个可比实例！',
+          duration: 3000,
+          offset: 300
+        })
+      } else {
+        // 保存多个可比实例
+        /* const params = {
+          data: []
+        }
+        for (let i = 0; i < this.comparablesList.length; i++) {
+          const obj = {
+            prj_no: this.comparablesList[i].prj_no,
+            bldg_no: this.comparablesList[i].bldg_no,
+            house_no: this.comparablesList[i].house_no,
+            prop_name: this.comparablesList[i].prj_name + this.comparablesList[i].bldg_name + this.comparablesList[i].unit_no,
+            house_floor: this.comparablesList[i].actual_floor + '',
+            built_area: this.comparablesList[i].built_in_area,
+            house_usage: this.comparablesList[i].house_usage,
+            case_no: this.comparablesList[i].case_no,
+            each_price: this.comparablesList[i].each_price,
+            total_price: this.comparablesList[i].total_price,
+            sale_date: this.comparablesList[i].ex_time
+          }
+          params.data.push(obj)
+        } */
+        gotoAppraisal(this.taskId).then(response => {
+          if (response.code === 200) {
+            console.log(response.msg)
+
+            this.$router.push({ name: 'SingleappAdjustment', query: { taskId: this.taskId, method: this.method }})
+          } else {
+            this.$notify.error({
+              title: '错误',
+              message: response.msg
+            })
+          }
+        })
+      }
+    },
+    goback() {
+      this.$router.push({ name: 'SingleTaskDetail', query: { id: this.taskId }})
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .5s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
+  transition: .2s;
+}
+.box-card{
+    height: 157px
+}
+</style>

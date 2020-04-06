@@ -1,0 +1,469 @@
+
+<template>
+  <div>
+    <el-row>
+      <el-col :span="18" :offset="3">
+        <el-row style="border-bottom: 1px solid #d8dce5;margin-bottom:20px;">
+          <el-col :span="4">
+            <div class="row-container" style="font-size:20px;font-weight:bold;margin-top:10px">{{ land.parcel_no }} </div>
+          </el-col>
+          <el-col :span="20">
+            <div class="row-container" style="float:right">
+              <el-button type="primary" size="small" @click="onEditClick">编辑</el-button>
+            </div>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="3" class="row-container">
+            <div class="col-item-label">宗地号：</div>
+            <div class="col-item-label">地理位置：</div>
+            <div class="col-item-label">宗地面积：</div>
+            <div class="col-item-label">土地用途：</div>
+            <div class="col-item-label">土地使用年限：</div>
+          </el-col>
+          <el-col :span="5" class="row-container">
+            <div class="col-item-value">{{ land.parcel_no }}</div>
+            <el-tooltip v-if="land.address" placement="top">
+              <div slot="content">{{ land.address }}</div>
+              <div class="col-item-value">{{ land.address }}</div>
+            </el-tooltip>
+            <div class="col-item-value">{{ land.land_area }}</div>
+            <div class="col-item-value">{{ land.land_usage }}</div>
+            <div class="col-item-value">{{ land.land_term }}</div>
+          </el-col>
+          <el-col :span="3" class="row-container">
+            <div class="col-item-label">土地等级：</div>
+            <div class="col-item-label">土地价格：</div>
+            <div class="col-item-label">权利类型：</div>
+            <div class="col-item-label">起始日期：</div>
+            <div class="col-item-label">终止日期：</div>
+          </el-col>
+          <el-col :span="5" class="row-container">
+            <div class="col-item-value">{{ land.land_grade }}</div>
+            <div class="col-item-value">{{ land.land_price }}</div>
+            <div class="col-item-value">{{ land.land_type }}</div>
+            <div class="col-item-value">{{ land.start_date |formatDate }}</div>
+            <div class="col-item-value">{{ land.end_date |formatDate }}</div>
+          </el-col>
+          <el-col :span="4" class="row-container">
+            <div class="col-item-label">权利性质：</div>
+            <div class="col-item-label">容积率：</div>
+            <div class="col-item-label">建筑密度：</div>
+            <div class="col-item-label">X坐标：</div>
+            <div class="col-item-label">Y坐标：</div>
+          </el-col>
+          <el-col :span="4" class="row-container">
+            <div class="col-item-value">{{ land.land_attr }}</div>
+            <div class="col-item-value">{{ land.plot_ratio }}</div>
+            <div class="col-item-value">{{ land.built_density }}</div>
+            <div class="col-item-value">{{ land.x }}</div>
+            <div class="col-item-value">{{ land.y }}</div>
+          </el-col>
+        </el-row>
+        <el-row style="border-bottom: 1px solid #d8dce5;margin-bottom:20px;">
+          <el-col :span="4">
+            <div class="row-container" style="font-size:20px;font-weight:bold;margin-top:10px">楼栋列表 </div>
+          </el-col>
+        </el-row>
+        <el-row style="padding:5px">
+          <el-table v-loading="loading" :header-cell-style="changeHeaderStyle" :data="bulidingsList" border size="small">
+            <el-table-column width="50" type="index" label="序号" align="center"/>
+            <el-table-column prop="bldg_name" min-width="150" label="楼栋名称"/>
+            <el-table-column prop="bldg_floors" label="总层数"/>
+            <el-table-column prop="bldg_usage1" label="涵盖性质"/>
+            <el-table-column prop="contain_usage" label="涵盖用途">
+              <template slot-scope="scope">
+                <useTag :tags="scope.row.contain_usage"/>
+              </template>
+            </el-table-column>
+            <el-table-column prop="const_enddate" label="竣工日期">
+              <template slot-scope="scope">
+                <p> {{ scope.row.const_enddate | formatDate }}</p>
+              </template>
+            </el-table-column>
+            <el-table-column prop="built_area" label="建筑面积"/>
+            <el-table-column prop="bldg_usage2" label="涵盖用途2"/>
+            <el-table-column label="操作">
+              <template slot-scope="scope">
+                <router-link :to="{ name:'BuildingDetail' ,query: { bldg_no: scope.row.bldg_no,usage:usage} }" target="_blank">
+                  <el-button type="text" size="small">详情</el-button>
+                </router-link>
+              </template>
+            </el-table-column>
+          </el-table>
+          <pagination
+            :total="listQuery.total"
+            :page.sync="listQuery.page"
+            :limit.sync="listQuery.limit"
+            :page-sizes="listQuery.pageSizes"
+            @pagination="getBuilding" />
+        </el-row>
+        <el-row style="border-bottom: 1px solid #d8dce5;margin-bottom:20px;">
+          <el-col :span="4">
+            <div class="row-container" style="font-size:20px;font-weight:bold;margin-top:10px">构筑物列表 </div>
+          </el-col>
+        </el-row>
+        <el-row style="padding:5px">
+          <el-table v-loading="loading1" :data="strucList" :header-cell-style="changeHeaderStyle" style="width:100%" border fit stripe size="small">
+            <el-table-column label="序号" type="index" width="50" align="center"/>
+            <el-table-column prop="struc_name" min-width="250" label="构筑物名称" align="center"/>
+            <el-table-column prop="address" label="坐落" align="center"/>
+            <el-table-column prop="district" label="行政区" align="center"/>
+            <el-table-column prop="subdistrict" label="街道" align="center"/>
+            <el-table-column prop="struc_type" label="类型" align="center"/>
+            <el-table-column prop="struc_usage" label="用途" align="center"/>
+            <el-table-column label="竣工日期" min-width="110" align="center">
+              <template slot-scope="scope">
+                <span>{{ scope.row.const_enddate }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column prop="struc_area" label="建筑面积" align="center"/>
+            <el-table-column prop="land_area" label="占地面积" align="center"/>
+          </el-table>
+          <pagination
+            :total="listQuery1.total"
+            :page.sync="listQuery1.page"
+            :limit.sync="listQuery1.limit"
+            :page-sizes="listQuery1.pageSizes"
+            @pagination="getStructures" />
+        </el-row>
+      </el-col>
+    </el-row>
+    <el-dialog :visible.sync="editFormVisible" title="土地编辑" width="50%" >
+      <el-form ref="editForm" :rules="rules" :model="land" label-width="120px">
+        <el-row :gutter="20" style="margin-top:20px;">
+          <el-col :span="12">
+            <el-form-item label="宗地号：" >
+              <el-input v-model="land.parcel_no" size="small" readonly/>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="宗地面积：" prop="land_area">
+              <el-input-number :precision="2" v-model.number="land.land_area" size="small" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20" >
+          <el-col :span="12">
+            <el-form-item label="土地用途：" prop="land_usage">
+              <el-select v-model="land.land_usage" size="small" placeholder="请选择土地用途" style="width: 100%;" >
+                <el-option
+                  v-for="item in land_usageOptions"
+                  :key="item"
+                  :label="item"
+                  :value="item"/>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="土地等级：" >
+              <el-select v-model="land.land_grade" size="small" placeholder="请选择土地等级" style="width: 100%;">
+                <el-option
+                  v-for="item in land_gradeOptions"
+                  :key="item"
+                  :label="item"
+                  :value="item"/>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20" >
+          <el-col :span="12">
+            <el-form-item label="土地价格：" prop="land_price">
+              <el-input-number :precision="2" v-model.number="land.land_price" size="small" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="权利类型：" >
+              <el-select v-model="land.land_type" size="small" placeholder="请选择权利类型" style="width: 100%;" >
+                <el-option
+                  v-for="item in land_typeOptions"
+                  :key="item"
+                  :label="item"
+                  :value="item"/>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20" >
+          <el-col :span="12">
+            <el-form-item label="权利性质：">
+              <el-select v-model="land.land_attr" size="small" placeholder="请选择权利性质" style="width: 100%;" >
+                <el-option
+                  v-for="item in land_attrOptions"
+                  :key="item"
+                  :label="item"
+                  :value="item"/>
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="容积率：" prop="plot_ratio">
+              <el-input-number :precision="2" v-model.number="land.plot_ratio" size="small" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20" >
+          <el-col :span="12">
+            <el-form-item label="建筑密度：" prop="built_density">
+              <el-input-number :precision="2" v-model.number="land.built_density" size="small" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="土地使用年限：" prop="land_term">
+              <el-input-number v-model.number="land.land_term " size="small" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20" >
+          <el-col :span="12">
+            <el-form-item label="起始日期：">
+              <el-date-picker
+                v-model="land.start_date"
+                type="date"
+                size="small"
+                placeholder="选择日期"
+                value-format="yyyy-MM-dd"
+                style="width: 100%;"/>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="终止日期：">
+              <el-date-picker
+                v-model="land.end_date"
+                size="small"
+                type="date"
+                placeholder="选择日期"
+                value-format="yyyy-MM-dd"
+                style="width: 100%;"/>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20" >
+          <el-col :span="24">
+            <el-form-item label="地理位置：">
+              <el-input v-model="land.address" size="small" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button size="small" @click="onCancel">取 消</el-button>
+        <el-button size="small" type="primary" @click="onBtnOKClick('editForm')" >确 定</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+<script>
+import useTag from '@/views/property/components/UseTag'
+import {
+  landInfo,
+  getBuildingsList,
+  landEdit,
+  getStructures
+} from '@/api/data'
+import { formatDate } from '@/utils/date'
+import Pagination from '@/components/Pagination'
+import { getDictionary } from '@/api/common'
+export default {
+  components: { useTag, Pagination },
+  filters: {
+    formatDate(currentDate) {
+      var date = new Date(currentDate)
+      return formatDate(date, 'yyyy-MM-dd')
+    }
+  },
+  data() {
+    return {
+      land_usageOptions: [],
+      land_gradeOptions: [],
+      land_typeOptions: [],
+      land_attrOptions: [],
+      usage: this.$route.query.usage,
+      land: {},
+      bulidingsList: [],
+      strucList: [],
+      editFormVisible: false,
+      rules: {
+        district: [{ type: 'string', required: true, message: '请选择行政区', trigger: 'blur' }],
+        land_area: [{ required: true, message: '请输入土地面积', trigger: 'blur' },
+          { type: 'number', message: '土地面积为数值类型', trigger: 'blur' }],
+        land_usage: [{ type: 'string', required: true, message: '请输入土地用途', trigger: 'blur' }],
+        plot_ratio: [{ type: 'number', required: false, message: '容积率为数值类型', trigger: 'blur' }],
+        built_density: [{ type: 'number', required: false, message: '建筑密度为数值类型', trigger: 'blur' }],
+        land_term: [{ required: true, message: '请输入使用期限', trigger: 'blur' },
+          { type: 'number', message: '使用期限为数值类型', trigger: 'blur' }],
+        land_price: [{ type: 'number', required: false, message: '土地价格为数值类型', trigger: 'blur' }]
+      },
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        pageSizes: [10, 20, 30, 50]
+      },
+      listQuery1: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        pageSizes: [10, 20, 30, 50]
+      },
+      loading1: true,
+      loading: true
+    }
+  },
+  created() {
+    this.getOption()
+  },
+  mounted() {
+    this.getland()
+    this.getBuilding()
+    this.getStructures()
+    this.$nextTick(function() {
+      window.addEventListener('scroll', this.onScroll)
+    })
+  },
+  methods: {
+    // 获取下拉选项
+    getOption() {
+      getDictionary('用途主类').then(response => {
+        this.land_usageOptions = response.data
+      })
+      getDictionary('土地等级').then(response => {
+        this.land_gradeOptions = response.data
+      })
+      getDictionary('土地权利类型').then(response => {
+        this.land_typeOptions = response.data
+      })
+      getDictionary('土地权利性质').then(response => {
+        this.land_attrOptions = response.data
+      })
+    },
+    getland() {
+      landInfo(this.$route.query.prop_no).then(response => {
+        this.land = response.data
+      })
+    },
+    getBuilding(val) {
+      if (val) {
+        this.listQuery.limit = val.limit
+        this.listQuery.page = val.page
+      } else {
+        this.listQuery.page = 1
+      }
+      var param = { prop_type: '宗地', prop_no: this.$route.query.prop_no, 'page': this.listQuery.page, 'limit': this.listQuery.limit }
+      this.loading = true
+      getBuildingsList(param).then(response => {
+        this.bulidingsList = response.data
+        this.listQuery.total = response.total_num
+        this.loading = false
+      })
+    },
+    getStructures(val) {
+      if (val) {
+        this.listQuery1.limit = val.limit
+        this.listQuery1.page = val.page
+      } else {
+        this.listQuery1.page = 1
+      }
+      const params = { 'parcel_no': this.$route.query.prop_no, 'page': this.listQuery1.page, 'limit': this.listQuery1.limit }
+      this.loading1 = true
+      getStructures(params).then(response => {
+        this.strucList = response.data
+        this.listQuery1.total = response.total_num
+        this.loading1 = false
+      })
+    },
+    onEditClick() {
+      this.editFormVisible = true
+    },
+    onBtnOKClick(formName) {
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          landEdit(this.$route.query.prop_no, this.land).then(response => {
+            if (response.code === 200) {
+              this.$message({
+                type: 'success',
+                message: '操作成功!'
+              })
+              this.editFormVisible = false
+            } else {
+              this.$message({
+                type: 'info',
+                message: response.msg
+              })
+            }
+          })
+        } else {
+          return false
+        }
+      })
+    },
+    onCancel() {
+      this.editFormVisible = false
+    },
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    } }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss" >
+.high.el-row{
+  margin-top: 2%
+}
+.el-radio__inner {
+    visibility: hidden
+}
+.el-radio+.el-radio{
+  margin-left: -7px
+}
+.row-container{
+    padding: 10px;
+    /* margin-top: 10px; */
+}
+.col-item-label {
+    /* margin-top: 10px; */
+    margin-bottom: 20px;
+    color: grey;
+    text-align: left;
+}
+.col-item-value {
+    /* margin-top: 10px; */
+    margin-bottom: 20px;
+    color: grey;
+    height: 18px;
+    text-align: left;
+     overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+}
+.task-detail .el-step {
+  &:hover {
+    .el-step__head .el-step__icon, .el-step__main {
+      transition: transform 0.3s ease;
+      transform: scale(1.1);
+      transform-origin: center;
+    }
+  }
+  .el-step__head .el-step__icon, .el-step__main {
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    transform-origin: center;
+  }
+}
+.el-dialog__body{
+    margin-left: 20px;
+    margin-right: 60px;
+}
+.el-dialog__footer {
+    padding: 0px 80px 30px;
+}
+.el-dialog__header {
+    padding: 30px 60px 0px;
+}
+.el-pagination {
+    text-align: center;
+}
+.el-input-number--small{
+      width: 100%;
+}
+</style>

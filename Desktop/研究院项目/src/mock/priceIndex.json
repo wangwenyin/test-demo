@@ -1,0 +1,126 @@
+{
+  "status":200,
+  "msg": "ok",
+  "data":[
+        {
+          "name": "深圳市住宅价格指数",
+          "district": "全市",
+          "type": "房产",
+          "usage": "住宅",
+          "time_type": "月份",
+          "param_type": "价格指数",
+          "price_source": "国家统计局",
+          "end_time": "2018-5"
+        },
+        {
+          "name": "深圳市商业价格指数",
+          "district": "全市",
+          "type": "房产",
+          "usage": "商业",
+          "time_type": "月份",
+          "param_type": "价格指数",
+          "price_source": "国家统计局",
+          "end_time": "2018-5"
+        },
+        {
+          "name": "深圳市办公价格指数",
+          "district": "全市",
+          "type": "房产",
+          "usage": "办公",
+          "time_type": "月份",
+          "param_type": "价格指数",
+          "price_source": "国家统计局",
+          "end_time": "2018-5"
+        },
+        {
+          "name": "深圳市工业价格指数",
+          "district": "全市",
+          "type": "房产",
+          "usage": "工业",
+          "time_type": "月份",
+          "param_type": "价格指数",
+          "price_source": "国家统计局",
+          "end_time": "2018-5"
+        },
+        {
+          "name": "深圳市住宅基准地价",
+          "district": "全市",
+          "type": "房产",
+          "usage": "住宅",
+          "time_type": "月份",
+          "param_type": "基准地价",
+          "price_source": "中国地价信息服务平台",
+          "end_time": "2017"
+        },
+        {
+          "name": "深圳市商业基准地价",
+          "district": "全市",
+          "type": "房产",
+          "usage": "商业",
+          "time_type": "月份",
+          "param_type": "基准地价",
+          "price_source": "中国地价信息服务平台",
+          "end_time": "2017"
+        },
+        {
+          "name": "深圳市办公基准地价",
+          "district": "全市",
+          "type": "房产",
+          "usage": "办公",
+          "time_type": "月份",
+          "param_type": "基准地价",
+          "price_source": "中国地价信息服务平台",
+          "end_time": "2017"
+        },
+        {
+          "name": "深圳市工业基准地价",
+          "district": "全市",
+          "type": "房产",
+          "usage": "工业",
+          "time_type": "月份",
+          "param_type": "基准地价",
+          "price_source": "中国地价信息服务平台",
+          "end_time": "2017"
+        },
+        {
+          "name": "深圳市住宅建安造价",
+          "district": "全市",
+          "type": "房产",
+          "usage": "住宅",
+          "time_type": "月份",
+          "param_type": "建安造价",
+          "price_source": "中原地产",
+          "end_time": "2017"
+        },
+        {
+          "name": "深圳市商业建安造价",
+          "district": "全市",
+          "type": "房产",
+          "usage": "商业",
+          "time_type": "月份",
+          "param_type": "建安造价",
+          "price_source": "中原地产",
+          "end_time": "2017"
+        },
+        {
+          "name": "深圳市办公建安造价",
+          "district": "全市",
+          "type": "房产",
+          "usage": "办公",
+          "time_type": "月份",
+          "param_type": "建安造价",
+          "price_source": "中原地产",
+          "end_time": "2017"
+        },
+        {
+          "name": "深圳市工业建安造价",
+          "district": "全市",
+          "type": "房产",
+          "usage": "工业",
+          "time_type": "月份",
+          "param_type": "建安造价",
+          "price_source": "中原地产",
+          "end_time": "2017"
+        }
+      ]
+    }

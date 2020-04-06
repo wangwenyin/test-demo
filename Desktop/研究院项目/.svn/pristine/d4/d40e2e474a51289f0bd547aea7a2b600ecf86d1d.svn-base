@@ -1,0 +1,71 @@
+import request from '@/utils/request'
+
+// 获取模糊匹配的推荐小区名称列表
+export function getSuggestionProjectName(params) {
+  return request({
+    url: '/case/findprj',
+    method: 'get',
+    params
+  })
+}
+
+// 获取模糊匹配的推荐小区名称列表
+export function getProjectByBuffer(params) {
+  return request({
+    url: '/case/nearby',
+    method: 'get',
+    params
+  })
+}
+
+// 获取数据字典内容
+export function getDictionary(name) {
+  return request({
+    url: `/dictionary/${name}`,
+    method: 'get'
+  })
+}
+
+// 获取项目案例详情数据
+export function getCases(prj_no, params) {
+  return request({
+    url: '/case/cases/' + prj_no,
+    method: 'get',
+    params
+  })
+}
+
+// 获取行政区数据
+export function getXzqs(params) {
+  return request({
+    url: '/case/district',
+    method: 'get',
+    params
+  })
+}
+
+// 街道办
+export function getJdbs(params) {
+  return request({
+    url: '/case/subdis',
+    method: 'get',
+    params
+  })
+}
+
+// 项目
+export function getProjects(params) {
+  return request({
+    url: '/case/findprj',
+    method: 'get',
+    params
+  })
+}
+// 项目
+export function getProjectsByExtent(params) {
+  return request({
+    url: '/case/rect',
+    method: 'get',
+    params
+  })
+}

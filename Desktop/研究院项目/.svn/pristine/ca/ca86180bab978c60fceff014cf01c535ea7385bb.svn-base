@@ -1,0 +1,99 @@
+import request from '@/utils/request'
+
+export function getMembers(params) {
+  return request({
+    url: '/users',
+    method: 'get',
+    params
+  })
+}
+
+export function getUsers(params) {
+  return request({
+    url: '/users',
+    method: 'get',
+    params
+  })
+}
+
+export function createUser(data) {
+  return request({
+    url: '/users',
+    method: 'post',
+    data
+  })
+}
+
+export function feedback(data) {
+  return request({
+    url: '/proposal',
+    method: 'post',
+    data
+  })
+}
+// 修改用户状态，:id：用户名（login_name）
+export function deleteUser(username, state) {
+  return request({
+    url: '/users/' + username,
+    method: 'delete',
+    data: {
+      state
+    }
+  })
+}
+// 修改用户信息，:id为login_name
+export function updateUser(username, data) {
+  return request({
+    url: '/users/' + username,
+    method: 'put',
+    data
+  })
+}
+// 修改密码，:id为用户名（login_name）
+export function updateUserPassword(username, data) {
+  return request({
+    url: '/users/' + username + '/password',
+    method: 'put',
+    data
+  })
+}
+// 重置密码
+export function resetUserPwd(login_name, data) {
+  return request({
+    url: `/users/${login_name}/password/reset`,
+    method: 'put',
+    data
+  })
+}
+// 获取用户信息。按id获取用户信息
+export function getUserById(id, params) {
+  return request({
+    url: `/users/${id}`,
+    method: 'get',
+    params
+  })
+}
+// 下载批量创建模板
+export function getUserTemplate() {
+  return request({
+    url: '/user/batch/template',
+    method: 'get'
+  })
+}
+
+// 提交批量创建用户数据
+export function createBatchUser(data) {
+  return request({
+    url: '/user/batch',
+    method: 'post',
+    data
+  })
+}
+
+// 删除估价师图片，:id为用户名
+export function deleteImage(id) {
+  return request({
+    url: `/user/${id}/certificate`,
+    method: 'delete'
+  })
+}

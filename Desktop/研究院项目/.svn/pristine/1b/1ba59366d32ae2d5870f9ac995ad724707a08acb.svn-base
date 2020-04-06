@@ -1,0 +1,673 @@
+<template>
+  <div>
+    <el-row class="search-box" >
+      <el-button type="primary" size="small" round @click="onBtnCreateUserClick" >+创建用户</el-button>
+      <el-button size="small" type="primary" plain @click="onBtnBatchCreateClick">批量创建</el-button>
+      <el-button size="small" plain @click="onDownloadTemplet" >下载模板</el-button>
+      <el-input v-model="searchOption.text" placeholder="请输入内容" class="input-with-select" style="width:500px;float:right" size="small" >
+        <el-select slot="prepend" v-model="searchOption.clause" style="width:120px;" placeholder="请选择" >
+          <el-option label="用户名" value="用户名" />
+          <el-option label="姓名" value="姓名" />
+          <el-option label="部门" value="部门" />
+          <el-option label="角色" value="角色" />
+          <el-option label="状态" value="状态" />
+          <el-option label="执业估价师" value="执业估价师" />
+        </el-select>
+        <el-button slot="append" icon="el-icon-search" @click="onSearchUser" />
+      </el-input>
+    </el-row>
+    <el-row style="padding:5px">
+      <el-table ref="taskTable" :data="userList" :header-cell-style="changeHeaderStyle" style="width:100%" border fit size="small" >
+        <el-table-column label="序号" type="index" width="50" />
+        <el-table-column label="用户名" prop="login_name" align="center" width="150"/>
+        <el-table-column label="姓名" prop="real_name" width="120" align="center" />
+        <el-table-column label="部门" prop="department" width="120" align="center" />
+        <el-table-column label="角色" >
+          <template slot-scope="scope" >
+            <span >{{ scope.row.roles.toString() }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" width="80" >
+          <template slot-scope="scope">
+            <el-tag :type="setTagTypeByState(scope.row.state)" size="mini" >{{ scope.row.state }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="执业估价师" width="100">
+          <template slot-scope="scope">
+            <el-tag :type="setTagTypeByCertificate(scope.row.isCertified)" size="mini" >{{ scope.row.isCertified }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="手机" prop="mobile" width="120" align="center" />
+        <el-table-column label="操作" width="250" >
+          <template slot-scope="scope">
+            <el-button :disabled="scope.row.state!=='有效'" size="mini" type="primary" @click="onBtnEditUserClick(scope.$index, scope.row)">编辑</el-button>
+            <el-button :disabled="scope.row.state==='无效'" size="mini" type="warning" @click="onBtnDisableUserClick(scope.$index, scope.row)" >
+              <span v-if="scope.row.state ==='有效'">停用</span>
+              <span v-else-if="scope.row.state ==='停用'">启用</span>
+              <span v-else>无效</span>
+            </el-button>
+            <el-button size="mini" type="danger" @click="onBtnDeleteUserClick(scope.$index, scope.row)" >删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-row type="flex" justify="center" style="margin-top:5px" >
+        <pagination
+          :total="listQuery.total"
+          :page.sync="listQuery.page"
+          :limit.sync="listQuery.limit"
+          :page-sizes="listQuery.pageSizes"
+          @pagination="getUsers" />
+      </el-row>
+    </el-row>
+    <el-dialog :visible.sync="editDialogFormVisible" :title="editForm.title" width="50%">
+      <el-form ref="editForm" :model="editForm" :rules="rules" label-width="100px" size="small" >
+        <el-row>
+          <el-col :span="12">
+            <el-form-item prop="login_name" label="用户名" >
+              <el-input v-model="editForm.login_name" :disabled="editForm.title === '编辑用户'" auto-complete="off" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="姓名" prop="real_name" >
+              <el-input v-model="editForm.real_name" :disabled="editForm.title === '编辑用户'" auto-complete="off"/>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row v-if="editForm.title === '编辑用户'">
+          <el-col :span="12">
+            <el-form-item label="密码" prop="password" >
+              <el-button type="primary" size="small" @click="onBtnResetPasswordClick" >重置密码</el-button>
+              <span style="margin-left:10px">{{ initPassword }}</span>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row v-if="editForm.title === '创建用户'">
+          <el-col :span="12">
+            <el-form-item label="创建密码" prop="pw" >
+              <el-input v-model="editForm.pw" type="password" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="确认密码" prop="pwConfirm" >
+              <el-input v-model="editForm.pwConfirm" type="password" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="部门" prop="department">
+              <el-select v-model="editForm.department" placeholder="请选择" style="width:100%" >
+                <el-option v-for="item in departmentOptions" :key="item" :label="item" :value="item" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="角色" prop="roles" >
+              <el-select v-model="editForm.roles" multiple collapse-tags placeholder="请选择" style="width:100%" >
+                <el-option v-for="item in roleOptions" :key="item" :label="item" :value="item" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="执业估价师">
+              <el-select v-model="editForm.isCertified" style="width:100%" >
+                <el-option label="是" value="是" />
+                <el-option label="否" value="否" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="手机" prop="mobile" >
+              <el-input v-model="editForm.mobile" auto-complete="off" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="备注" prop="note" >
+          <el-input v-model="editForm.note" auto-complete="off" type="textarea" />
+        </el-form-item>
+        <el-row v-if="editForm.isCertified === '是'">
+          <el-col :span="12">
+            <el-form-item label="估价师证书" prop="password" >
+              <div class="components-container">
+                <div class="editor-container">
+                  <dropzone id="myVueDropzone" :url="uploadUrl" :default-img="editForm.cert_image_path" @dropzone-success="uploadFileSuccess" @dropzone-removedFile="beforeRemovedFile" />
+                </div>
+              </div>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+      <div slot="footer" class="dialog-footer" >
+        <!-- <el-button size="mini" type="primary" plain style="float:left;">批量创建</el-button>
+        <el-button size="mini" plain style="float:left;" >下载模板</el-button> -->
+        <el-button @click="onBtnCancelClick">取 消</el-button>
+        <el-button type="primary" @click="onBtnUpdateUserOKClick('editForm')">确 定</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog :visible.sync="uploadDialogVisible" title="上传" width="50%">
+      <template>
+        <div class="components-container">
+          <div class="editor-container">
+            <upload-excel-component :on-success="onSuccess" :before-upload="onBeforeUpload" />
+            <div id="logContent" class="logs" >
+              <div v-for="(log,index) in logs" :key="index" class="log">
+                <div :class="{'log-success': log.type==='sucess', 'log-fail': log.type==='fail','log-info':log.type==='info'}">{{ log.info }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </template>
+      <div slot="footer" class="dialog-footer" >
+        <el-button @click="onUploadCancelClick">关闭</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+<script>
+import { getUsers, createUser, deleteUser, resetUserPwd, updateUser, getUserTemplate, createBatchUser, deleteImage } from '@/api/user'
+import { getRolesNames } from '@/api/role'
+import { getDepartmentName } from '@/api/department'
+import Pagination from '@/components/Pagination'
+import md5 from 'md5'
+import Dropzone from '@/views/dispute/components/Dropzone'
+import UploadExcelComponent from '@/components/UploadExcel/UploadExcel'
+export default {
+  components: { Pagination, Dropzone, UploadExcelComponent },
+  data() {
+    return {
+      searchOption: {
+        clause: '用户名',
+        text: null
+      },
+      userList: [],
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        pageSizes: [10, 20, 30, 50]
+      },
+      roles: [],
+      createDialogFormVisible: false,
+      editDialogFormVisible: false,
+      uploadDialogVisible: false,
+      editForm: {},
+      initPassword: null,
+      rules: {
+        login_name: [
+          { required: true, message: '请输入用户名', trigger: 'blur' }
+        ],
+        real_name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
+        department: [
+          { required: true, message: '请选择部门', trigger: 'blur' }
+        ],
+        roles: [{ required: true, message: '请选择角色', trigger: 'blur' }],
+        mobile: [
+          { required: true, message: '请输入手机号码', trigger: 'blur' }
+        ],
+        pw: [{ required: true, message: '请设置密码', trigger: 'blur' }],
+        pwConfirm: [
+          { required: true, validator: this.validatePass, trigger: 'blur' }
+        ]
+      },
+      roleOptions: [],
+      departmentOptions: [],
+      img: '',
+      fileUrl: '',
+      tableData: [],
+      logs: [],
+      defaultImg: []
+    }
+  },
+  computed: {
+    uploadUrl() {
+      return `${process.env.BASE_API}/users/${this.editForm.login_name}/certificate`
+    }
+  },
+  mounted() {
+    this.getDepartmentName()
+    this.getRolesNames()
+    this.getUsers()
+  },
+  methods: {
+    beforeRemovedFile(file) {
+      console.log(file)
+      const response = file.xhr ? JSON.parse(file.xhr.response) : {}
+      const urlParts = file.url ? file.url.split('/') : response.url.split('/')
+      const data = {
+        matrl_name: urlParts.reverse()[0]
+      }
+      deleteImage(this.row.login_name, data).then(res => {
+        this.$message({ message: '删除成功', type: 'success' })
+      })
+    },
+    uploadFileSuccess(file) {
+      debugger
+      this.uploadUrl = file.dataURL
+      console.log(file)
+
+      this.$message({ message: '上传成功！', type: 'success' })
+    },
+    onUploadCancelClick() {
+      this.uploadDialogVisible = false
+    },
+    onBeforeUpload(file) {
+      const isLt1M = file.size / 1024 / 1024 < 1
+
+      if (isLt1M) {
+        return true
+      }
+
+      this.$message({
+        message: 'Please do not upload files larger than 1m in size.',
+        type: 'warning'
+      })
+      return false
+    },
+    onSuccess({ results, header }) {
+      this.tableData = results
+      let haserror = false
+      for (let index = 0; index < results.length; index++) {
+        const element = results[index]
+        // 判断必填项是否填写
+        if (element['用户名'] === undefined || element['用户名'] === '') {
+          this.logs.push({ type: 'fail', info: '第' + (index + 1) + '条数据缺少用户名' })
+          haserror = true
+        }
+        if (element['姓名'] === undefined || element['姓名'] === '') {
+          this.logs.push({ type: 'fail', info: '第' + (index + 1) + '条数据缺少姓名' })
+          haserror = true
+        }
+        if (element['部门'] === undefined || element['部门'] === '') {
+          this.logs.push({ type: 'fail', info: '第' + (index + 1) + '条数据缺少部门' })
+          haserror = true
+        }
+        if (element['角色'] === undefined || element['角色'] === '') {
+          this.logs.push({ type: 'fail', info: '第' + (index + 1) + '条数据缺少角色' })
+          haserror = true
+        }
+        if (element['手机'] === undefined || element['手机'] === '') {
+          this.logs.push({ type: 'fail', info: '第' + (index + 1) + '条数据缺少手机' })
+          haserror = true
+        }
+        if (element['执业估价师'] === undefined || element['执业估价师'] === '') {
+          this.logs.push({ type: 'fail', info: '第' + (index + 1) + '条数据缺少执业估价师' })
+          haserror = true
+        }
+      }
+      if (!haserror) {
+        const data = {
+          data: results
+        }
+        this.createBatchUser(data)
+      } else {
+        this.logs.push({ type: 'fail', info: '创建失败' })
+      }
+    },
+    createBatchUser(val) {
+      createBatchUser(val).then(res => {
+        if (res.code === 200) {
+          res.data.forEach((item) => {
+            if (item.success === '创建成功') {
+              this.logs.push({ type: 'sucess', info: '用户名' + item.user + '创建成功！' })
+            }
+            if (item.success === '创建失败') {
+              this.logs.push({ type: 'fail', info: '用户名' + item.user + '创建失败！' + item.msg })
+            }
+          })
+        }
+      })
+    },
+    getUserTemplate() {
+      getUserTemplate().then(res => {
+        if (res.code === 200) {
+          this.$message({
+            type: 'success',
+            message: '操作成功!'
+          })
+          window.location.href = res.data.url
+        }
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '网络错误'
+        })
+      })
+    },
+    onBtnBatchCreateClick() {
+      this.uploadDialogVisible = true
+      this.logs = []
+    },
+    onDownloadTemplet() {
+      this.getUserTemplate()
+    },
+    onBtnCancelClick() {
+      this.$refs.editForm.resetFields()
+      this.editDialogFormVisible = false
+      this.getUsers({ page: 1, limit: 10 })
+    },
+    getUsers(val) {
+      if (val) {
+        this.listQuery.limit = val.limit
+        this.listQuery.page = val.page
+      }
+      const params = {
+        page: this.listQuery.page,
+        limit: this.listQuery.limit,
+        department:
+          this.searchOption.clause === '部门' ? this.searchOption.text : null,
+        role:
+          this.searchOption.clause === '角色' ? this.searchOption.text : null,
+        login_name:
+          this.searchOption.clause === '用户名' ? this.searchOption.text : null,
+        real_name:
+          this.searchOption.clause === '姓名' ? this.searchOption.text : null,
+        state:
+          this.searchOption.clause === '状态' ? this.searchOption.text : null,
+        isCertified:
+          this.searchOption.clause === '执业估价师' ? this.searchOption.text : null
+      }
+      getUsers(params).then(response => {
+        if (response.code === 200) {
+          console.log(response.data)
+          this.userList = response.data
+          this.listQuery.total = response.cnt
+        } else {
+          this.$message({
+            type: 'error',
+            message: '数据获取出错!',
+            duration: 5 * 1000
+          })
+        }
+      })
+    },
+    onSearchUser() {
+      this.getUsers({ page: 1, limit: 10 })
+    },
+    getDepartmentName() {
+      getDepartmentName().then(res => {
+        if (res.code === 200) {
+          this.departmentOptions = res.data
+        }
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '网络错误'
+        })
+      })
+    },
+    getRolesNames() {
+      getRolesNames().then(res => {
+        if (res.code === 200) {
+          this.roleOptions = res.data
+        }
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '网络错误'
+        })
+      })
+    },
+    setTagTypeByCertificate(isCertified) {
+      if (isCertified === '否') {
+        return 'info'
+      } else {
+        return ''
+      }
+    },
+    setTagTypeByState(state) {
+      if (state === '无效') {
+        return 'info'
+      } else if (state === '停用') {
+        return 'warning'
+      } else {
+        return ''
+      }
+    },
+    validatePass(rule, value, callback) {
+      if (value === '') {
+        callback(new Error('请再次输入密码'))
+      } else if (value !== this.editForm.pw) {
+        callback(new Error('两次输入密码不一致!'))
+      } else {
+        callback()
+      }
+    },
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    },
+    generatePass() {
+      this.initPassword = ''
+      for (let i = 0; i < 6; i++) {
+        this.initPassword += Math.floor(Math.random() * 10)
+      }
+      this.createForm.password = md5(this.initPassword)
+    },
+    onBtnResetPasswordClick() {
+      this.initPassword = ''
+      for (let i = 0; i < 6; i++) {
+        this.initPassword += Math.floor(Math.random() * 10)
+      }
+      this.editForm.pw = md5(this.initPassword)
+      const params = {
+        new_password: this.editForm.pw
+      }
+      resetUserPwd(this.editForm.login_name, params).then(response => {
+        if (response.code === 200) {
+          this.$message({
+            type: 'success',
+            message: '重置密码成功!'
+          })
+        } else {
+          this.$message({
+            type: 'error',
+            message: response.msg
+          })
+        }
+      })
+    },
+    onBtnDeleteUserClick(index, row) {
+      this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        deleteUser(row.login_name, '无效').then(response => {
+          if (response.code === 200) {
+            this.$message({
+              type: 'success',
+              message: '删除成功!'
+            })
+            row.state = '无效'
+            this.getUsers({ page: 1, limit: 10 })
+          } else {
+            this.$message({
+              type: 'info',
+              message: '删除失败'
+            })
+          }
+        })
+      })
+        .catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          })
+        })
+    },
+    onBtnEditUserClick(index, row) {
+      // 根据row信息生成对象
+      this.editForm = {
+        title: '编辑用户',
+        real_name: row.real_name,
+        login_name: row.login_name,
+        pw: null,
+        department: row.department,
+        mobile: row.mobile,
+        roles: row.roles,
+        isCertified: row.isCertified,
+        cert_image_path: `${process.env.BASE_API}${row.cert_image_path}`
+      }
+      this.editDialogFormVisible = true
+      this.$refs.editForm.resetFields()
+    },
+    onBtnCreateUserClick() {
+      this.editForm = {
+        title: '创建用户',
+        real_name: null,
+        login_name: null,
+        pw: null,
+        department: null,
+        roles: [],
+        state: null,
+        isCertified: '否',
+        mobile: null,
+        cert_image_path: null
+        // rules: this.createRules
+      }
+      this.editDialogFormVisible = true
+      this.$refs.editForm.resetFields()
+    },
+    onBtnDisableUserClick(index, row) {
+      let text = ''
+      if (row.state === '停用') {
+        text = '启用'
+      }
+      if (row.state === '有效') {
+        text = '停用'
+      }
+      this.$confirm('确定' + text + '该用户, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          const state = row.state === '停用' ? '有效' : '停用'
+          deleteUser(row.login_name, state).then(response => {
+            if (response.code === 200) {
+              this.$message({
+                type: 'success',
+                message: '操作成功!'
+              })
+              row.state = state
+              this.getUsers({ page: 1, limit: 10 })
+            } else {
+              this.$message({
+                type: 'info',
+                message: response.msg
+              })
+            }
+          })
+        })
+        .catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消'
+          })
+        })
+    },
+    userAdd() {
+      const data = {
+        login_name: this.editForm.login_name,
+        real_name: this.editForm.real_name,
+        password: md5(this.editForm.pw),
+        department: this.editForm.department,
+        roles: this.editForm.roles,
+        mobile: this.editForm.mobile,
+        isCertified: this.editForm.isCertified,
+        note: this.editForm.note
+      }
+      createUser(data).then(response => {
+        if (response.code === 200) {
+          this.$message({
+            type: 'success',
+            message: '新增成功!'
+          })
+          this.editDialogFormVisible = false
+          this.getUsers({ page: 1, limit: 10 })
+        } else {
+          this.$message({
+            type: 'error',
+            message: response.msg
+          })
+        }
+      }).catch(err => {
+        console.log(err)
+        this.$message({
+          type: 'error',
+          message: err,
+          duration: 5 * 1000
+        })
+      })
+    },
+    userEdit() {
+      const data = {
+        real_name: this.editForm.real_name,
+        department: this.editForm.department,
+        roles: this.editForm.roles,
+        mobile: this.editForm.mobile,
+        isCertified: this.editForm.isCertified
+      }
+      updateUser(this.editForm.login_name, data).then(response => {
+        if (response.code === 200) {
+          this.$message({
+            type: 'success',
+            message: '编辑成功!'
+          })
+          this.editDialogFormVisible = false
+          this.getUsers({ page: 1, limit: 10 })
+        } else {
+          this.$message({
+            type: 'error',
+            message: response.msg
+          })
+        }
+      }).catch(err => {
+        console.log(err)
+        this.$message({
+          type: 'error',
+          message: err,
+          duration: 5 * 1000
+        })
+      })
+    },
+    onBtnUpdateUserOKClick(formName) {
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          if (this.editForm.title === '编辑用户') {
+            this.userEdit()
+          } else {
+            this.userAdd()
+          }
+        } else {
+          return false
+        }
+      })
+    }
+  }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss" >
+.logs {
+      width: 100%;
+      height: 300px;
+      font-size: 18px;
+      overflow: auto;
+      padding: 20px 50px;
+      margin-top: 10px;
+      background: #ebf5ff;
+      .log {
+        margin-top: 5px;
+        .log-success {
+          color: #00A854
+        }
+        .log-fail {
+          color: #F04134
+        }
+         .log-info {
+          color: #333333
+        }
+      }
+    }
+</style>

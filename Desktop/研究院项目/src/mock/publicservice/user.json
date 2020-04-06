@@ -1,0 +1,57 @@
+{
+  "status":200,
+  "msg": "ok",
+  "data":[
+        {
+          "login_name": "13800138000",
+          "real_name": "张家",
+          "state": "有效",
+          "mobile": "13800138000",
+          "wechat": "",
+          "distrct": "",
+          "note": ""
+        },
+        {
+          "login_name": "12365896325",
+          "real_name": "周口",
+          "state": "停用",
+          "mobile": "12365896325",
+          "wechat": "",
+          "distrct": "",
+          "note": ""
+        },
+        {
+          "login_name": "13965896325",
+          "real_name": "莫干山",
+          "state": "停用",
+          "mobile": "13965896325",
+          "wechat": "",
+          "distrct": "",
+          "note": ""
+        },
+        {
+          "login_name": "13965896320",
+          "real_name": "林海",
+          "state": "停用",
+          "mobile": "13965896320",
+          "wechat": "",
+          "distrct": "",
+          "note": ""
+        },
+        {
+          "login_name": "13965896320",
+          "real_name": "林海",
+          "state": "无效",
+          "mobile": "13965896320",
+          "wechat": "",
+          "distrct": "",
+          "note": ""
+        }
+      ]
+    }
+  
+           
+          
+
+
+            

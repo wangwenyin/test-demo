@@ -1,0 +1,98 @@
+<template>
+  <div style="margin:10px">
+    <el-row style="margin:20px 100px 20px 100px">
+      <el-col :span="20" :offset="2">
+        <el-form ref="form" :model="form" label-width="80px" size="small">
+          <el-form-item label="标题">
+            <el-input v-model="form.title"/>
+          </el-form-item>
+          <el-form-item label="发布对象">
+            <el-checkbox v-model="checkAll" :indeterminate="isIndeterminate" @change="onCheckAllChange">全选</el-checkbox>
+            <div style="margin: 15px 0;"/>
+            <el-checkbox-group v-model="form.publish_target" @change="handleCheckedCitiesChange">
+              <el-checkbox v-for="item in targets" :label="item" :key="item">{{ item }}</el-checkbox>
+            </el-checkbox-group>
+          </el-form-item>
+          <el-form-item label="等级">
+            <el-radio-group v-model="form.grade">
+              <el-radio label="重要"/>
+              <el-radio label="普通"/>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item label="备注">
+            <el-input v-model="form.note" type="textarea"/>
+          </el-form-item>
+          <el-form-item label="内容">
+            <tinymce :height="300" v-model="form.content"/>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" size="small" @click="onPublishMessageClick">发布</el-button>
+            <el-button size="small">取消</el-button>
+          </el-form-item>
+        </el-form>
+      </el-col>
+    </el-row>
+  </div>
+</template>
+<script>
+import Tinymce from '@/components/Tinymce'
+import { publishMessage } from '@/api/message'
+
+export default {
+  name: 'PublishMessage',
+  components: { Tinymce },
+  data() {
+    return {
+      form: {
+        publisher: this.$store.state.user.name,
+        title: '',
+        grade: '普通',
+        publish_target: [],
+        content: '',
+        note: ''
+      },
+      targets: ['评估部', '数据部', '系统部'],
+      checkAll: false,
+      isIndeterminate: true
+    }
+  },
+  mounted() {
+    console.log(this.$route.params)
+    if (this.$route.params.title) {
+      this.form = this.$route.params
+    }
+  },
+  methods: {
+    onCheckAllChange(val) {
+      this.form.publish_target = val ? this.targets : []
+      this.isIndeterminate = false
+    },
+    onPublishMessageClick() {
+      console.log(this.form)
+      // this.form.publish_time = moment().format('YYYY-MM-DD')
+      // this.form.publish_target = this.form.publish_target.join(',')
+      publishMessage(this.form).then(response => {
+        if (response.code === 200) {
+          this.$notify({
+            title: '成功',
+            message: '发布消息成功',
+            type: 'success',
+            duration: 2000
+          })
+          this.$router.push({ name: 'MessageManage' })
+        } else {
+          this.$notify({
+            title: '获取信息失败',
+            message: response.msg,
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+
+</style>

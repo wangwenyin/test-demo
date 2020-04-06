@@ -1,0 +1,64 @@
+<template>
+  <div>
+    <el-input
+      v-model="title"
+      style="margin-top:10px;margin-bottom:10px"
+    >
+      <template slot="prepend">标题：</template>
+    </el-input>
+    <div class="edit_container">
+      <tinymce :height="600" v-model="content"/>
+    </div>
+    <div class="button">
+      <el-button
+        type="primary"
+        @click="btnSubmitClick"
+      >提交</el-button>
+      <el-button @click="btnCancelClick">取消</el-button>
+    </div>
+  </div>
+</template>
+<script>
+import Tinymce from '@/components/Tinymce'
+export default {
+  components: {
+    Tinymce
+  },
+  data() {
+    return {
+      content: `<ol>
+      <li>编辑框的高度默认为除去标题和按钮的高度之后全屏。</li>
+      <li>如果用户输入内容超过编辑框高度，在编辑框显示滚动条，不在页面显示滚动条。</li>
+      <li>提交的通知标题和内容均不可为空。如果为空则提示用户修改。</li>
+      <li>通知标题字数限制为15个汉字。</li>
+      <li>如果用户编辑内容后按取消按钮，提示用户是否确认取消。</li>
+      <li>提交成功或确认取消后返回通知列表。</li></ol>
+      <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+      <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+      此处高度仅供演示
+      `,
+      title: '标题字数限制为15个汉字'
+    }
+  },
+  methods: {
+    btnSubmitClick() {
+      this.$router.push({ name: 'Notice' })
+    },
+    btnCancelClick() {
+      this.$confirm('通知内容已修改，是否确认放弃修改？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$router.push({ name: 'Notice' })
+      })
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+.button {
+  margin-top: 10px;
+  text-align: center;
+}
+</style>

@@ -1,0 +1,240 @@
+<template>
+  <div>
+    <el-row>
+      <el-col :span="18" :offset="3">
+        <el-row style="border-bottom: 1px solid #d8dce5;margin-bottom:20px;">
+          <div class="delete-button">
+            <el-button type="primary" size="mini" @click="onSupervisorClick" >督办</el-button>
+            <el-button type="primary" size="mini" @click="onAuditClick" >审核</el-button>
+          </div>
+        </el-row>
+        <el-tabs v-model="activeName" style="margin-left:20px" @tab-click="onTabClick">
+          <el-tab-pane label="基本信息" name="first">
+            <el-row style="border-bottom: 1px solid #d8dce5;margin-bottom:20px;">
+              <el-col :span="24">
+                <div class="row-container" style="font-size:20px;font-weight:bold;margin-top:10px">{{ form.property_name }} </div>
+              </el-col>
+            </el-row>
+            <el-row>
+              <el-col :span="3" class="row-container">
+                <div class="col-item-label">任务类型：</div>
+                <div class="col-item-label">预计完成时间：</div>
+                <div class="col-item-label">任务进度：</div>
+                <div class="col-item-label">备注：</div>
+              </el-col>
+              <el-col :span="5" class="row-container">
+                <div class="col-item-value">{{ form.task_type }}</div>
+                <div class="col-item-value">{{ form.finish_date }}</div>
+                <div class="col-item-value">{{ form.task_process }}</div>
+                <div class="col-item-value">{{ form.remark }}</div>
+              </el-col>
+              <el-col :span="3" class="row-container">
+                <div class="col-item-label">任务编号：</div>
+                <div class="col-item-label">查勘人手机号：</div>
+              </el-col>
+              <el-col :span="5" class="row-container">
+                <div class="col-item-value">{{ form.task_no }}</div>
+                <div class="col-item-value">{{ form.telephone }}</div>
+              </el-col>
+              <el-col :span="4" class="row-container">
+                <div class="col-item-label">查勘人：</div>
+                <div class="col-item-label">查勘类型：</div>
+              </el-col>
+              <el-col :span="4" class="row-container">
+                <div class="col-item-value">{{ form.surveyor }}</div>
+                <div class="col-item-value">{{ form.survey_type }}</div>
+              </el-col>
+            </el-row>
+            <el-row style="border-bottom: 1px solid #d8dce5;margin-bottom:20px;">
+              <el-col :span="24">
+                <div class="row-container" style="font-size:20px;font-weight:bold;margin-top:10px">异常报告</div>
+              </el-col>
+            </el-row>
+            <el-row style="padding-left:20px">
+              <div class="col-item-label">异常报告信息，异常报告信息，异常报告信息，异常报告信息，异常报告信息，异常报告信息，异常报告信息，异常报告信息异常报告信息异常
+              报告信息异常报告信息，异常报告信息，异常报告信息，异常报告信息，异常报告信息</div>
+            </el-row>
+            <el-row style="border-bottom: 1px solid #d8dce5;margin-bottom:20px;">
+              <el-col :span="24">
+                <div class="row-container" style="font-size:20px;font-weight:bold;margin-top:10px">查勘路径</div>
+              </el-col>
+            </el-row>
+            <el-row style="padding-left:20px">
+              <locate :center="center" />
+            </el-row>
+
+          </el-tab-pane>
+          <el-tab-pane label="查勘表格" name="second" >
+            <residence-survey-form :center="center" />
+          </el-tab-pane>
+          <el-tab-pane label="查勘图片" name="third" >
+            <survey-attachment />
+          </el-tab-pane>
+        </el-tabs>
+      </el-col>
+    </el-row>
+    <el-dialog :visible.sync="editDialogFormVisible" title="修改督办信息" width="32%">
+      <el-form ref="editForm" :model="supervisor" label-width="100px" size="small" >
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="督办信息" prop="info" >
+              <el-input v-model="supervisor.info" auto-complete="off" rows="10" type="textarea" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+      <div slot="footer" class="dialog-footer" >
+        <el-button @click="onBtnCancelClick">取 消</el-button>
+        <el-button type="primary" @click="onBtnComfirmClick('editForm')">确 定</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog :visible.sync="editAuditVisible" title="审核" width="35%">
+      <el-form ref="editAuditForm" :model="supervisor" label-width="100px" size="small" >
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="审核结果" prop="info" >
+              <el-radio-group v-model="auditResult">
+                <el-radio label="通过">通过</el-radio>
+                <el-radio label="未通过">未通过</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="备注" prop="info" >
+              <el-input v-model="supervisor.info" auto-complete="off" rows="10" type="textarea" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+      <div slot="footer" class="dialog-footer" >
+        <el-button @click="onBtnAuditCancelClick">取 消</el-button>
+        <el-button type="primary" @click="onBtnAuditComfirmClick('editAuditForm')">确 定</el-button>
+      </div>
+    </el-dialog>
+
+  </div>
+</template>
+<script>
+import { formatDate } from '@/utils/date'
+import { mapGetters } from 'vuex'
+import locate from '@/views/survey/components/Locate'
+import ResidenceSurveyForm from '@/views/survey/components/ResidenceSurveyForm'
+import CommercialSurveyForm from '@/views/survey/components/CommercialSurveyForm'
+import SurveyAttachment from '@/views/survey/components/SurveyAttachment'
+export default {
+  components: {
+    locate,
+    ResidenceSurveyForm,
+    CommercialSurveyForm,
+    SurveyAttachment
+  },
+  filters: {
+    formatDate(currentDate) {
+      var date = new Date(currentDate)
+      return formatDate(date, 'yyyy-MM-dd')
+    }
+  },
+  data() {
+    return {
+      form: {
+        task_no: 'CK2018-01',
+        property_name: '东方玫瑰花园4栋1101',
+        surveyor: '张三',
+        state: '查勘中',
+        finish_date: '2019-04-23',
+        remark: '',
+        task_type: '估价任务',
+        telephone: '18320776124',
+        task_process: '20%',
+        survey_type: '住宅房地产'
+      },
+      supervisor: {},
+      activeName: 'first',
+      width: '100%',
+      editDialogFormVisible: false,
+      editAuditVisible: false,
+      auditResult: '通过',
+      showMapComponent: this.value,
+      keyword: '',
+      mapStyle: {
+        width: '100%',
+        height: '500px'
+      },
+      zoom: 15,
+      center: {
+        lng: 114.064632,
+        lat: 22.549225
+      }
+    }
+  },
+  computed: {
+    ...mapGetters([
+      'name'
+    ])
+  },
+  mounted() {
+  },
+  methods: {
+    onAuditClick() {
+      this.editAuditVisible = true
+    },
+    onBtnAuditCancelClick() {
+      this.editAuditVisible = false
+    },
+    onBtnAuditComfirmClick() {
+      this.editAuditVisible = false
+    },
+    onDrage(e) {
+      this.center.lng = e.point.lng
+      this.center.lat = e.point.lat
+    },
+    onClick(e) {
+      this.center.lng = e.point.lng
+      this.center.lat = e.point.lat
+    },
+    // 标签点击事件
+    onTabClick(tab, event) {
+    },
+    onSupervisorClick() {
+      this.editDialogFormVisible = true
+    },
+    onBtnCancelClick() {
+      this.editDialogFormVisible = false
+    },
+    onBtnComfirmClick() {
+    }
+
+  }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss" scoped>
+.row-container{
+    padding: 10px;
+    /* margin-top: 10px; */
+}
+.col-item-label {
+    margin-bottom: 20px;
+    color: grey;
+    text-align: left;
+}
+.col-item-value {
+    margin-bottom: 20px;
+    color: grey;
+    height: 18px;
+    text-align: left;
+     overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+}
+.delete-button {
+  position:absolute;
+  top:29px;
+  right: 0px;
+  z-index: 10;
+}
+.bm-view {
+ height: 500px;
+}
+</style>

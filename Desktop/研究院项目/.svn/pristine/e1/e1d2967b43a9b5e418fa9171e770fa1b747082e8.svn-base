@@ -1,0 +1,399 @@
+<template>
+  <div style="padding: 18px">
+    <el-tabs v-model="activeName" @tab-click="onTabClick" >
+      <el-tab-pane label="备份计划" name="backup_plan" style="text-align:center" >
+        <el-card style="width:500px;margin:0 auto">
+          <el-form ref="backupSettingForm" :model="backupSetting" label-width="100px" >
+            <el-form-item label="备份方式" prop="type" >
+              <el-input v-model="backupSetting.type" disabled />
+            </el-form-item>
+            <el-form-item label="时间" >
+              <el-select v-model="backupSetting.period" placeholder="请选择" style="padding: 2px 0;width:100%" prop="period" >
+                <el-option label="每月" value="每月" />
+                <el-option label="每周" value="每周" />
+              </el-select>
+              <el-select
+                v-if="backupSetting.period === '每月'"
+                v-model="backupSetting.day"
+                placeholder="请选择"
+                style="padding: 2px 0;width:100%"
+                prop="day">
+                <el-option v-for="item in 28" :label="item + '日'" :value="item" :key="item" />
+              </el-select>
+              <el-select
+                v-if="backupSetting.period === '每周'"
+                v-model="backupSetting.weekday"
+                placeholder="请选择"
+                style="padding: 2px 0;width:100%"
+                prop="weekday">
+                <el-option label="星期一" value="星期一" />
+                <el-option label="星期二" value="星期二" />
+                <el-option label="星期三" value="星期三" />
+                <el-option label="星期四" value="星期四" />
+                <el-option label="星期五" value="星期五" />
+                <el-option label="星期六" value="星期六" />
+                <el-option label="星期日" value="星期日" />
+              </el-select>
+              <el-time-select
+                v-model="backupSetting.time"
+                :picker-options="{ start: '00:00', step: '00:30', end: '23:30'}"
+                placeholder="选择时间"
+                style="padding: 2px 0;width:100%"
+                prop="time" />
+            </el-form-item>
+            <el-form-item label="路径" prop="path" >
+              <el-input v-model="backupSetting.path" auto-complete="off" />
+            </el-form-item>
+            <el-form-item label="备注" prop="desc" >
+              <el-input v-model="backupSetting.note" auto-complete="off" type="textarea" />
+            </el-form-item>
+          </el-form>
+        </el-card>
+        <div style="margin:10px auto">
+          <el-button type="warning" @click="onBtnResetClick">重 置</el-button>
+          <el-button type="primary" @click="onBtnOKClick">确 定</el-button>
+        </div>
+      </el-tab-pane>
+      <el-tab-pane label="备份日志" name="backup_log" >
+        <div>
+          <el-row class="toolbar" style="padding: 5px" >
+            <date-picker ref="datePicker" :no-default-value="false" style="float:left;margin-left:10px;" @dateChange="onDateChange" />
+            <el-input v-model="searchOption.text" placeholder="请输入查询内容" size="small" class="float-left tool-item" style="width:400px;" >
+              <el-select slot="prepend" v-model="searchOption.clause" style="width:120px;" placeholder="请选择" >
+                <el-option label="结果" value="结果" />
+                <el-option label="备注" value="备注" />
+              </el-select>
+              <el-button slot="append" icon="el-icon-search" @click="onBtnSearchClick" />
+            </el-input>
+          </el-row>
+          <div style="margin:10px;">
+            <el-table :data="logData" :header-cell-style="changeHeaderStyle" style="width: 100%;" border fit size="small" >
+              <el-table-column label="序号" type="index" width="50" align="center" />
+              <el-table-column label="时间" prop="time" />
+              <el-table-column label="类型" prop="type" />
+              <el-table-column label="路径" prop="path" />
+              <el-table-column label="结果" prop="result" />
+              <el-table-column label="备注" prop="note" />
+            </el-table>
+            <el-row type="flex" justify="center" style="margin-top:5px" >
+              <pagination
+                :total="listQuery.total"
+                :page.sync="listQuery.page"
+                :limit.sync="listQuery.limit"
+                :page-sizes="listQuery.pageSizes"
+                @pagination="getBackupLogList"
+              />
+            </el-row>
+          </div>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
+  </div>
+</template>
+<script>
+import Pagination from '@/components/Pagination'
+import DatePicker from '@/components/DateTimePicker'
+import { getNewBackupPlans, updateBackupPlans } from '@/api/backup'
+import { getLogs } from '@/api/log'
+export default {
+  components: { Pagination, DatePicker },
+  data() {
+    return {
+      activeName: 'backup_plan',
+      searchOption: {
+        text: '',
+        clause: ''
+      },
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        pageSizes: [10, 20, 30, 50]
+      },
+      planData: [
+        {
+          id: 1,
+          type: '全量备份',
+          content: ['内容1', '内容2', '内容3'],
+          time: {
+            type: '2',
+            dateTime: null,
+            gap: '每周',
+            day: '星期日',
+            time: '2:00'
+          },
+          path: '默认路径1',
+          inEdit: false,
+          note:
+            '点击编辑后，当前行切换到编辑模式。在编辑模式下修改后点击保存，将数据传到后台，退出编辑模式。点击取消，取消修改并恢复到修改前的内容，退出编辑模式。当离开本页面时有未保存的内容时，提示用户是否放弃保存。'
+        }
+      ],
+      logData: [],
+      backupSetting: {
+      },
+      backupSetting_old: {
+      }
+    }
+  },
+  mounted() {
+    this.getNewBackupPlans()
+  },
+  methods: {
+    onDateChange() {
+      this.getBackupLogList({ page: 1, limit: 10 })
+    },
+    getBackupLogList(val) {
+      if (val) {
+        this.listQuery.limit = val.limit
+        this.listQuery.page = val.page
+      }
+      const params = {
+        type: 'backup',
+        page: this.listQuery.page,
+        limit: this.listQuery.limit,
+        start_date: this.$refs.datePicker.value[0] ? this.$refs.datePicker.value[0] : null,
+        end_date: this.$refs.datePicker.value[1] ? this.$refs.datePicker.value[1] : null,
+        result:
+          this.searchOption.clause === '结果' ? this.searchOption.text : null,
+        note:
+          this.searchOption.clause === '备注' ? this.searchOption.text : null
+      }
+      getLogs(params).then(response => {
+        if (response.code === 200) {
+          this.logData = response.data.backup
+          this.listQuery.total = response.cnt
+        } else {
+          this.$message({
+            type: 'error',
+            message: '获取数据失败!',
+            duration: 5 * 1000
+          })
+        }
+      })
+    },
+    getNewBackupPlans() {
+      getNewBackupPlans().then(response => {
+        if (response.code === 200) {
+          this.backupSetting = response.data
+          this.backupSetting_old = JSON.parse(JSON.stringify(response.data))
+          switch (response.data.weekday) {
+            case 1:
+              this.backupSetting.weekday = '星期一'
+              break
+            case 2:
+              this.backupSetting.weekday = '星期二'
+              break
+            case 3:
+              this.backupSetting.weekday = '星期三'
+              break
+            case 4:
+              this.backupSetting.weekday = '星期四'
+              break
+            case 5:
+              this.backupSetting.weekday = '星期五'
+              break
+            case 6:
+              this.backupSetting.weekday = '星期六'
+              break
+            case 7:
+              this.backupSetting.weekday = '星期日'
+              break
+            default:
+              break
+          }
+        } else {
+          this.$message({
+            type: 'error',
+            message: '获取数据失败!',
+            duration: 5 * 1000
+          })
+        }
+      })
+    },
+    onBtnResetClick() {
+      this.backupSetting = {}
+      this.backupSetting_old = {}
+      this.getNewBackupPlans()
+    },
+    updateBackupPlans() {
+      switch (this.backupSetting.weekday) {
+        case '星期一':
+          this.backupSetting.weekday = '1'
+          break
+        case '星期二':
+          this.backupSetting.weekday = '2'
+          break
+        case '星期三':
+          this.backupSetting.weekday = '3'
+          break
+        case '星期四':
+          this.backupSetting.weekday = '4'
+          break
+        case '星期五':
+          this.backupSetting.weekday = '5'
+          break
+        case '星期六':
+          this.backupSetting.weekday = '6'
+          break
+        case '星期日':
+          this.backupSetting.weekday = '7'
+          break
+        default:
+          break
+      }
+      const data = {
+        period: this.backupSetting.period,
+        day: this.backupSetting.day + '',
+        weekday: this.backupSetting.weekday,
+        time: this.backupSetting.time,
+        note: this.backupSetting.note
+      }
+      updateBackupPlans(data).then(response => {
+        if (response.code === 200) {
+          // this.backupSetting = response.data
+          this.$message({
+            type: 'success',
+            message: '修改成功!',
+            duration: 5 * 1000
+          })
+          this.getNewBackupPlans()
+        } else {
+          this.$message({
+            type: 'error',
+            message: '修改失败!',
+            duration: 5 * 1000
+          })
+        }
+      })
+    },
+    onTabClick(tab, event) {
+      if (tab.name === 'backup_log') {
+        this.getBackupLogList({ page: 1, limit: 10 })
+      } else {
+        this.getNewBackupPlans()
+      }
+    },
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    },
+    onBtnAddClick() {
+      this.planData.push({
+        type: '增量备份',
+        content: ['内容1', '内容2', '内容3', '内容4', '内容5'],
+        time: {
+          type: '1',
+          dateTime: null,
+          gap: null,
+          day: null,
+          time: null
+        },
+        path: '默认路径1',
+        inEdit: true,
+        note: '',
+        new: true
+      })
+    },
+    onSizeChange() {},
+    onCurrentChange() {},
+    onBtnOKClick() {
+      this.updateBackupPlans()
+    },
+    onBtnEditClick(index, row) {
+      row.inEdit = true
+    },
+    onBtnSaveEditClick(index, row) {
+      this.$message({
+        message: '保存成功，下次备份将在XX年XX月XX日XX时XX分XX秒执行。',
+        type: 'success'
+      })
+      row.inEdit = false
+    },
+    onBtnCancelEditClick(index, row) {
+      if (row.new) {
+        this.planData.pop(row)
+      }
+      row.inEdit = false
+    },
+    onBtnDeleteClick(index, row) {
+      this.$confirm('删除操作不可逆，是否确定?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          this.$message({
+            type: 'success',
+            message: '删除成功!'
+          })
+        })
+        .catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          })
+        })
+    },
+    onBtnSearchClick() {
+      this.getBackupLogList({ page: 1, limit: 10 })
+    }
+  },
+  beforeRouteLeave(to, from, next) {
+    // console.log(this.backupSetting.hasOwnProperty('period'))
+    // console.log(this.backupSetting_old)
+    switch (this.backupSetting.weekday) {
+      case '星期一':
+        this.backupSetting.weekday = 1
+        break
+      case '星期二':
+        this.backupSetting.weekday = 2
+        break
+      case '星期三':
+        this.backupSetting.weekday = 3
+        break
+      case '星期四':
+        this.backupSetting.weekday = 4
+        break
+      case '星期五':
+        this.backupSetting.weekday = 5
+        break
+      case '星期六':
+        this.backupSetting.weekday = 6
+        break
+      case '星期日':
+        this.backupSetting.weekday = 7
+        break
+      default:
+        break
+    }
+    if (this.backupSetting_old.time !== this.backupSetting.time || this.backupSetting_old.period !== this.backupSetting.period ||
+          this.backupSetting_old.day !== this.backupSetting.day || this.backupSetting_old.weekday !== this.backupSetting.weekday) {
+      this.$confirm('当前页面仍有未保存的内容，是否确认离开？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        next()
+      }).catch(() => {
+        next(false)
+      })
+    } else {
+      next()
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+.el-checkbox,
+.el-radio {
+  margin: auto 2px;
+}
+.float-left {
+  float: left;
+}
+.float-right {
+  float: right;
+}
+.tool-item {
+  margin-left: 10px;
+}
+</style>

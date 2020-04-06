@@ -1,0 +1,177 @@
+<template>
+  <div>
+    <el-row style="border:1px solid #d8dce5;line-height:25px;padding:10px;">
+      <el-select v-model="district" clearable placeholder="请选择行政区" size="small" style="width:200px">
+        <el-option v-for="item in districtOptions" :key="item" :label="item" :value="item"/>
+      </el-select>
+      <el-select v-model="subdistrict" clearable placeholder="请选择街道办" size="small" style="width:200px">
+        <el-option v-for="item in subdistrictOptions" :key="item" :label="item" :value="item"/>
+      </el-select>
+      <el-input v-model="parcel_no" placeholder="宗地号" size="small" style="width:200px;"/>
+      <el-button type="primary" size="small" @click="onSearchBtnClick">查询</el-button>
+      <el-button size="small" @click="onClearBtnClick">清空</el-button>
+      <el-button size="small" type="success" style="float:right;margin-right:10px;" @click="onSubmitClick">提交入库</el-button>
+    </el-row>
+    <el-row :gutter="10" style="padding:10px;">
+      <el-table v-loading="loading" ref="prjTable" :data="LandData" :header-cell-style="changeHeaderStyle" style="width:100%" border fit size="small">
+        <el-table-column v-for="item in allFields" :prop="item.prop" :label="item.label" :key="item.prop"/>
+        <el-table-column label="操作" width="200">
+          <template slot-scope="scope">
+            <el-button size="mini" type="primary" @click="onEditClick(scope.row)" >编辑</el-button>
+            <el-button size="mini" type="danger" @click="onDelClick(scope.row)" >删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <pagination
+        :total="listQuery.total"
+        :page.sync="listQuery.page"
+        :limit.sync="listQuery.limit"
+        :page-sizes="listQuery.pageSizes"
+        style="text-align: center;"
+        @pagination="getLand" />
+    </el-row>
+    <ParcelEditDialog :visible="editFormVisible" :land="land" @onCloseClick="onCloseClick"/>
+  </div>
+</template>
+<script>
+import Pagination from '@/components/Pagination'
+import ParcelEditDialog from '@/views/datatools/edit/components/ParcelEditDialog'
+import { getDictionary } from '@/api/common'
+import {
+  submitImportation, getImportationLands, deleteImportationLands
+} from '@/api/data'
+export default {
+  components: { Pagination, ParcelEditDialog },
+  data() {
+    return {
+      district: '',
+      subdistrict: '',
+      parcel_no: '',
+      districtOptions: [],
+      subdistrictOptions: [],
+      allFields: [
+        { label: '宗地号', prop: 'parcel_no' },
+        { label: '地址', prop: 'address' },
+        { label: '行政区', prop: 'district' },
+        { label: '街道办', prop: 'subdistrict' },
+        { label: '面积', prop: 'land_area' },
+        { label: '用途', prop: 'land_usage' },
+        { label: '等级', prop: 'land_grade' },
+        { label: '权利类型', prop: 'land_type' },
+        { label: '权利性质', prop: 'land_attr' },
+        { label: '容积率', prop: 'plot_ratio' },
+        { label: '建筑密度', prop: 'built_density' },
+        { label: '起始时间', prop: 'start_date' },
+        { label: '终止时间', prop: 'end_date' },
+        { label: '使用年期', prop: 'land_term' },
+        { label: '土地价格', prop: 'land_price' }
+      ],
+      LandData: [],
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        pageSizes: [10, 20, 30, 50]
+      },
+      land: {},
+      loading: false,
+      editFormVisible: false
+    }
+  },
+  watch: {
+    // 获取街道办下拉选项
+    'district'(val) {
+      getDictionary(val + '街道').then(response => {
+        this.subdistrictOptions = response.data
+        this.subdistrict = ''
+      })
+    }
+  },
+  mounted() {
+    this.getOption()
+    this.getLand()
+  },
+  methods: {
+    // 获取下拉选项
+    getOption() {
+      getDictionary('行政区').then(response => {
+        this.districtOptions = response.data
+      })
+    },
+    getLand(val) {
+      if (val) {
+        this.listQuery.limit = val.limit
+        this.listQuery.page = val.page
+      } else {
+        this.listQuery.page = 1
+      }
+      this.loading = true
+      const params = { 'district': this.district === '' ? null : this.district, 'subdistrict': this.subdistrict === '' ? null : this.subdistrict, 'parcel_no': this.parcel_no === '' ? null : this.parcel_no, 'page': this.listQuery.page, 'limit': this.listQuery.limit }
+      getImportationLands(params).then(response => {
+        this.LandData = response.data
+        this.listQuery.total = response.total_num
+        this.loading = false
+      })
+    },
+    onEditClick(value) {
+      this.editFormVisible = true
+      this.land = value
+    },
+    // 删除某个宗地
+    onDelClick(value) {
+      const data = { id: value.id }
+      deleteImportationLands(value.parcel_no, data).then(response => {
+        if (response.code === 200) {
+          this.$message({
+            type: 'success',
+            message: '删除成功!'
+          })
+          this.getLand()
+        } else {
+          this.$message({
+            type: 'info',
+            message: response.msg
+          })
+        }
+      })
+    },
+    // 查询
+    onSearchBtnClick: function() {
+      this.getLand()
+    },
+    // 清空
+    onClearBtnClick: function() {
+      this.district = ''
+      this.subdistrict = ''
+      this.parcel_no = ''
+    },
+    // 提交入库
+    onSubmitClick() {
+      submitImportation('land').then(response => {
+        if (response.code === 200) {
+          this.$message({
+            type: 'success',
+            message: '提交成功!'
+          })
+        } else {
+          this.$message({
+            type: 'info',
+            message: response.msg
+          })
+        }
+      })
+    },
+    // 关闭编辑框
+    onCloseClick(val) {
+      this.editFormVisible = false
+    },
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    }
+  }
+
+}
+</script>
+<style lang="scss" scoped>
+
+</style>

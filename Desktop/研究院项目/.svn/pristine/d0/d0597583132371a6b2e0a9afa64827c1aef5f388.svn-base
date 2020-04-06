@@ -1,0 +1,43 @@
+<template>
+  <div style="padding:10px">
+    <el-input
+      :rows="10"
+      v-model="advise"
+      type="textarea"
+      placeholder="请输入您的宝贵建议"/>
+    <el-button type="primary" style="margin-top:10px" @click="submit">发送</el-button>
+  </div>
+</template>
+<script>
+import { feedback } from '@/api/user'
+export default {
+  data() {
+    return {
+      advise: ''
+    }
+  },
+  methods: {
+    submit() {
+      if (this.advise.trim() === '') {
+        alert('请输入您的宝贵建议！')
+      } else {
+        feedback({ proposal: this.advise }).then(response => {
+          if (response.code === 200) {
+            this.$message({
+              type: 'success',
+              message: '提交成功！谢谢您的反馈，我们会努力将产品做得更好，为您提供更贴心的服务。',
+              duration: 6000
+            })
+            this.advise = ''
+          } else {
+            alert(response.msg)
+          }
+        })
+      }
+    }
+  }
+}
+</script>
+<style>
+
+</style>

@@ -1,0 +1,132 @@
+<template>
+  <div :class="className" :style="{height:height,width:width}" :data1="data1" :data2="data2"/>
+</template>
+
+<script>
+import echarts from 'echarts'
+require('echarts/theme/macarons') // echarts theme
+import { debounce } from '@/utils'
+const animationDuration = 6000
+
+export default {
+  props: {
+    className: {
+      type: String,
+      default: 'chart'
+    },
+    width: {
+      type: String,
+      default: '100%'
+    },
+    height: {
+      type: String,
+      default: '250px'
+    },
+    data1: {
+      type: Array,
+      default: function() {
+        return []
+      }
+    },
+    data2: {
+      type: Array,
+      default: function() {
+        return []
+      }
+    }
+  },
+  data() {
+    return {
+      chart: null,
+      residential: [],
+      commercial: [],
+      office: [],
+      industrial: [],
+      xAxis: []
+    }
+  },
+  mounted() {
+    this.__resizeHanlder = debounce(() => {
+      if (this.chart) {
+        this.chart.resize()
+      }
+    }, 100)
+    this.initChart()
+    window.addEventListener('resize', this.__resizeHanlder)
+  },
+  beforeDestroy() {
+    if (!this.chart) {
+      return
+    }
+    window.removeEventListener('resize', this.__resizeHanlder)
+    this.chart.dispose()
+    this.chart = null
+  },
+  methods: {
+    initChart() {
+      this.chart = echarts.init(this.$el, 'macarons')
+
+      this.chart.setOption({
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: { // 坐标轴指示器，坐标轴触发有效
+            type: 'shadow' // 默认为直线，可选为：'line' | 'shadow'
+          }
+        },
+        legend: {
+          left: 'center',
+          bottom: 10,
+          data: ['一手房', '二手房']
+        },
+        calculable: true,
+        grid: {
+          top: 10,
+          left: '2%',
+          right: '2%',
+          containLabel: true
+        },
+        xAxis: [{
+          type: 'category',
+          data: ['住宅', '商业', '办公', '其他'],
+          axisTick: {
+            alignWithLabel: true
+          }
+        }],
+        yAxis: [{
+          type: 'value',
+          axisTick: {
+            show: false
+          }
+        }],
+        series: [{
+          name: '一手房',
+          type: 'bar',
+          barGap: 0,
+          barWidth: '30%',
+          // data: [1985, 1867, 751, 225],
+          data: this.data1,
+          label: {
+            normal: {
+              show: true
+            }
+          },
+          animationDuration
+        }, {
+          name: '二手房',
+          type: 'bar',
+          barGap: 0,
+          barWidth: '30%',
+          // data: [4175, 452, 94, 140],
+          data: this.data2,
+          label: {
+            normal: {
+              show: true
+            }
+          },
+          animationDuration
+        }]
+      })
+    }
+  }
+}
+</script>

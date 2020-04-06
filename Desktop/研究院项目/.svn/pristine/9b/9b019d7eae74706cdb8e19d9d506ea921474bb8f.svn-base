@@ -1,0 +1,199 @@
+<template>
+  <div>
+    <el-row class="search-container" style="padding: 5px">
+      <el-col :span="16">
+        <el-button type="primary" size="small" round @click="onCreateTaskClick">+创建任务</el-button>
+        <el-button :disabled="!canGenerateReport" type="warning" size="small" @click="onGenerateReport">多任务生成报告</el-button>
+        <el-radio-group v-model="taskType" style="margin-left:10px" size="small" @change="onTaskTypeChange">
+          <el-radio-button label="我的任务">我的任务</el-radio-button>
+          <el-radio-button label="全部任务">全部任务</el-radio-button>
+        </el-radio-group>
+      </el-col>
+      <el-col :span="8">
+        <el-input v-model="searchOption.text" placeholder="请输入查询内容" size="small" >
+          <el-select slot="prepend" v-model="searchOption.clause" style="width:120px;" placeholder="请选择">
+            <el-option label="任务名称" value="任务名称" />
+            <el-option label="参与人员" value="参与人员" />
+            <el-option label="物业用途" value="物业用途" />
+          </el-select>
+          <el-button slot="append" icon="el-icon-search" @click="onSearchTaskClick"/>
+        </el-input>
+      </el-col>
+    </el-row>
+    <el-row style="padding:5px">
+      <el-table
+        ref="taskTable"
+        :data="taskList"
+        :header-cell-style="changeHeaderStyle"
+        style="width:100%"
+        border
+        fit
+        stripe
+        size="small"
+        @selection-change="onTaskTableSelectionChange" >
+        <el-table-column type="selection" width="55"/>
+        <el-table-column label="序号" type="index" width="50" align="center"/>
+        <el-table-column prop="id" label="任务编号" align="center"/>
+        <el-table-column prop="name" min-width="250" label="任务名称" align="center"/>
+        <el-table-column prop="creator" label="创建人员" align="center"/>
+        <el-table-column label="创建时间" min-width="110" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.create_time }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="prop_usage" label="物业用途" align="center"/>
+        <el-table-column prop="method" label="估价方法" align="center"/>
+        <el-table-column label="参与人员" align="center" min-width="120" show-overflow-tooltip>
+          <template slot-scope="scope">
+            <span>{{ scope.row.members }}</span>
+            <!-- <span v-for="member in scope.row.members.split(',')" slot="reference" :key="member" class="name-wrapper">
+              <el-tag size="medium">{{ member }}</el-tag>
+            </span> -->
+          </template>
+        </el-table-column>
+        <el-table-column prop="status" label="任务进度" align="center">
+          <template slot-scope="scope">
+            <el-tag :type="(scope.row.status === '任务完成'? 'success':'primary')" size="medium">{{ scope.row.status }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="150" align="center">
+          <template slot-scope="scope">
+            <router-link :to="{ name:'SingleTaskDetail' , query: { id: scope.row.id,status:scope.row.status }}">
+              <el-button size="mini" >详情</el-button>
+            </router-link>
+            <el-button v-if="isShowOperationButton(scope.row)" size="mini" type="primary" @click="onTaskOperationClick(scope.row)">作业</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-row type="flex" justify="center" style="margin-top:5px">
+        <pagination
+          :total="listQuery.total"
+          :page.sync="listQuery.page"
+          :limit.sync="listQuery.limit"
+          :page-sizes="listQuery.pageSizes"
+          @pagination="getTaskList" />
+          <!-- <el-pagination :current-page="listQuery.page" :page-sizes="[10,20,30, 50]" :page-size="listQuery.limit" :total="listQuery.total" background layout="total, sizes, prev, pager, next, jumper" @size-change="onSizeChange" @current-change="onCurrentChange"/> -->
+      </el-row>
+    </el-row>
+  </div>
+</template>
+<script>
+import Pagination from '@/components/Pagination'
+import { searchTasks, getProperty } from '@/api/singleapp'
+import { mapGetters } from 'vuex'
+export default {
+  components: { Pagination },
+  data() {
+    return {
+      taskType: '我的任务',
+      searchOption: {
+        clause: '请选择',
+        text: ''
+      },
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        pageSizes: [10, 20, 30, 50]
+      },
+      taskList: [],
+      selectedTaskList: []
+    }
+  },
+  computed: {
+    ...mapGetters(['name', 'roles']),
+    canGenerateReport() {
+      return (this.selectedTaskList.length > 0)
+    }
+  },
+  created() {
+  },
+  mounted() {
+    this.getTaskList()
+  },
+  methods: {
+    onGenerateReport() {
+
+    },
+    onTaskTableSelectionChange(val) {
+      this.selectedTaskList = val
+      console.log(val)
+    },
+    isShowOperationButton(row) {
+      if (row.status !== '任务完成' && row.members.indexOf(this.name) >= 0) {
+        return true
+      } else {
+        return false
+      }
+    },
+    getTaskList(val) {
+      if (val) {
+        this.listQuery.limit = val.limit
+        this.listQuery.page = val.page
+      }
+      const params = {
+        page: this.listQuery.page,
+        limit: this.listQuery.limit,
+        name: (this.searchOption.clause === '任务名称' ? this.searchOption.text : null),
+        members: (this.searchOption.clause === '参与人员' ? this.searchOption.text : null),
+        usage: (this.searchOption.clause === '物业用途' ? this.searchOption.text : null)
+      }
+      console.log(params)
+      if (!params.members) {
+        if (this.taskType === '我的任务') {
+          params.members = this.name
+        }
+      }
+      this.getTask(params)
+    },
+    onSearchTaskClick() {
+      if (this.searchOption.text === '' || this.searchOption.clause === '请选择') {
+        this.$notify({
+          title: '提示',
+          message: '请选择查询条件，确保查询内容不能为空！',
+          duration: 3000
+        })
+        return
+      }
+      this.getTaskList({ page: 1, limit: 10 })
+    },
+    getTask(param) {
+      searchTasks(param).then(response => {
+        this.taskList = response.data
+        this.listQuery.total = response.cnt
+      })
+    },
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    },
+    onTaskOperationClick(val) {
+      const paramProperty = { task_id: val.id }
+      getProperty(paramProperty).then(response => {
+        console.log('index....' + response.data.prj_no)
+        if (val.status === '创建任务') {
+          this.$router.push({ name: 'CreateSingleappTask', query: { taskId: val.id }})
+        } else if (val.status === '净值测算') {
+          this.$router.push({ name: 'SingleappNetValue', query: { taskId: val.id }})
+        } else if (val.status === '实例选取') {
+          this.$router.push({ name: 'CaseSearch', query: { caller: 'singleapp', prj_no: response.data.prj_no, taskId: val.id }})
+        } else if (val.status === '价格评估') {
+          this.$router.push({ name: 'SingleappAdjustment', query: { taskId: val.id }})
+        } else {
+          this.$router.push({ name: 'SingleappReport', query: { taskId: val.id }})
+        }
+      })
+    },
+    onCreateTaskClick() {
+      this.$router.push({ name: 'CreateSingleappTask' })
+    },
+    onTaskTypeChange() {
+      this.searchOption.clause = '请选择'
+      this.searchOption.text = ''
+      this.getTaskList({ page: 1, limit: 10 })
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+
+</style>

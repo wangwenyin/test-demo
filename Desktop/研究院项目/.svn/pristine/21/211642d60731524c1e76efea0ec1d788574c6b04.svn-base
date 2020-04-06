@@ -1,0 +1,269 @@
+<template>
+  <div :class="className" :id="id" :style="{height:height,width:width}"/>
+</template>
+
+<script>
+import echarts from 'echarts'
+import resize from './mixins/resize'
+
+export default {
+  mixins: [resize],
+  props: {
+    className: {
+      type: String,
+      default: 'chart'
+    },
+    id: {
+      type: String,
+      default: 'chart'
+    },
+    width: {
+      type: String,
+      default: '200px'
+    },
+    height: {
+      type: String,
+      default: '200px'
+    },
+    caseList: {
+      type: Array,
+      default: function() {
+        return []
+      }
+    }
+  },
+  data() {
+    return {
+      chart: null,
+      caseData: []
+    }
+  },
+  watch: {
+    caseList: {
+      handler() {
+        this.initializeData()
+      },
+      // 深度监视
+      deep: true
+    }
+  },
+  mounted() {
+    // 获取数据
+    // this.initializeData()
+
+  },
+  beforeDestroy() {
+    if (!this.chart) {
+      return
+    }
+    this.chart.dispose()
+    this.chart = null
+  },
+  methods: {
+    initializeData() {
+      for (let i = 0; i < this.caseList.length; i++) {
+        const caseObj = this.caseList[i]
+        const item = [caseObj.ex_time, caseObj.each_price, caseObj.bldg_name, caseObj.unit_no, caseObj.built_in_area, caseObj.actual_floor, caseObj.face_to]
+        this.caseData.push(item)
+      }
+      this.initChart()
+    },
+    initChart() {
+      this.chart = echarts.init(document.getElementById(this.id))
+
+      this.chart.setOption({
+        // backgroundColor: '#344b58',   // 3C3B3F
+        // backgroundColor: '#3C3B3F',
+        title: {
+          text: '案例散点图',
+          // subtext: '2017-01-01 至 2018-10-01',
+          x: '20',
+          top: '20',
+          textStyle: {
+            color: '#000',
+            fontSize: '22'
+          },
+          subtextStyle: {
+            color: 'grey',
+            fontSize: '12'
+          }
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            textStyle: {
+              color: '#fff'
+            }
+          }
+        },
+        grid: {
+          left: '5%',
+          right: '5%',
+          borderWidth: 0,
+          top: 60,
+          bottom: 60,
+          textStyle: {
+            color: '#fff'
+          }
+        },
+        // legend: {
+        //   x: '5%',
+        //   top: '10%',
+        //   textStyle: {
+        //     color: '#90979c'
+        //   },
+        //   data: ['female', 'average']
+        // },
+        // calculable: true,
+        xAxis: [{
+          type: 'time',
+          axisLine: {
+            lineStyle: {
+              color: 'black'
+            }
+          },
+          scale: true,
+          interval: 3600 * 24 * 1000 * 31,
+          // splitNumber: 20,
+          splitLine: {
+            lineStyle: {
+              type: 'dotted'
+            }
+          },
+          // axisTick: {
+          //   show: false
+          // },
+          // splitArea: {
+          //   show: false
+          // },
+          // axisLabel: {
+          //   interval: 0
+          // },
+          axisLabel: {
+            // 刻度标签的内容格式器
+            formatter: function(value, index) {
+              // 格式化成年/月
+              var date = new Date(value)
+              var texts = [date.getFullYear(), (date.getMonth() + 1)]
+              return texts.join('/')
+            }
+          }
+        }],
+        yAxis: [{
+          type: 'value',
+          // scale: true,
+          // splitNumber: 5,
+          // interval: 0,
+          scale: true,
+          splitLine: {
+            lineStyle: {
+              type: 'dotted'
+            }
+          },
+          axisLine: {
+            lineStyle: {
+              color: 'black'
+            }
+          },
+          axisTick: {
+            show: false
+          },
+          axisLabel: {
+            interval: 0
+          },
+          splitArea: {
+            show: false
+          }
+        }],
+        dataZoom: [{
+          show: true,
+          height: 30,
+          backgroundColor: '#E8E8E8',
+          xAxisIndex: [
+            0
+          ],
+          bottom: 0,
+          start: 50,
+          end: 100,
+          handleIcon: 'path://M306.1,413c0,2.2-1.8,4-4,4h-59.8c-2.2,0-4-1.8-4-4V200.8c0-2.2,1.8-4,4-4h59.8c2.2,0,4,1.8,4,4V413z',
+          handleSize: '110%',
+          handleStyle: {
+            // color: '#d3dee5'
+            color: '#3C3B3F'
+          },
+          textStyle: {
+            color: '#000' },
+          borderColor: '#90979c'
+
+        }, {
+          type: 'inside',
+          show: true,
+          height: 15,
+          start: 1,
+          end: 35
+        }],
+        series: [{
+          name: 'female',
+          type: 'scatter',
+          tooltip: {
+            trigger: 'item',
+            formatter: function(params) {
+              return '日期：' + params.value[0] + '<br/>' +
+                    '单价：' + params.value[1] + '<br/>' +
+                    '楼栋：' + params.value[2] + '<br/>' +
+                    '房号：' + params.value[3] + '<br/>' +
+                    '面积：' + params.value[4] + '<br/>' +
+                    '楼层：' + params.value[5] + '<br/>' +
+                    '朝向：' + (params.value[6] !== null ? params.value[6] : '无') + '<br/>'
+            },
+            axisPointer: {
+              type: 'cross',
+              lineStyle: {
+                type: 'dashed',
+                width: 1
+              }
+            }
+          },
+          markPoint: {
+            data: [
+              { type: 'max', name: '最大值' },
+              { type: 'min', name: '最小值' }]
+          },
+          markLine: {
+            data: [
+              { type: 'average', name: '平均值' }
+            ]
+          },
+          itemStyle: {
+            normal: {
+              color: 'rgba(255,144,128,1)'
+              // label: {
+              //   show: true,
+              //   textStyle: {
+              //     color: '#000'
+              //   },
+              //   position: 'top',
+              //   formatter(p) {
+              //     // return p.value > 0 ? p.value : ''
+              //     if (p.value) {
+              //       return '日期：' + p.value[0] + '<br/>' +
+              //              '单价：' + p.value[1] + '<br/>' +
+              //              '楼栋：' + p.value[2] + '<br/>' +
+              //              '房号：' + p.value[3] + '<br/>' +
+              //              '面积：' + p.value[4] + '<br/>' +
+              //              '楼层：' + p.value[5] + '<br/>'
+              //     }
+              //   }
+              // }
+            }
+          },
+          data: this.caseData
+          // data: [['2017-01-10', 45214], ['2017-01-20', 56684], ['2017-02-15', 84524], ['2017-03-08', 52145], ['2017-05-10', 69854], ['2017-07-22', 85214], ['2017-08-10', 74577], ['2017-09-11', 66654], ['2017-10-10', 774154],
+          //   ['2017-11-10', 56447], ['2017-12-10', 35487], ['2017-12-19', 69854]]
+        }
+        ]
+      })
+    }
+  }
+}
+</script>

@@ -1,0 +1,54 @@
+{
+  "status":200,
+  "msg": "ok",
+  "data":[
+        {
+          "rjl": "0.1",
+          "correctfactor": "1.418"
+        },
+        {
+          "rjl": "0.2",
+          "correctfactor": "1.415"
+        },
+        {
+          "rjl": "0.3",
+          "correctfactor": "1.412"
+        },
+        {
+          "rjl": "0.4",
+          "correctfactor": "1.409"
+        },
+        {
+          "rjl": "0.5",
+          "correctfactor": "1.406"
+        },
+        {
+          "rjl": "0.6",
+          "correctfactor": "1.403"
+        },
+        {
+          "rjl": "0.7",
+          "correctfactor": "1.4"
+        },
+        {
+          "rjl": "0.8",
+          "correctfactor": "1.397"
+        },
+        {
+          "rjl": "0.9",
+          "correctfactor": "1.394"
+        },
+        {
+          "rjl": "1",
+          "correctfactor": "1.391"
+        },
+        {
+          "rjl": "1.1",
+          "correctfactor": "1.388"
+        },
+        {
+          "rjl": "1.2",
+          "correctfactor": "1.385"
+        }
+      ]
+    }

@@ -1,0 +1,206 @@
+<template>
+  <div style="height:100%">
+    <div v-if="project.prj_name" class="control" @click="onControlClick">
+      <span><svg-icon :icon-class="caseActive ? 'icon_open' : 'icon_close'"/></span>
+    </div>
+    <div class="base_info">
+      <!-- <router-link :to="{ name: 'project', query: { xmdm: project.prj_no } }" target="_blank"> -->
+      <div class="name">
+        <span>{{ project.prj_name }}</span><span/>
+        <el-button type="warning" style="color:white !important;float:right" size="small" @click="onShowChartClick">图表</el-button>
+      </div>
+    </div>
+    <div ref="detailContainner" class="detail-containner">
+      <div v-if="project.cnt > 0" >
+        <div v-for="item in caseList" :key="item.case_no" class="detail-item">
+          <div class="detail-top">
+            <span v-if="!caller"/>
+            <el-button v-if="caller" type="primary" size="small" circle icon="el-icon-plus" @click="onAddComparableClick(item)"/>
+            <span>{{ item.unit_no }}</span>
+            <span>{{ item.bldg_name }}</span>
+            <span>{{ item.each_price }}元/㎡</span>
+          </div>
+          <div class="detail-bottom">
+            <div>
+              <span>{{ item.actual_floor }}楼</span>
+              <span>|</span>
+              <span>{{ item.built_in_area }}㎡</span>
+              <span>|</span>
+              <span v-if="item.face_to">{{ item.face_to }}|</span>
+              <span>{{ item.ex_time }}</span>
+              <span v-if="priceType === '价格'">总价：{{ parseInt(item.total_price/10000) }}万</span>
+              <span v-else>总价：{{ item.total_price }}元</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center; width:100%;">
+        <el-button
+          v-if="project.cnt > 20"
+          :disabled="moreShow"
+          size="small"
+          type="primary"
+          @click="showMoreCases">显示更多</el-button>
+      </div>
+      <div v-if="project.cnt === 0">
+        该小区没有符合条件的案例！
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+import { parseTime } from '@/utils/index'
+
+export default {
+  props: {
+    project: {
+      type: Object,
+      default: function() {
+        return {}
+      }
+    },
+    caseList: {
+      type: Array,
+      default: function() {
+        return []
+      }
+    },
+    priceType: {
+      type: String,
+      default: '价格'
+    },
+    usageType: {
+      type: String,
+      default: '住宅'
+    },
+    caseActive: {
+      type: Boolean,
+      default: false
+    },
+    caller: {
+      type: Boolean,
+      default: false
+    },
+    moreShow: {
+      type: Boolean,
+      default: true
+    }
+  },
+  data() {
+    return {
+
+    }
+  },
+  methods: {
+    onControlClick() {
+      this.caseActive = !this.caseActive
+      this.$emit('activeChange', this.caseActive)
+    },
+    onAddComparableClick(item) {
+      this.$emit('addComparableEvent', item)
+    },
+    onShowChartClick() {
+      const now = new Date()
+      const startDate = new Date(now.getFullYear() - 3, now.getMonth(), now.getDate())
+
+      const caseData = {
+        prj_name: this.project.prj_name,
+        prj_no: this.project.prj_no,
+        usage: this.usageType,
+        priceType: this.priceType,
+        caseType: '交易',
+        startDate: parseTime(startDate, '{y}-{m}-{d}'),
+        endDate: parseTime(new Date(), '{y}-{m}-{d}')
+      }
+      localStorage.setItem('caseDataClause', JSON.stringify(caseData))
+      const routerData = this.$router.resolve({
+        name: 'CaseChart'
+      })
+      window.open(routerData.href, '_blank')
+    },
+    showMoreCases() {
+      this.$emit('showMoreCases', 'good')
+    }
+
+  }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss" scoped>
+.control {
+  position: absolute;
+  left: -30px;
+  top: 50%;
+  width: 30px;
+  height: 50px;
+  background-color: #fff;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 0 2px rgba(0,0,0,0.3);
+  line-height: 50px;
+  text-align: center;
+  transform: translateY(-25px);
+}
+.base_info {
+  padding: 10px 22px;
+  border-bottom: 1px solid #eee;
+  .name {
+      font-size: 24px;
+      span:first-child {
+      color: #011938;
+      }
+  }
+}
+.detail-containner {
+  width: 100%;
+  height: 90%;
+  margin-top: 20px;
+  overflow: auto;
+  .detail-item {
+    margin: 15px 0 20px 0;
+    overflow: hidden;
+    .detail-top {
+    margin-bottom: 5px;
+    span {
+      margin-right: 15px;
+      color: #011938;
+      font-size: 15px;
+    }
+    span:nth-child(1) {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: #409EFF;
+    }
+    span:nth-child(2) {
+      font-size: 20px
+    }
+    span:nth-child(3) {
+      font-weight: bold;
+    }
+    span:nth-child(4) {
+      float: right;
+      color: red
+    }
+    }
+    .detail-bottom {
+      float: right;
+      width: 96%;
+      padding: 10px 15px;
+      border-radius: 20px 0px 0px 20px;
+      background-color: #eef5f9;
+      div {
+        margin-bottom: 5px
+        span {
+          margin-right: 15px;
+          color: #011938;
+          font-size: 12px;
+        }
+        span:last-child {
+          float: right;
+        }
+      }
+    }
+  }
+}
+</style>

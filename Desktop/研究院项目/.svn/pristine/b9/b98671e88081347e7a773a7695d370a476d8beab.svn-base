@@ -1,0 +1,314 @@
+<template>
+  <div :class="{'div-n': !detail, 'div-d': detail}">
+    <el-row v-if="detail">
+      <el-col :span="24">
+        <div class="title">按二级用途分组进行比率分析</div>
+        <div class="border" />
+      </el-col>
+    </el-row>
+    <el-form ref="form" label-width="100px" label-position="right">
+      <el-row>
+        <el-col :span="22">
+          <span class="title-small">结论</span>
+        </el-col>
+        <el-col v-if="!detail" :span="2" >
+          <el-button size="mini" type="primary" @click.prevent="save('usage2','conclusion',form.conclusion)">保存</el-button>
+        </el-col>
+      </el-row>
+      <el-row>
+        <el-input v-model="form.conclusion" type="textarea" />
+      </el-row>
+      <el-row>
+        <span class="title-small">估价水平检验</span>
+      </el-row>
+      <el-row>
+        <table class="table">
+          <tr class="tr_title">
+            <td class="td">
+              <span class="normal">类型</span>
+            </td>
+            <td class="td">
+              <span class="normal">案例数量</span>
+            </td>
+            <td class="td">
+              <span class="normal">比率中位数</span>
+            </td>
+            <td class="td">
+              <span class="normal">比率平均数</span>
+            </td>
+            <td class="td">
+              <span class="normal">比率众数</span>
+            </td>
+            <td class="td">
+              <span class="normal">案例详情</span>
+            </td>
+          </tr>
+          <tr v-for="o in form.index" :key="o.type" class="tr" @click.capture="getItem($event)">
+            <td class="td">
+              <span class="normal">{{ o.type }}</span>
+            </td>
+            <td class="td">
+              <span class="normal">{{ o.cnt }}</span>
+            </td>
+            <td class="td">
+              <span class="normal">{{ o.median }}</span>
+            </td>
+            <td class="td">
+              <span class="normal">{{ o.average }}</span>
+            </td>
+            <td class="td">
+              <span class="normal">{{ o.mode }}</span>
+            </td>
+            <td class="td">
+              <el-popover placement="top-start" width="750" trigger="click">
+                <el-table :data="caseSubList.slice((currentpage-1)*pagesize,currentpage*pagesize)" border size="mini" >
+                  <el-table-column width="180" property="xmmc" label="项目名称" />
+                  <el-table-column width="180" property="ldmc" label="楼栋名称" />
+                  <el-table-column width="100" property="hh" label="房号" />
+                  <el-table-column width="100" property="sjc" label="实际层" />
+                  <el-table-column width="120" property="fwyt1" label="用途主类" />
+                  <el-table-column width="120" property="jzmj" label="建筑面积" />
+                  <el-table-column width="120" property="dj" label="案例单价" />
+                  <el-table-column width="120" property="sj" label="案例时间" />
+                  <el-table-column width="120" property="sl_type" label="案例类型" />
+                  <el-table-column width="120" property="source" label="案例来源" />
+                  <el-table-column width="120" property="pgdj" label="评估单价" />
+                  <el-table-column width="120" property="jzsd" label="价值时点" />
+                  <el-table-column width="120" property="ratio" label="价格比率" />
+                </el-table>
+                <el-pagination :total="caseSubList.length" :current-page="currentpage" :page-sizes="[5,10, 20, 50, 100]" :page-size="pagesize" layout="prev, pager, next" style="margin-top:8px;text-align:center" small @size-change="handleSizeChange" @current-change="handleCurrentChange" />
+                <el-button slot="reference" type="text" class="btn-mid" size="small" @click="view()">查看</el-button>
+              </el-popover>
+            </td>
+          </tr>
+        </table>
+      </el-row>
+      <el-row>
+        <el-col :span="22">
+          <span class="text-sm">说明：</span>
+        </el-col>
+        <el-col v-if="!detail" :span="2" >
+          <el-button size="mini" type="primary" @click.prevent="save('usage2','level',form.usage2.level)">保存</el-button>
+        </el-col>
+      </el-row>
+      <el-row>
+        <el-input v-model="form.level" type="textarea" />
+      </el-row>
+      <el-row>
+        <span class="title-small">估价结果一致性检验</span>
+      </el-row>
+      <el-row>
+        <table class="table">
+          <tr class="tr_title">
+            <td class="td">
+              <span class="normal">类型</span>
+            </td>
+            <td class="td">
+              <span class="normal">案例数量</span>
+            </td>
+            <td class="td">
+              <span class="normal">比率极差</span>
+            </td>
+            <td class="td">
+              <span class="normal">平均绝对离差</span>
+            </td>
+            <td class="td">
+              <span class="normal">离散系数</span>
+            </td>
+            <td class="td">
+              <span class="normal">比率标准差</span>
+            </td>
+            <td class="td">
+              <span class="normal">变异系数</span>
+            </td>
+            <td class="td">
+              <span class="normal">价格相关差</span>
+            </td>
+          </tr>
+          <tr v-for="o in form.index" :key="o.item" class="tr" >
+            <td class="td">
+              <span class="normal">{{ o.item }}</span>
+            </td>
+            <td class="td">
+              <span class="normal">{{ o.cnt }}</span>
+            </td>
+            <td class="td">
+              <span class="normal">{{ o.range }}</span>
+            </td>
+            <td class="td">
+              <span class="normal">{{ o.aad }}</span>
+            </td>
+            <td class="td">
+              <span class="normal">{{ o.cod }}</span>
+            </td>
+            <td class="td">
+              <span class="normal">{{ o.sd }}</span>
+            </td>
+            <td class="td">
+              <span class="normal">{{ o.cov }}</span>
+            </td>
+            <td class="td">
+              <span class="normal">{{ o.prd }}</span>
+            </td>
+          </tr>
+        </table>
+      </el-row>
+      <el-row>
+        <el-col :span="22">
+          <span class="text-sm">说明：</span>
+        </el-col>
+        <el-col v-if="!detail" :span="2" >
+          <el-button size="mini" type="primary" @click.prevent="save('usage2','uniformity',form.uniformity)">保存</el-button>
+        </el-col>
+      </el-row>
+      <el-row>
+        <el-input v-model="form.uniformity" type="textarea" />
+      </el-row>
+      <el-row>
+        <el-col :span="21">
+          <span class="title-small">正态性检验</span>
+        </el-col>
+        <el-col :span="2">
+          <el-select v-model="usage" style="border: 1px solid #409EFF;" size="small" placeholder="物业用途" @change="onUsageSubChange" >
+            <el-option label="住宅" value="住宅" />
+            <el-option label="商业" value="商业" />
+            <el-option label="办公" value="办公" />
+            <el-option label="工业" value="工业" />
+          </el-select>
+        </el-col>
+      </el-row>
+      <el-row>
+        <el-col :span="16">
+          <NormalityChart id="second" :histogram-data="histogramData" :width="width" />
+        </el-col>
+      </el-row>
+    </el-form>
+  </div>
+</template>
+<script>
+import NormalityChart from '@/views/resultaudit/components/NormalityChart'
+import { getCaseShow
+} from '@/api/ratio'
+export default {
+  components: {
+    NormalityChart
+  },
+  props: {
+    form: {
+      type: Object,
+      default: null
+    },
+    detail: {
+      type: Boolean,
+      default: false
+    },
+    width: {
+      type: String,
+      default: '100%'
+    },
+    'histogram-data': {
+      type: Array,
+      default: []
+    }
+  },
+  data() {
+    return {
+      usage: '住宅',
+      checkedUsageList: {},
+      currentpage: 1,
+      pagesize: 10,
+      caseSubList: [],
+      usage2: ''
+    }
+  },
+  mounted() {
+    // this.onUsageChange(this.usage)
+  },
+  methods: {
+    view() {
+      this.getCaseShow()
+    },
+    getItem(e) {
+      this.usage2 = e.target.parentNode.parentNode.parentNode.parentNode.firstChild.firstChild.innerHTML
+    },
+    getCaseShow() {
+      const params = { usage2: this.usage2, offset: 0 } // usage2: 用途细类
+      getCaseShow(this.form.id, params).then(response => {
+        this.caseSubList = response.data
+      })
+    },
+    handleSizeChange(size) {
+      this.pageSize = size
+    },
+    handleCurrentChange(val) {
+      this.currentpage = { val }.val
+    },
+    typeIndex(index) {
+      return index + (this.currentpage - 1) * this.pagesize + 1
+    },
+    save(method, item, comment) {
+      var params = {
+        method: method,
+        item: item,
+        comment: comment
+      }
+      this.$emit('save', params)
+    },
+    onUsageSubChange(val) {
+      this.$emit('onUsageSubChange', val)
+      /* this.form.usage1.index.forEach(element => {
+        if (element.type === val) {
+          this.checkedUsageList = element
+        }
+      }) */
+    }
+  }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss">
+@import "../../styles/app.scss";
+.normal {
+  width: -webkit-fill-available;
+}
+.btn-mid {
+  width: 100%;
+  min-width: 80px;
+}
+.el-textarea__inner {
+  margin-left: 2%;
+  width: 96%;
+}
+.text-sm {
+  margin-left: 2%;
+  font-size: 14px;
+}
+.noborder.el-input__inner {
+  border: none;
+}
+.el-input.is-disabled .el-input__inner {
+  border: none;
+}
+.el-input--small .el-input__inner {
+  border: none;
+  text-align: center;
+}
+.el-input-number {
+  width: 100%;
+}
+.tr-black {
+  text-align: center;
+  line-height: 38px;
+  background-color: #585858;
+  height: 38px;
+}
+.el-input .el-input--small .el-input--suffix is-focus{
+color:#409EFF;
+.el-input__inner{background:#409EFF}
+}
+.div-n{
+    width: 100%;
+}
+.div-d{
+    width: 80%;
+}
+</style>

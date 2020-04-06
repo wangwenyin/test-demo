@@ -1,0 +1,53 @@
+<template>
+  <div class="chart-container">
+    <div style="position:absolute;top:30px;left:200px;">
+      <span style="font-weight:bold">{{ caseData.prj_name }}</span>&nbsp;&nbsp;&nbsp;&nbsp;
+      <span>{{ caseData.startDate }} 至 {{ caseData.endDate }}</span>
+    </div>
+    <chart v-if="caseData" :case-list="list" height="100%" width="100%"/>
+  </div>
+</template>
+
+<script>
+import Chart from './components/mixChart'
+import { getCases } from '@/api/case'
+export default {
+  name: 'MixChart',
+  components: { Chart },
+  data() {
+    return {
+      caseData: null,
+      list: []
+    }
+  },
+  mounted() {
+    this.caseData = JSON.parse(localStorage.getItem('caseDataClause'))
+    this.getData()
+  },
+  methods: {
+    getData() {
+      const params = {
+        usage: this.caseData.usage,
+        price_type: this.caseData.priceType,
+        case_type: '交易',
+        start_date: this.caseData.startDate,
+        end_date: this.caseData.endDate,
+        offset: -1
+      }
+
+      getCases(this.caseData.prj_no, params).then(res => {
+        this.list = res.data
+      })
+    }
+  }
+}
+</script>
+
+<style scoped>
+.chart-container{
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 94px);
+}
+</style>
+

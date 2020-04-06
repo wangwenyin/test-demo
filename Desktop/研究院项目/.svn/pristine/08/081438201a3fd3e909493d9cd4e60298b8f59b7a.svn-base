@@ -1,0 +1,69 @@
+<template>
+  <div class="appeal-container">
+    <div class="step-container">
+      <el-steps :active="3" finish-status="success" simple >
+        <el-step v-for="item in steps" :key="item" :title="item" @click.native="onStepClick(item)"/>
+      </el-steps>
+    </div>
+    <div style="margin:10px;">
+      <el-row>
+        <el-col :span="20" :offset="2">
+          <transition name="fade" mode="out-in">
+            <keep-alive>
+              <component :is="currentMode" />
+            </keep-alive>
+          </transition>
+        </el-col>
+      </el-row>
+    </div>
+  </div>
+</template>
+<script>
+import Review from './components/review'
+import FieldSurvey from './components/fieldSurvey'
+import Appraisal from './components/appraisal'
+import FinalReview from './components/FinalReview'
+
+export default {
+  components: { Review, FieldSurvey, Appraisal, FinalReview },
+  data() {
+    return {
+      activeName: ['1', '2'],
+      currentMode: 'review',
+      steps: ['信息审核', '现场查勘', '复核估价', '结果终审']
+    }
+  },
+  methods: {
+    onStepClick(item) {
+      switch (item) {
+        case '信息审核': this.currentMode = 'review'; break
+        case '现场查勘': this.currentMode = 'field-survey'; break
+        case '复核估价': this.currentMode = 'appraisal'; break
+        case '结果终审': this.currentMode = 'final-review'; break
+      }
+    }
+  }
+}
+</script>
+<style lang="scss">
+.appeal-container {
+    .el-collapse-item__header {
+        font-size: 16px;
+        font-weight: bold;
+    }
+    .el-step {
+      &:hover {
+        .el-step__head .el-step__icon, .el-step__main {
+          transition: transform 0.3s ease;
+          transform: scale(1.1);
+          transform-origin: left;
+        }
+      }
+      .el-step__head .el-step__icon, .el-step__main {
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        transform-origin: left;
+      }
+    }
+}
+</style>

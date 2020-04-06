@@ -1,0 +1,99 @@
+<template>
+  <el-row style="margin-top:20px" class="task-detail">
+    <el-steps :active="step" align-center>
+      <el-step v-for="item in current_steps" :key="item.id" :title="item.text" @click.native="onStepClick(item)"/>
+    </el-steps>
+  </el-row>
+</template>
+<script>
+
+export default {
+  props: {
+    step: {
+      type: Number,
+      default: 0
+    },
+    taskId: {
+      type: String,
+      default: ''
+    },
+    method: {
+      type: String,
+      default: ''
+    },
+    appType: {
+      type: String,
+      default: 'singleapp'
+    }
+  },
+  data() {
+    return {
+      current_steps: [],
+      mass_adjust_steps: [
+        { id: 1, text: '创建任务', goto: '' },
+        { id: 2, text: '参数设置', goto: 'AdjustSetParameter' },
+        { id: 3, text: '批量估价', goto: 'AdjustDataCheck' },
+        { id: 4, text: '统计检验', goto: 'AdjustStatTest' },
+        { id: 5, text: '任务分配', goto: 'AdjustAssignment' },
+        { id: 6, text: '人工调整', goto: 'AdjustManualAdjust' },
+        { id: 7, text: '任务完成', goto: '' }
+      ],
+      mass_cost_steps: [
+        { id: 1, text: '创建任务', goto: '' },
+        { id: 2, text: '参数设置', goto: 'CostSetParameter' },
+        { id: 3, text: '批量估价', goto: 'CostDataCheck' },
+        { id: 4, text: '统计检验', goto: 'CostStatTest' },
+        { id: 5, text: '任务完成', goto: '' }
+      ],
+      single_cmp_steps: [
+        { id: 1, text: '选取方法', goto: '', desc: '2010-10-09' },
+        { id: 2, text: '实例选取', goto: 'CaseSearch', desc: '2010-10-09', query: { taskId: this.taskId, caller: 'singleapp', method: this.method, detail: true }},
+        { id: 3, text: '租金评估', goto: 'SingleappAdjustment', desc: '2010-10-09', query: { taskId: this.taskId, method: this.method, detail: true }},
+        { id: 4, text: '收益测算', goto: 'SingleappAppraisedRent', desc: '2010-10-09', query: { taskId: this.taskId, detail: true }},
+        { id: 5, text: '报告撰写', goto: 'SingleappReport', desc: '2010-10-09', query: { taskId: this.taskId, detail: true }},
+        { id: 6, text: '任务完成', goto: '', desc: '' }
+      ],
+      single_scf_cmp_steps: [
+        { id: 1, text: '选取方法', goto: '', desc: '2010-10-09' },
+        { id: 2, text: '实例选取', goto: 'CaseSearch', desc: '2010-10-09', query: { taskId: this.taskId, caller: 'singleapp', method: this.method, detail: true }},
+        { id: 3, text: '价格评估', goto: 'SingleappAdjustment', desc: '2010-10-09', query: { taskId: this.taskId, method: this.method, detail: true }},
+        { id: 5, text: '报告撰写', goto: 'SingleappReport', desc: '2010-10-09', query: { taskId: this.taskId, detail: true }},
+        { id: 6, text: '任务完成', goto: '', desc: '' }
+      ]
+    }
+  },
+  mounted() {
+    if (this.method === '比较法' || !this.method) {
+      this.current_steps = this.single_scf_cmp_steps
+    }
+    if (this.method === '收益法') {
+      this.current_steps = this.single_cmp_steps
+    }
+  },
+  methods: {
+    onStepClick(val) {
+      console.log('this.taskId222')
+      console.log(this.taskId)
+      if (val.goto !== '' && this.step >= val.id - 1) {
+        this.$emit('onStepClick', val)
+      }
+    }
+  }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss">
+.task-detail .el-step {
+  &:hover {
+    .el-step__head .el-step__icon, .el-step__main {
+      transition: transform 0.3s ease;
+      transform: scale(1.1);
+      transform-origin: center;
+    }
+  }
+  .el-step__head .el-step__icon, .el-step__main {
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    transform-origin: center;
+  }
+}
+</style>

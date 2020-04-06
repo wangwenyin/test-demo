@@ -1,0 +1,53 @@
+const mockData = {
+  state: {
+    tasks: [
+      { prop_name: '东方玫瑰花园A栋101', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '123456', node: '信息审核', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋102', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '223456', node: '现场查勘', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋103', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '323456', node: '复核估价', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋104', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '423456', node: '结果终审', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋101', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '123456', node: '信息审核', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋102', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '223456', node: '现场查勘', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋103', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '323456', node: '复核估价', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋104', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '423456', node: '结果终审', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋101', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '123456', node: '信息审核', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋102', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '223456', node: '现场查勘', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋103', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '323456', node: '复核估价', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋104', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '423456', node: '结果终审', finish_time: '' }
+    ],
+    allTasks: [
+      { prop_name: '东方玫瑰花园A栋101', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '123456', node: '信息审核', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋102', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '223456', node: '现场查勘', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋103', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '323456', node: '复核估价', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋104', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '423456', node: '结果终审', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋101', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '123456', node: '信息审核', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋102', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '223456', node: '现场查勘', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋103', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '323456', node: '复核估价', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋104', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '423456', node: '结果终审', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋101', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '123456', node: '信息审核', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋102', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '223456', node: '现场查勘', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋103', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '323456', node: '复核估价', finish_time: '' },
+      { prop_name: '东方玫瑰花园A栋104', usage: '住宅', creator: '刘德华', apply_date: '2018-11-01', owner_type: '个人', cert_no: '423456', node: '结果终审', finish_time: '' }
+    ]
+  },
+  mutations: {
+    changeTaskStatus(state, { node, status, i }) {
+      switch (node) {
+        case '信息审核': state.tasks[i].node = '现场查勘'; break
+        case '现场查勘': state.tasks[i].node = '复核估价'; break
+        case '复核估价': state.tasks[i].node = '结果终审'; break
+        case '结果终审': state.tasks[i].node = '流程结束'; break
+        case '信息审核退回': state.tasks[i].node = '流程结束'; break
+        case '结果终审退回': state.tasks[i].node = '复核估价'; break
+      }
+      state.tasks[i].status = status
+      state.allTasks = state.tasks
+    },
+    searchTask(state, query) {
+      state.tasks = state.allTasks.filter(item => {
+        return item.prop_name.includes(query)
+      })
+    }
+  }
+}
+
+export default mockData

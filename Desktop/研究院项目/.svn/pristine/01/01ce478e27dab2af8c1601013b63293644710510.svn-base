@@ -1,0 +1,131 @@
+<template>
+  <div style="margin:20px;">
+    <el-tabs v-model="activeName" @tab-click="handleClick">
+      <el-tab-pane label="交易状况" name="交易状况">
+        <div>
+          <el-checkbox
+            v-for="item in saleConditionList"
+            :key="item.name"
+            v-model="item.isdefault"
+            style="margin:0 10px 10px 0;padding-right:20px;width:150px;"
+            @change="onConditionCheckChange(item)">{{ item.description }}</el-checkbox>
+        </div>
+        <!-- <div class="btn-feature">
+          <el-button type="primary" size="small" @click="onAddFeatureClick('交易状况')">添加要素</el-button>
+        </div> -->
+      </el-tab-pane>
+      <el-tab-pane label="区位状况" name="区位状况">
+        <div>
+          <el-checkbox
+            v-for="item in locationConditionList"
+            :key="item.name"
+            v-model="item.isdefault"
+            style="margin:0 10px 10px 0;padding-right:20px;width:150px;"
+            @change="onConditionCheckChange(item)">{{ item.description }}</el-checkbox>
+        </div>
+        <!-- <div class="btn-feature">
+          <el-button type="primary" size="small" @click="onAddFeatureClick('区位状况')">添加要素</el-button>
+        </div> -->
+      </el-tab-pane>
+      <el-tab-pane label="权益状况" name="权益状况">
+        <div>
+          <el-checkbox
+            v-for="item in rightConditionList"
+            :key="item.name"
+            v-model="item.isdefault"
+            style="margin:0 10px 10px 0;padding-right:20px;width:150px;"
+            @change="onConditionCheckChange(item)">{{ item.description }}</el-checkbox>
+        </div>
+        <!-- <div class="btn-feature">
+          <el-button type="primary" size="small" @click="onAddFeatureClick('权益状况')">添加要素</el-button>
+        </div> -->
+      </el-tab-pane>
+      <el-tab-pane label="实物状况" name="实物状况">
+        <div>
+          <el-checkbox
+            v-for="item in propertyConditionList"
+            :key="item.name"
+            v-model="item.isdefault"
+            style="margin:0 10px 10px 0;padding-right:20px;width:150px;"
+            @change="onConditionCheckChange(item)">{{ item.description }}</el-checkbox>
+        </div>
+        <!-- <div class="btn-feature">
+          <el-button type="primary" size="small" @click="onAddFeatureClick('实物状况')">添加要素</el-button>
+        </div> -->
+      </el-tab-pane>
+    </el-tabs>
+  </div>
+</template>
+<script>
+import { getParameter, saveParameterDefaultValue } from '@/api/singleapp'
+export default {
+  data() {
+    return {
+      activeName: '交易状况',
+      saleConditionList: [],
+      propertyConditionList: [],
+      locationConditionList: [],
+      rightConditionList: []
+    }
+  },
+  mounted() {
+    this.getConditionInfo()
+  },
+  methods: {
+    getConditionInfo() {
+      getParameter({ item: '住宅影响因素' }).then(response => {
+        if (response.code === 200) {
+          this.saleConditionList = []
+          this.propertyConditionList = []
+          this.locationConditionList = []
+          this.rightConditionList = []
+          const data = response.data
+          for (let i = 0; i < data.length; i++) {
+            data[i].isdefault = (data[i].isdefault === 1)
+            switch (data[i].type) {
+              case '交易状况': this.saleConditionList.push(data[i]); break
+              case '实物状况': this.propertyConditionList.push(data[i]); break
+              case '区位状况': this.locationConditionList.push(data[i]); break
+              case '权益状况': this.rightConditionList.push(data[i]); break
+            }
+          }
+        } else {
+          this.$notify({
+            title: '错误',
+            message: response.msg,
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    },
+    onAddFeatureClick(type) {
+      console.log(type)
+    },
+    onConditionCheckChange(item) {
+      saveParameterDefaultValue(item.name, { isdefault: item.isdefault }).then(response => {
+        if (response.code === 200) {
+          this.$notify({
+            title: '成功',
+            message: '默认值修改成功',
+            type: 'success',
+            duration: 2000
+          })
+        } else {
+          this.$notify({
+            title: '错误',
+            message: response.msg,
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+.btn-feature{
+    margin-top: 20px;
+}
+</style>

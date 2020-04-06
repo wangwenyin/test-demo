@@ -1,0 +1,173 @@
+<template>
+  <div>
+    <el-row class="search-box">
+      <el-col :span="16">
+        <el-button type="primary" size="small" round @click="onCreateTaskClick">+新增查勘</el-button>
+        <el-radio-group v-model="taskType" style="margin-left:10px" size="small" @change="onTaskTypeChange">
+          <el-radio-button label="我的任务">进行中</el-radio-button>
+          <el-radio-button label="全部任务">已完成</el-radio-button>
+        </el-radio-group>
+      </el-col>
+      <el-col :span="8">
+        <el-input v-model="searchOption.text" placeholder="请输入查询内容" size="small" >
+          <el-select slot="prepend" v-model="searchOption.clause" style="width:120px;" placeholder="请选择">
+            <el-option label="任务编号" value="任务编号" />
+            <el-option label="物业名称" value="物业名称" />
+            <el-option label="查勘人" value="查勘人" />
+          </el-select>
+          <el-button slot="append" icon="el-icon-search" @click="onSearchTaskClick"/>
+        </el-input>
+      </el-col>
+    </el-row>
+    <el-row style="padding:5px">
+      <el-table ref="taskTable" :data="taskList" :header-cell-style="changeHeaderStyle" style="width:100%" border fit stripe size="small" >
+        <el-table-column prop="id" label="序号" width="50">
+          <template slot-scope="scope">
+            <span>{{ scope.$index+1 }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="task_no" width="150" label="任务编号" />
+        <el-table-column prop="task_type" label="任务类型" width="120" />
+        <el-table-column prop="survey_type" label="查勘类型" width="120" />
+        <el-table-column prop="property_name" label="物业名称" min-width="120" />
+        <el-table-column prop="surveyor" label="查勘人" width="120" />
+        <el-table-column prop="state" label="状态" width="120" />
+        <el-table-column prop="finish_date" label="预计完成时间" width="120" />
+        <el-table-column label="操作" width="220">
+          <template slot-scope="scope">
+            <div>
+              <el-button size="mini" @click="onDetailClick(scope.row)">详情</el-button>
+              <el-button :disabled="scope.row.state === '查勘中'" size="mini" type="primary" @click="onEditClick(scope.row)">编辑</el-button>
+              <el-button size="mini" type="danger" @click="onDeleteClick(scope.row)" >删除</el-button>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-row type="flex" justify="center" style="margin-top:5px">
+        <pagination
+          :total="listQuery.total"
+          :page.sync="listQuery.page"
+          :limit.sync="listQuery.limit"
+          :page-sizes="listQuery.pageSizes"
+          @pagination="getTaskList" />
+      </el-row>
+    </el-row>
+  </div>
+</template>
+<script>
+import { formatDate } from '@/utils/date'
+import { mapGetters } from 'vuex'
+import Pagination from '@/components/Pagination'
+export default {
+  components: { Pagination },
+  filters: {
+    formatDate(currentDate) {
+      var date = new Date(currentDate)
+      return formatDate(date, 'yyyy-MM-dd')
+    },
+    formatYear(currentDate) {
+      var date = new Date(currentDate)
+      return formatDate(date, 'yyyy')
+    }
+  },
+  data() {
+    return {
+      taskType: '我的任务',
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        pageSizes: [10, 20, 30, 50]
+      },
+      searchOption: {
+        clause: '请选择',
+        text: ''
+      },
+      taskList: [{
+        task_no: 'CK2018-01',
+        task_type: '估价任务',
+        survey_type: '住宅房地产',
+        property_name: '东方玫瑰花园1栋1101',
+        surveyor: '张三',
+        state: '待查勘',
+        finish_date: '2019-04-27'
+      },
+      {
+        task_no: 'CK2018-02',
+        task_type: '复核任务',
+        survey_type: '住宅房地产',
+        property_name: '东方玫瑰花园2栋1101',
+        surveyor: '张三',
+        state: '查勘中',
+        finish_date: '2019-05-27'
+      },
+      {
+        task_no: 'CK2018-03',
+        task_type: '估价任务',
+        survey_type: '经营性房地产',
+        property_name: '东方玫瑰花园2栋1101',
+        surveyor: '张三',
+        state: '待审核',
+        finish_date: '2019-06-27'
+      }]
+    }
+  },
+  computed: {
+    ...mapGetters([
+      'name'
+    ])
+  },
+  mounted() {
+    this.getTaskList()
+  },
+  methods: {
+    onTaskTypeChange() {},
+    onEditClick() {},
+    onDeleteClick() {},
+    onCreateTaskClick() {
+      this.$router.push({ name: 'AddSurvey' })
+    },
+    getTaskList(val) {
+      /* if (val) {
+        this.listQuery.limit = val.limit
+        this.listQuery.page = val.page
+      }
+      const params = {
+        page: this.listQuery.page,
+        limit: this.listQuery.limit,
+        name: (this.searchOption.clause === '任务名称' ? this.searchOption.text : null),
+        creator: (this.searchOption.clause === '创建人员' ? this.searchOption.text : null),
+        property_usage: (this.searchOption.clause === '物业用途' ? this.searchOption.text : null)
+      } */
+      /* getRatioTaskList(params).then(response => {
+        if (response.code === 200) {
+          this.taskList = response.data
+          this.listQuery.total = response.total_num
+        } else {
+          this.$notify({
+            title: '错误',
+            message: response.msg,
+            type: 'error',
+            duration: 2000
+          })
+        }
+      }) */
+    },
+    onSearchTaskClick() {
+      this.getTaskList({ page: 1, limit: 10 })
+    },
+    onDetailClick(val) {
+      const routerData = {
+        name: 'SurveyDetail',
+        query: { id: val.id }
+      }
+      this.$router.push(routerData)
+    },
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    }
+  }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss" scoped>
+</style>

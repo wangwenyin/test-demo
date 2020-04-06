@@ -1,0 +1,139 @@
+<template>
+  <div style="width:100%;">
+    <el-form ref="reviewForm" size="small" label-width="100px">
+      <span class="sub-title">申请人信息</span>
+      <hr style="border:1 dashed #E8E8E8" color="#E8E8E8" size="1">
+      <el-row :gutter="2" style="margin-top:20px;">
+        <el-col :span="6">
+          <el-form-item label="权利人姓名：">
+            <el-input readonly value="刘德华"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="6">
+          <el-form-item label="证件号码：">
+            <el-input readonly value="12354564646456"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="6">
+          <el-form-item label="联系人电话：">
+            <el-input readonly value="584522"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="6">
+          <el-form-item label="申请日期：">
+            <el-input readonly value="2018-12-10"/>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <span class="sub-title">房产信息</span>
+      <hr style="border:1 dashed #E8E8E8" color="#E8E8E8" size="1">
+      <el-row :gutter="20" style="margin-top:20px;">
+        <el-col :span="12">
+          <el-form-item label="房产名称：">
+            <el-input readonly value="东方玫瑰花园A栋101"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="6">
+          <el-form-item label="房产类别：">
+            <el-input readonly value="住宅"/>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <span class="sub-title">扫描件</span>
+      <hr style="border:1 dashed #E8E8E8" color="#E8E8E8" size="1">
+      <el-row :gutter="20" style="margin-top:20px;">
+        <el-col :span="8">
+          <el-form-item label="证照：">
+            <el-button type="info">点击查看</el-button>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="产权证书：">
+            <el-button type="info">点击查看</el-button>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="业主授权书：">
+            <el-button type="info">点击查看</el-button>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <span class="sub-title">其他信息</span>
+      <hr style="border:1 dashed #E8E8E8" color="#E8E8E8" size="1">
+      <el-row :gutter="20" style="margin-top:20px;">
+        <el-col :span="24">
+          <el-form-item label="理由陈述：">
+            <el-input :rows="3" readonly type="textarea" value="东方玫瑰花园A栋101"/>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <span class="sub-title">审核结果</span>
+      <hr style="border:1 dashed #E8E8E8" color="#E8E8E8" size="1">
+      <el-row :gutter="20" style="margin-top:20px;">
+        <el-col :span="6">
+          <el-form-item label="">
+            <el-radio >通过</el-radio>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="分配估价师：">
+            <el-select >
+              <el-option label="张三" value="张三"/>
+              <el-option label="李四" value="李四"/>
+              <el-option label="王五" value="王五"/>
+              <el-option label="刘德华" value="刘德华"/>
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="6">
+          <el-form-item label="">
+            <el-button type="primary" @click="onSubmitClick">提交</el-button>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-row :gutter="20">
+        <el-col :span="6">
+          <el-form-item label="">
+            <el-radio >不通过</el-radio>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="不通过理由：">
+            <el-input :rows="3" readonly type="textarea" value="东方玫瑰花园A栋101"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="6">
+          <el-form-item label="">
+            <el-button type="primary" @click="onSendBackClick">退回申请人</el-button>
+          </el-form-item>
+        </el-col>
+      </el-row>
+    </el-form>
+  </div>
+</template>
+<script>
+export default {
+  name: 'AppealReview',
+  data() {
+    return {
+      data: null
+    }
+  },
+  methods: {
+    onSubmitClick() {
+      // 提交到下一步
+    },
+    onSendBackClick() {
+      // 处理回退事务
+    }
+  }
+}
+</script>
+<style lang="scss">
+.sub-title {
+    font-size: 16px;
+    color: grey;
+    line-height: 20px;
+    font-weight: 600;
+}
+</style>

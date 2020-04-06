@@ -1,0 +1,94 @@
+<template>
+  <div class="message">
+    <div class="message__title">
+      {{ title }}
+    </div>
+    <!-- <hr style="border:1 dashed #E8E8E8" color="#E8E8E8" size="1"> -->
+    <el-row :gutter="10" class="message__desc">
+      <el-col :span="5" :offset="2">
+        <span>发布人：{{ publisher }}</span>
+      </el-col>
+      <el-col :span="5">
+        <span>发布日期：{{ publish_time }}</span>
+      </el-col>
+      <el-col :span="5">
+        <span>消息等级：{{ grade }}</span>
+      </el-col>
+      <el-col :span="5">
+        <span>发布对象：{{ publish_target }}</span>
+      </el-col>
+    </el-row>
+    <hr style="border:1 dashed #E8E8E8" color="#E8E8E8" size="1">
+    <el-row class="message__content">
+      <div v-html="content"/>
+    </el-row>
+  </div>
+</template>
+<script>
+import { getMessage } from '@/api/message'
+export default {
+  data() {
+    return {
+      msgId: '',
+      title: '消息标题',
+      publisher: '张三',
+      publish_time: '2018-10-10 16:25',
+      grade: '重要',
+      publish_target: '评估部',
+      content: ''
+    }
+  },
+  mounted() {
+    this.getMessageDetail()
+  },
+  methods: {
+    getMessageDetail() {
+      this.msgId = this.$route.query.msgId
+      if (this.msgId) {
+        getMessage(this.msgId).then(response => {
+          if (response.code === 200) {
+            const data = response.data
+            this.publisher = data.publisher
+            this.publish_time = data.publish_time
+            this.title = data.title
+            this.content = data.content
+            this.grade = data.grade
+            this.publish_target = data.publish_target
+            this.note = data.note
+          } else {
+            this.$notify({
+              title: '获取消息失败',
+              message: response.msg,
+              type: 'error',
+              duration: 2000
+            })
+          }
+        })
+      }
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+.message {
+    margin: 20px;
+    .message__title {
+        font-size: 30px;
+        line-height: 30px;
+        text-align: center;
+    }
+    .message__desc {
+        color: grey;
+        text-align: center;
+        font-size: 15px;
+        line-height: 18px;
+        margin: 20px auto 10px auto;
+    }
+    .message__content {
+        font-size:18px;
+        margin: 0px 30px 0 30px;
+        text-indent:2em;
+        line-height: 30px;
+    }
+}
+</style>

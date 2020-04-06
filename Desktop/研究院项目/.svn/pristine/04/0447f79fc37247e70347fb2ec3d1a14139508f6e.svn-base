@@ -1,0 +1,75 @@
+<template>
+  <div>
+    <span class="sub-title">复核估价摘要信息</span>
+    <hr style="border:1 dashed #E8E8E8" color="#E8E8E8" size="1">
+    <el-form ref="reviewForm" size="small" label-width="150px">
+      <el-row :gutter="20" style="margin-top:20px;">
+        <el-col :span="12">
+          <el-form-item label="房地产名称：">
+            <el-input readonly value="刘德华"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="产权证号：">
+            <el-input readonly value="12354564646456"/>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-row :gutter="20" >
+        <el-col :span="12">
+          <el-form-item label="调整前单价：">
+            <el-input readonly value="584522"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="调整后单价：">
+            <el-input readonly value="846455"/>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-row :gutter="20" >
+        <el-col :span="12">
+          <el-form-item label="建筑面积：">
+            <el-input readonly value="100"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="调整后总价：">
+            <el-input readonly value="9494665"/>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-row :gutter="20" >
+        <el-col :span="24">
+          <el-form-item label="调整原因">
+            <el-input :rows="5" readonly type="textarea" placeholder="请说明调整原因"/>
+          </el-form-item>
+        </el-col>
+      </el-row>
+    </el-form>
+    <span class="sub-title" >流程信息</span>
+    <hr style="border:1 dashed #E8E8E8" color="#E8E8E8" size="1">
+    <el-row :gutter="20" style="margin-top:10px;">
+      <el-col :span="12">
+        <el-button size="small" type="info">下载估价报告</el-button>
+      </el-col>
+      <el-col :span="12" style="text-align:right">
+        <el-select placeholder="选择终审人员" size="small">
+          <el-option label="张三" value="张三"/>
+          <el-option label="李四" value="李四"/>
+          <el-option label="王五" value="王五"/>
+          <el-option label="刘德华" value="刘德华"/>
+        </el-select>
+        <el-button size="small" type="primary">提交终审</el-button>
+      </el-col>
+    </el-row>
+  </div>
+</template>
+<script>
+export default {
+
+}
+</script>
+<style lang="scss">
+
+</style>

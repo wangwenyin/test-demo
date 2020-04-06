@@ -1,0 +1,118 @@
+<template>
+  <div>
+    <el-row class="search-container" style="padding: 5px">
+      <el-col :span="16">
+        <el-radio-group v-model="taskType" style="margin-left:10px" size="small" @change="handleTaskTypeChange">
+          <el-radio-button label="我的任务">我的任务</el-radio-button>
+          <el-radio-button label="全部任务">全部任务</el-radio-button>
+        </el-radio-group>
+      </el-col>
+      <el-col :span="8">
+        <el-input v-model="taskName" placeholder="请输入内容……" size="small" >
+          <el-select slot="prepend" v-model="searchOption.clause" style="width:120px;" placeholder="请选择">
+            <el-option label="房产名称" value="房产名称"/>
+            <el-option label="产权证号" value="产权证号"/>
+            <el-option label="复核人员" value="复核人员"/>
+            <el-option label="申请人员" value="申请人员"/>
+          </el-select>
+          <el-button slot="append" icon="el-icon-search" @click="onSearchTaskClick"/>
+        </el-input>
+      </el-col>
+    </el-row>
+    <el-row style="padding:5px">
+      <el-table
+        ref="taskTable"
+        :data="currentPageTasks"
+        :header-cell-style="changeHeaderStyle"
+        style="width:100%"
+        border
+        fit
+        size="small" >
+        <el-table-column label="序号" type="index" width="50"/>
+        <el-table-column label="房产名称" >
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row.fdcmc }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="物业用途" width="200">
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row.yt }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="申请时间" >
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row.application_time }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="业主类型" prop="yzlx" >
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row.yzlx }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column :filters="taskStatus" :filter-method="filterHandler" prop="status" label="当前节点">
+          <template slot-scope="scope">
+            <el-tag :type="scope.row.status === '任务完成' ? 'success' : 'info'" style="margin-left: 10px">
+              {{ scope.row.status }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="完成时间" >
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row.finish_time }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="150">
+          <template slot-scope="scope">
+            <el-button size="mini" @click="handleDetail(scope.$index, scope.row)">
+              查看
+            </el-button>
+            <el-button v-if="taskType === '我的任务'" size="mini" type="primary" @click="handleOperation(scope.$index, scope.row)">
+              处理
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-row type="flex" justify="center" style="margin-top:5px">
+        <el-pagination :current-page="listQuery.page" :page-sizes="[10,20,30, 50]" :page-size="listQuery.limit" :total="listQuery.total" background layout="total, sizes, prev, pager, next, jumper" @size-change="handleSizeChange" @current-change="handleCurrentChange"/>
+      </el-row>
+    </el-row>
+  </div>
+</template>
+<script>
+export default {
+  data() {
+    return {
+      taskTable: null,
+      currentPageTasks: [{ fdcmc: '东方玫瑰花园A栋101', yt: '住宅', creator: '刘德华', application_time: '2018-11-01', yzlx: '个人', status: '信息审核', finish_time: '' },
+        { fdcmc: '东方玫瑰花园A栋101', yt: '住宅', creator: '刘德华', application_time: '2018-11-01', yzlx: '个人', status: '信息审核', finish_time: '' },
+        { fdcmc: '东方玫瑰花园A栋101', yt: '住宅', creator: '刘德华', application_time: '2018-11-01', yzlx: '个人', status: '信息审核', finish_time: '' },
+        { fdcmc: '东方玫瑰花园A栋101', yt: '住宅', creator: '刘德华', application_time: '2018-11-01', yzlx: '个人', status: '信息审核', finish_time: '' }],
+      taskStatus: [],
+      property_usages: [],
+      creators: [],
+      taskName: '',
+      taskType: '我的任务',
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0
+      },
+      searchOption: {
+        clause: '房产名称',
+        text: null
+      }
+    }
+  },
+  methods: {
+    changeHeaderStyle() {
+      return { backgroundColor: '#304156', width: '100%', color: '#FFFFFF' }
+    },
+    handleDetail(index, row) {
+      this.$router.push({ name: 'DisputeDetail' })
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+
+</style>

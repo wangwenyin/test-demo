@@ -1,0 +1,712 @@
+<template>
+  <div class="app">
+    <div class="caseSearch content">
+      <div ref="searchTop" class="search-top">
+        <el-row :gutter="10" style="padding: 10px">
+          <el-col :span="3">
+            <el-select v-model="usageValue" placeholder="请选择物业用途" size="small" @change="onUsageChange">
+              <el-option
+                v-for="item in usages"
+                :key="item"
+                :value="item"/>
+            </el-select>
+          </el-col>
+          <el-col :span="3">
+            <el-select v-model="typeValue" placeholder="请选择价格类型" size="small" @change="onTypeChange">
+              <el-option
+                v-for="item in priceTypes"
+                :key="item"
+                :value="item"/>
+            </el-select>
+          </el-col>
+          <!-- <el-col :span="5">
+            <el-select v-model="caseTypeList" multiple placeholder="请选择案例类型" size="small" style="width: 100%" @change="onCaseTypeChange">
+              <el-option
+                v-for="item in caseTypes"
+                :key="item"
+                :value="item"/>
+            </el-select>
+          </el-col> -->
+          <el-col :span="6">
+            <el-tooltip effect="dark" content="时间跨度不要超过一年，以免查询出过多数据" placement="top-start">
+              <date-picker ref="datePicker" :no-default-value="noDefaultValue" @dateChange="onDateChange" />
+            </el-tooltip>
+          </el-col>
+          <el-col :span="6">
+            <el-autocomplete
+              v-model="searchValue"
+              :fetch-suggestions="querySearchAsync"
+              :trigger-on-focus="false"
+              value-key="prj_name"
+              placeholder="请输入小区（楼盘）名称"
+              size="small"
+              style="width:100%"
+
+              @select="onSuggestionSelect">
+              <template slot-scope="{ item }">
+                <div style="float: left">{{ item.prj_name }}</div>
+                <span style="float: right; color: #8492a6; font-size: 13px">{{ item.cnt }}个案例</span>
+              </template>
+            </el-autocomplete>
+          </el-col>
+          <el-col :span="6">
+            <el-button type="primary" size="small" @click="onSearchCaseClick">查询</el-button>
+            <el-button type="info" size="small" @click="onResetSearchClauseClick">重置</el-button>
+            <el-button type="primary" size="small" style="float:right;margin-right:10px" @click="addCaseDialogVisible = true">添加案例</el-button>
+          </el-col>
+        </el-row>
+      </div>
+      <baidu-map ref="baiduMap" :center="center" :zoom="zoom" :scroll-wheel-zoom="true" :map-click="false" @moveend="onMapMoveEndEvent" @zoomend="zoomChange" @ready="mapReady">
+        <bm-map-type :map-types="['BMAP_NORMAL_MAP', 'BMAP_HYBRID_MAP', 'BMAP_PERSPECTIVE_MAP']" anchor="BMAP_ANCHOR_TOP_LEFT"/>
+        <bm-panorama anchor="BMAP_ANCHOR_BOTTOM_RIGHT"/>
+        <bm-control :offset="btnOffset" anchor="BMAP_ANCHOR_TOP_LEFT">
+          <el-tooltip effect="dark" content="缓冲区查询" placement="top-start">
+            <el-popover
+              placement="bottom"
+              width="230"
+              trigger="click">
+              <el-tooltip effect="dark" content="输入查询半径（最大半径不超过3000米），点击选点按钮可在地图上选点进行查询" placement="top-start">
+                <el-input v-model="bufferRadius" placeholder="半径（单位：米）" size="small" style="width:200px" oninput = "value=value.replace(/[^\d]/g,'')">
+                  <el-button slot="append" size="small" @click="onStartMapSelectClick" >选点</el-button>
+                </el-input>
+              </el-tooltip>
+              <el-button slot="reference" type="danger" size="small" icon="el-icon-location"/>
+            </el-popover>
+          </el-tooltip>
+          <el-tooltip effect="dark" content="清空缓冲区查询结果" placement="top-start">
+            <el-button icon="el-icon-delete" size="small" type="info" @click="onClearBufferClick"/>
+          </el-tooltip>
+        </bm-control><!-- 114.153499, 22.628599 projectData.y   114.153499, lat: 22.628599 v-if="displayBounceMarker" -->
+        <bm-marker v-if="displayBounceMarker" :position="{lng: projectData.x, lat: projectData.y}" :dragging="true" :top="true" style="position: absolute;z-index:160" animation="BMAP_ANIMATION_BOUNCE"/>
+        <div v-for="item in communities" :key="item.prj_name">
+          <case-overlay
+            ref="caseOverlay"
+            :position="{lng: item.x, lat: item.y}"
+            :data="item"
+            :keyword="keyword"
+            :unique_keyword="getKeyword"
+            :price-type="priceType"
+            :zoom="zoom"
+            @markerClick="onMarkerClick"
+            @cancleActive="onCancleActive"/>
+        </div>
+      </baidu-map>
+      <div ref="proDetailList" :class="{ active: isCaseActive }" class="project-detail-list">
+        <cases-box
+          ref="casesBox"
+          :project="projectData"
+          :caller="caller"
+          :price-type="priceType"
+          :usage-type="usageValue"
+          :case-list="projectDetailList"
+          :case-active="isCaseActive"
+          :more-show="isDisableShowAllButton"
+          @activeChange="onCasesBoxActiveChange"
+          @addComparableEvent="onAddComparableClick"
+          @showMoreCases="onShowMoreCasesEvent"/>
+      </div>
+      <el-dialog
+        :visible.sync="addCaseDialogVisible"
+        :before-close="onClose"
+        title="添加案例"
+        width="60%">
+        <case-form/>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="addCaseDialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="addCaseDialogVisible = false">确 定</el-button>
+        </span>
+      </el-dialog>
+      <div v-if="caller" class="comparable-list">
+        <comparables-box ref="comparablesBox" :task-id="taskId"/>
+      </div>
+    </div>
+</div></template>
+
+<script>
+import { getXzqs, getProjects, getJdbs, getCases, getSuggestionProjectName, getProjectsByExtent, getProjectByBuffer } from '@/api/case'
+import { getProjectInfo } from '@/api/data'
+import CaseOverlay from './components/caseOverlay'
+import DatePicker from '@/components/DateTimePicker'
+import CaseForm from './components/CaseForm'
+import ComparablesBox from './components/ComparablesBox'
+import CasesBox from './components/CasesBox'
+
+export default {
+  components: { CaseOverlay, DatePicker, CaseForm, ComparablesBox, CasesBox },
+  data() {
+    return {
+      map: null,
+      BMap: null,
+      bufferRadius: 500,
+      suggestionResults: [],
+      center: { lng: 114.153499, lat: 22.628599 },
+      zoom: 12,
+      btnOffset: { width: 300, height: 10 },
+      params: null,
+      caseTypeList: ['交易'],
+      typeValue: '价格',
+      priceType: '价格',
+      usageValue: '住宅',
+      typeValues: ['价格', '租金'],
+      caseTypes: [],
+      priceTypes: [],
+      rentTypes: [],
+      usages: [],
+      regionList: [],
+      noDefaultValue: false,
+      keyword: '',
+      unique_keyword: '',
+      searchValue: '',
+      communities: [],
+      projectDetailList: [],
+      projectData: {
+        prj_no: '',
+        prj_name: '',
+        cnt: 0,
+        x: null,
+        y: null
+      },
+      isCaseActive: false,
+      displayBounceMarker: false,
+      isDragSearch: true,
+      isShowAllCases: false,
+      isDisableShowAllButton: false,
+      showMoreButtonClickCnt: 0,
+      timeout: null,
+      loading: false,
+      addCaseDialogVisible: false,
+      caller: false,
+      taskId: '',
+      comparablesList: []
+    }
+  },
+  computed: {
+    getKeyword() {
+      return this.unique_keyword
+    }
+  },
+  watch: {
+    projectData: {
+      handler() {
+        this.isDisableShowAllButton = false
+        this.isShowAllCases = false
+      },
+      // 深度监视
+      deep: true
+    }
+  },
+  created() {
+    // 初始化三个下拉列表组件的内容
+    this.usages = ['住宅', '商业', '办公', '工业']
+    this.priceTypes = ['价格', '租金']
+    this.caseTypes = ['预售', '交易', '挂牌']
+
+    this.checkIncomingParameters(this.$route.query)
+  },
+  mounted() {
+    this.setMapHeight()
+    // 地图高度自适应
+    window.onresize = () => {
+      this.setMapHeight()
+    }
+  },
+  methods: {
+    checkIncomingParameters(params) {
+      // 接收参数，判定是从其他页面跳转过来需要互动的，还是直接调用
+      if (params.caller === 'singleapp' && params.taskId) {
+        this.caller = true
+        this.taskId = params.taskId
+
+        const data = {
+          fields: ['prj_no', 'prj_name', 'x', 'y']
+        }
+        if (params.prj_no) {
+          getProjectInfo(params.prj_no, data).then(response => {
+            if (response.code === 200) {
+              this.map.centerAndZoom(new this.BMap.Point(response.data.x, response.data.y), 17)
+              this.projectData.x = response.data.x
+              this.projectData.y = response.data.y
+              this.displayBounceMarker = true
+            } else {
+              this.$notify.error({
+                title: '错误',
+                message: response.msg
+              })
+            }
+          })
+        }
+      }
+    },
+    onMapMoveEndEvent(type, target) {
+      this.onMapDragEnd()
+    },
+    onResetSearchClauseClick() {
+      this.typeValue = '价格'
+      this.caseTypeList = ['交易']
+      this.usageValue = '住宅'
+      this.searchValue = ''
+      this.suggestionResults = []
+      this.$refs.datePicker.resetDate()
+      this.map.setZoom(12)
+      this.map.centerAndZoom(new this.BMap.Point(114.153499, 22.628599), 12)
+    },
+    onClearBufferClick() {
+      this.map.clearOverlays()
+      this.enableZoom()
+      this.isDragSearch = true
+      this.getAllProjects()
+    },
+    onStartMapSelectClick() {
+      if (this.bufferRadius > 3000) {
+        this.bufferRadius = 3000
+        this.$message({
+          message: '缓冲半径不能大于3000米！',
+          type: 'error',
+          duration: 3000
+        })
+      } else {
+        this.map.removeEventListener('click', this.mapClick)
+        this.map.addEventListener('click', this.mapClick)
+      }
+    },
+    onMapDragEnd() {
+      if (this.zoom > 15 && this.isDragSearch) {
+        this.getParamsWithExtent()
+        // this.communities = []
+        getProjectsByExtent(this.params).then(res => {
+          this.communities = res.data
+        }).catch(error => {
+          console.log(error)
+        })
+      }
+    },
+    enableZoom() {
+      this.map.enableScrollWheelZoom()
+      this.map.enableDoubleClickZoom()
+    },
+    disableZoom() {
+      this.map.disableScrollWheelZoom()
+      this.map.disableDoubleClickZoom()
+    },
+    queryProjectName() {
+      this.getAllParams()
+      this.suggestionResults = []
+      getSuggestionProjectName(this.params).then(res => {
+        this.suggestionResults = res.data
+        this.loading = false
+      }).catch(error => {
+        console.log(error)
+      })
+    },
+    // 智能提示的查询函数
+    querySearchAsync(queryString, cb) {
+      this.getAllParams()
+      this.suggestionResults = []
+      getSuggestionProjectName(this.params).then(res => {
+        this.suggestionResults = res.data
+        cb(this.suggestionResults)
+        this.loading = false
+      }).catch(error => {
+        console.log(error)
+      })
+    },
+    onShowMoreCasesEvent(val) {
+      this.getParamsForCaseSearch()
+      this.showMoreButtonClickCnt += 1
+      this.params.offset = this.showMoreButtonClickCnt * 20
+      if (this.projectData.cnt <= this.params.offset + 20) {
+        this.isDisableShowAllButton = true
+        this.showMoreButtonClickCnt = 0
+      }
+
+      console.log(this.params)
+      // 查询剩下的案例
+      getCases(this.projectData.prj_no, this.params).then(res => {
+        console.log(res.data)
+        this.projectDetailList = this.projectDetailList.concat(res.data)
+      })
+    },
+    mapClick(e) {
+      // 提示用户清空缓冲区操作
+      this.$notify.info({
+        title: '缓冲区查询操作提示',
+        message: ('i', { style: 'color: teal' }, '进入缓冲区查询模式，点击清空缓冲区按钮可以恢复正常操作模式'),
+        offset: 200,
+        position: 'top-left',
+        duration: 6000
+      })
+      this.map.clearOverlays()
+      this.disableZoom()
+      this.isDragSearch = false
+      var marker = new this.BMap.Marker(e.point)
+      this.map.addOverlay(marker)
+      var circle = new this.BMap.Circle(e.point, parseInt(this.bufferRadius), {
+        strokeColor: '#054879',
+        strokeWeight: 2,
+        fillColor: '#fc6767',
+        fillOpacity: 0.7
+      })
+      // 画到地图上面
+      this.map.addOverlay(circle)
+      this.map.removeEventListener('click', this.mapClick)
+
+      // 查询数据并绘制
+      const params = {
+        case_type: this.caseTypeList.join(','),
+        price_type: this.typeValue,
+        usage: this.usageValue,
+        start_date: this.$refs.datePicker.value[0],
+        end_date: this.$refs.datePicker.value[1],
+        x: e.point.lng,
+        y: e.point.lat,
+        distance: this.bufferRadius
+      }
+      getProjectByBuffer(params).then(res => {
+        this.communities = res.data
+        this.center = new this.BMap.Point(e.point.lng, e.point.lat)
+        this.map.centerAndZoom(this.center, 17)
+      }).catch(error => {
+        console.log(error)
+      })
+    },
+    getAllParams() {
+      const params = {
+        case_type: this.caseTypeList.join(','),
+        price_type: this.typeValue,
+        usage: this.usageValue,
+        start_date: this.$refs.datePicker.value[0],
+        end_date: this.$refs.datePicker.value[1],
+        prj_name: this.searchValue
+      }
+      this.params = params
+    },
+    getParamsForCaseSearch() {
+      const params = {
+        case_type: this.caseTypeList.join(','),
+        price_type: this.typeValue,
+        usage: this.usageValue,
+        start_date: this.$refs.datePicker.value[0],
+        end_date: this.$refs.datePicker.value[1],
+        offset: 0
+      }
+      this.params = params
+    },
+    getParamsWithExtent() {
+      var bs = this.map.getBounds()
+      var bssw = bs.getSouthWest() // 可视区域左下角
+      var bsne = bs.getNorthEast() // 可视区域右上角
+      // const map_width = bsne.lng - bssw.lng
+      // const map_height = bsne.lat - bssw.lat
+      const params = {
+        case_type: this.caseTypeList.join(','),
+        price_type: this.typeValue,
+        usage: this.usageValue,
+        start_date: this.$refs.datePicker.value[0],
+        end_date: this.$refs.datePicker.value[1],
+        min_x: bssw.lng,
+        min_y: bssw.lat,
+        max_x: bsne.lng,
+        max_y: bsne.lat
+      }
+      this.params = params
+    },
+    getParamsWithoutPrj() {
+      const params = {
+        case_type: this.caseTypeList.join(','),
+        price_type: this.typeValue,
+        usage: this.usageValue,
+        start_date: this.$refs.datePicker.value[0],
+        end_date: this.$refs.datePicker.value[1]
+      }
+      this.params = params
+    },
+    // 获取行政区数据
+    getXzqs() {
+      this.getParamsWithoutPrj()
+      getXzqs(this.params).then(res => {
+        console.log(res)
+        this.communities = res.data
+      })
+    },
+    // 获取街道办数据
+    getJdbs() {
+      this.getParamsWithoutPrj()
+      getJdbs(this.params).then(res => {
+        console.log(res)
+        this.communities = res.data
+      })
+    },
+    // 获取所有项目数据，只是没有输入小区名称
+    getAllProjects() {
+      this.getParamsWithExtent()
+
+      getProjectsByExtent(this.params).then(res => {
+        this.communities = res.data
+      }).catch(error => {
+        console.log(error)
+      })
+    },
+    locateProject(project) {
+      this.displayBounceMarker = (project.cnt === 0)
+      // 改变marker内容(价格或租金)
+      this.priceType = this.typeValue
+      this.projectData = project
+      this.unique_keyword = this.searchValue
+      this.onMarkerClick(...[project])
+    },
+    // 获取项目数据
+    getProjects() {
+      this.getParamsWithoutPrj()
+      getProjects(this.params).then(res => {
+        console.log(res)
+
+        const project = res.data[0]
+        // 改变marker内容(价格或租金)
+        this.priceType = this.typeValue
+        this.map.centerAndZoom(new this.BMap.Point(project.x, project.y), 16)
+        this.unique_keyword = this.searchValue
+        this.onMarkerClick(...res.data)
+      }).catch(error => {
+        console.log(error)
+      })
+    },
+    // 获取项目数据详情
+    getCaseDetailList(xmdm) {
+      this.getParamsForCaseSearch()
+      // const params = Object.assign({ xmdm }, this.params)
+      getCases(xmdm, this.params).then(res => {
+        console.log(res.data)
+        this.projectDetailList = res.data
+      })
+    },
+    onEnterKeyUp(key) {
+      if (this.searchValue === '') {
+        return
+      }
+      // 如果有缓冲区则清空
+      if (!this.isDragSearch) {
+        this.map.clearOverlays()
+        this.isDragSearch = true
+      }
+
+      if (this.suggestionResults.length > 0) {
+        const item = this.suggestionResults[0]
+        this.searchValue = this.suggestionResults[0].prj_name
+        const p = new this.BMap.Point(item.x, item.y)
+        this.map.centerAndZoom(p, 17)
+        this.center = p
+        this.locateProject(item)
+      } else {
+        this.searchValue = ''
+      }
+    },
+    onSuggestionSelect(item) {
+      this.searchValue = item.prj_name
+      // 如果有缓冲区则清空
+      if (!this.isDragSearch) {
+        this.map.clearOverlays()
+        this.isDragSearch = true
+      }
+      this.projectData = item
+      this.center = new this.BMap.Point(this.projectData.x, this.projectData.y)
+      this.map.centerAndZoom(this.center, 17)
+      this.locateProject(this.projectData)
+    },
+    onSearchCaseClick(value) {
+      if (!this.searchValue) {
+        this.$message('请输入项目名称！')
+        return
+      }
+      this.searchValue = value
+      // 如果有缓冲区则清空
+      if (!this.isDragSearch) {
+        this.map.clearOverlays()
+        this.isDragSearch = true
+      }
+
+      if (this.suggestionResults.length > 0) {
+        const item = this.suggestionResults[0]
+        this.searchValue = this.suggestionResults[0].prj_name
+        const p = new this.BMap.Point(item.x, item.y)
+        this.map.centerAndZoom(p, 17)
+        this.center = p
+        this.locateProject(item)
+      } else {
+        this.searchValue = ''
+      }
+    },
+    // 点击marker
+    onMarkerClick(item) {
+      if (item.cnt > 0) {
+        this.displayBounceMarker = false
+      }
+      if (this.zoom > 15) {
+        this.isCaseActive = true
+        this.projectData = item
+        this.map.panTo(new this.BMap.Point(item.x, item.y))
+        this.getCaseDetailList(item.prj_no)
+      } else if (this.zoom > 13 && this.zoom < 16) {
+        this.map.setCenter(new this.BMap.Point(item.x, item.y))
+        this.zoom += 3
+      } else {
+        this.map.setCenter(new this.BMap.Point(item.x, item.y))
+        this.zoom += 2
+      }
+    },
+    // 重置所有marker
+    onCancleActive() {
+      // 置空marker里的watch属性,防止点击marker后,再次查询相同关键字,无法watch到
+      this.keyword = ''
+      this.unique_keyword = ''
+      const caseOverlayList = this.$refs.caseOverlay
+      caseOverlayList.forEach(item => {
+        item.hasClick = false
+        item.active = false
+        item.blink = false
+      })
+    },
+    onTypeChange(value) {
+      if (value === '价格') {
+        this.caseTypes = ['预售', '交易', '挂牌']
+        this.caseTypeList = ['交易']
+      } else {
+        this.caseTypes = ['交易', '挂牌']
+        this.caseTypeList = ['交易']
+      }
+      this.refreshData()
+    },
+    // 价格类型值改变
+    onCaseTypeChange(value) {
+      if (!value.length) {
+        return
+      } else {
+        this.caseTypeList = value
+        this.refreshData()
+      }
+    },
+    onUsageChange(value) {
+      this.usageValue = value
+      this.refreshData()
+    },
+    refreshData() {
+      this.communities = []
+      this.suggestionResults = []
+      this.searchValue = ''
+      if (this.zoom > 15) {
+        this.getAllProjects()
+      } else if (this.zoom > 13 && this.zoom < 16) {
+        this.getJdbs()
+      } else {
+        // 初始化请求(放在created里的话，地图未初始化))
+        this.getXzqs()
+      }
+    },
+    onDateChange(value) {
+      console.log(value)
+      this.refreshData()
+    },
+    // 点击案例信息卡控件
+    onCasesBoxActiveChange(val) {
+      this.isCaseActive = val
+    },
+    mapReady({ BMap, map }) {
+      this.map = map
+      this.BMap = BMap
+    },
+    // 根据zoom的改变,请求不同的数据
+    zoomChange({ type, target }) {
+      this.zoom = target.Oa
+      console.log(this.zoom)
+      if (this.isDragSearch) {
+        this.communities = []
+        if (this.zoom > 15) {
+          this.getAllProjects()
+        } else if (this.zoom > 13 && this.zoom < 16) {
+          this.getJdbs()
+        } else {
+        // 初始化请求(放在created里的话，地图未初始化))
+          this.getXzqs()
+        }
+      }
+    },
+    setMapHeight() {
+      const clientHeight = document.documentElement.clientHeight
+      const topHeight = this.$refs.searchTop.offsetHeight + 51
+      // this.$refs.baiduMap.$el.style.height = this.$refs.proList.$el.style.height = this.$refs.proDetailList.style.height = clientHeight - topHeight + 'px'
+      this.$refs.baiduMap.$el.style.height = this.$refs.proDetailList.style.height = clientHeight - topHeight + 'px'
+    },
+    onAddComparableClick(item) {
+      this.$refs.comparablesBox.addComparable(item)
+    }
+  }
+}
+</script>
+
+<style rel="stylesheet/scss" lang="scss" >
+.comparable-list {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+}
+.caseSearch {
+  margin-bottom: 0;
+  .el-input-group__append {
+    background-color: #fc6767;
+    color: white;
+  }
+  .search-top {
+    background: #F0F0F0;
+    overflow: hidden;
+    .el-row {
+      margin: 10px;
+      background: #fff;
+      div:first-child {
+        input::-webkit-input-placeholder {
+          color: #000;
+        }
+      }
+      .fr {
+        float: right;
+      }
+    }
+    .btn {
+      overflow: hidden;
+      padding: 10px 0 10px 10px;
+      span {
+        &:nth-child(1) {
+          float: left;
+        }
+        &:nth-child(2) {
+          float: right;
+          margin-right: 10px;
+        }
+        .el-button {
+          border-radius: 0;
+          margin-left: 0;
+        }
+      }
+    }
+  }
+  .project-detail-list {
+    position: absolute;
+    right: -450px;
+    bottom: 0;
+    width: 450px;
+    height: 728px;
+    padding: 15px 0 15px 15px;
+    transition: right .5s;
+    background: #fff;
+    &.active {
+      right: 0;
+    }
+  }
+}
+</style>
+
+<style >
+  /* elementUi 某些样式覆盖：去掉style的scoped, 前面加上父级class（防止污染全局） */
+  .caseSearch .el-range-editor--small.el-input__inner {
+    width: 100%;
+  }
+</style>
+

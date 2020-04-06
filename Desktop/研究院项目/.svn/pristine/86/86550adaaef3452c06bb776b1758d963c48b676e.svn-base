@@ -1,0 +1,710 @@
+<template>
+  <div class="app">
+    <div class="caseSearch content">
+      <div v-if="!callerName" ref="searchTop" class="search-top">
+        <el-row :gutter="10" style="padding: 10px">
+          <el-col :span="3">
+            <el-select v-model="usageValue" placeholder="请选择物业用途" size="small" @change="onUsageChange">
+              <el-option
+                v-for="item in usages"
+                :key="item"
+                :value="item"/>
+            </el-select>
+          </el-col>
+          <el-col :span="3">
+            <el-select v-model="typeValue" :disabled="isDisabledPriceTypeSelect" placeholder="请选择价格类型" size="small" @change="onPriceTypeChange">
+              <el-option
+                v-for="item in priceTypes"
+                :key="item"
+                :value="item"/>
+            </el-select>
+          </el-col>
+          <el-col :span="3">
+            <el-select v-model="caseType" placeholder="请选择案例类型" size="small" style="width: 100%" @change="onCaseTypeChange">
+              <el-option
+                v-for="item in caseTypes"
+                :key="item"
+                :value="item"/>
+            </el-select>
+          </el-col>
+          <el-col :span="6">
+            <el-tooltip effect="dark" content="时间跨度不要超过一年，以免查询出过多数据" placement="top-start">
+              <date-picker ref="datePicker" :no-default-value="noDefaultValue" @dateChange="onDateChange" />
+            </el-tooltip>
+          </el-col>
+          <el-col :span="3">
+            <el-autocomplete
+              v-model="searchValue"
+              :fetch-suggestions="querySearchAsync"
+              :trigger-on-focus="false"
+              value-key="prj_name"
+              placeholder="请输入小区（楼盘）名称"
+              size="small"
+              style="width:100%"
+              @select="onSuggestionSelect">
+              <template slot-scope="{ item }">
+                <div style="font-size: 12px">
+                  <div style="float: left">{{ item.prj_name }}</div>
+                  <span style="float: right; color: #8492a6;">{{ item.cnt }}个案例</span>
+                </div>
+              </template>
+            </el-autocomplete>
+          </el-col>
+          <el-col :span="6">
+            <el-button type="primary" size="small" @click="onSearchCaseClick">查询</el-button>
+            <el-button type="info" size="small" @click="onResetSearchClauseClick">重置</el-button>
+            <el-button v-if="!caller" type="primary" size="small" style="float:right;margin-right:10px" @click="addCaseDialogVisible = true">添加案例</el-button>
+          </el-col>
+        </el-row>
+      </div>
+      <baidu-map ref="baiduMap" :map-click="false" :center="center" :zoom="zoom" :scroll-wheel-zoom="true" class="baiduMap" @moveend="onMapMoveEndEvent" @zoomend="zoomChange" @ready="mapReady">
+        <bm-map-type :map-types="['BMAP_NORMAL_MAP', 'BMAP_HYBRID_MAP', 'BMAP_PERSPECTIVE_MAP']" anchor="BMAP_ANCHOR_TOP_LEFT"/>
+        <bm-marker v-if="displayBounceMarker" :position="{lng: projectData.x, lat: projectData.y}" :dragging="true" :top="true" style="position: absolute;z-index:160" animation="BMAP_ANIMATION_BOUNCE"/>
+        <div v-for="item in communities" :key="item.prj_name">
+          <case-overlay
+            ref="caseOverlay"
+            :position="{lng: item.x, lat: item.y}"
+            :data="item"
+            :keyword="keyword"
+            :unique_keyword="unique_keyword"
+            :price-type="priceType"
+            :zoom="zoom"
+            @markerClick="onMarkerClick"
+            @cancleActive="onCancleActive"/>
+        </div>
+      </baidu-map>
+      <div ref="proDetailList" :class="{ active: isCaseActive }" class="project-detail-list">
+        <cases-box
+          ref="casesBox"
+          :project="projectData"
+          :caller="caller"
+          :is-view-detail="isViewDetail"
+          :price-type="priceType"
+          :usage-type="usageValue"
+          :case-list="projectDetailList"
+          :case-total-cnt="caseTotalCnt"
+          :case-active="isCaseActive"
+          :more-show="isDisableShowAllButton"
+          @activeChange="onCasesBoxActiveChange"
+          @addComparableEvent="onAddComparableClick"
+          @showMoreCases="onShowMoreCasesEvent"/>
+      </div>
+      <el-dialog
+        :visible.sync="addCaseDialogVisible"
+        :before-close="onClose"
+        title="添加案例"
+        width="70%">
+        <case-form ref="caseForm"/>
+        <span slot="footer" class="dialog-footer">
+          <el-button type="info" @click="resetForm">重置</el-button>
+          <el-button @click="addCaseDialogVisible = false">取 消</el-button>
+          <el-button v-if="!caller" type="primary" @click="onCaseFormSubmit">确 定</el-button>
+        </span>
+      </el-dialog>
+      <div v-drag v-if="caller" class="comparable-list">
+        <comparables-box ref="comparablesBox" :task-id="taskId" :method="appraisalMethod" :is-view-detail="isViewDetail" style="margin: 0 auto"/>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { getProjectsByExtent, getCasesProjectList, getCasesList, addCases, getProjectsForRatio, getDictionary } from '@/api/case'
+import { getProperty } from '@/api/singleapp'
+import CaseOverlay from './components/caseOverlay'
+import DatePicker from '@/components/DateTimePicker'
+import CaseForm from './components/CaseForm'
+import ComparablesBox from './components/ComparablesBox'
+import CasesBox from './components/CasesBox'
+const USAGES = '用途主类'
+const CASE_TYPE = '案例类型'
+const RENT_TYPE = '租金类型'
+
+export default {
+  components: { CaseOverlay, DatePicker, CaseForm, ComparablesBox, CasesBox },
+  data() {
+    return {
+      map: null,
+      BMap: null,
+      center: { lng: 114.049, lat: 22.5609 },
+      zoom: 12,
+      btnOffset: { width: 300, height: 10 },
+      searchValue: '',
+      keyword: '',
+      unique_keyword: '',
+      caseType: '交易',
+      typeValue: '价格',
+      priceType: '价格',
+      usageValue: '住宅',
+      caseTypes: [],
+      priceTypes: ['价格', '租金'],
+      usages: [],
+      communities: [],
+      projectDetailList: [],
+      suggestionResults: [],
+      caseTotalCnt: -1,
+      params: null,
+      listQuery: {
+        limit: 5,
+        page: 1
+      },
+      projectData: {
+        prj_no: '',
+        prj_name: '',
+        cnt: 0,
+        x: null,
+        y: null
+      },
+      isCaseActive: false,
+      displayBounceMarker: false,
+      noDefaultValue: false,
+      isDragSearch: true,
+      isDisableShowAllButton: false,
+      isDisabledPriceTypeSelect: false,
+      loading: false,
+      addCaseDialogVisible: false,
+      caller: false,
+      isViewDetail: false,
+      taskId: '',
+      appraisalMethod: '',
+      callerName: '',
+      callerParams: null
+    }
+  },
+  watch: {
+    projectData: {
+      handler() {
+        this.isDisableShowAllButton = false
+      },
+      // 深度监视
+      deep: true
+    }
+  },
+  created() {
+    this.getDictionary(USAGES)
+    this.getDictionary(CASE_TYPE)
+    this.checkIncomingParameters(this.$route.query)
+  },
+  mounted() {
+    this.setMapHeight()
+    // 地图高度自适应
+    window.onresize = () => {
+      this.setMapHeight()
+    }
+  },
+  methods: {
+    checkIncomingParameters(params) {
+      // 接收参数，判定是从其他页面跳转过来需要互动的，还是直接调用
+      if (params.caller === 'singleapp' && params.taskId) {
+        this.caller = true
+        this.taskId = params.taskId
+        this.appraisalMethod = params.method || ''
+        this.isViewDetail = params.detail || false
+        if (this.taskId) {
+          getProperty({ task_id: this.taskId }).then(response => {
+            if (response.code === 200) {
+              this.map.centerAndZoom(new this.BMap.Point(response.data.x, response.data.y), 17)
+              this.projectData.x = response.data.x
+              this.projectData.y = response.data.y
+              this.displayBounceMarker = true
+            } else {
+              this.$notify.error({
+                title: '错误',
+                message: response.msg
+              })
+            }
+          })
+        }
+        if (this.appraisalMethod) {
+          this.isDisabledPriceTypeSelect = true
+          if (this.appraisalMethod === '收益法') {
+            this.typeValue = '租金'
+            this.onPriceTypeChange()
+          }
+        }
+      } else if (params.caller === 'ratio') {
+        this.callerName = params.caller
+        const baseinfo = params.baseinfo
+        const { case_type, start_date, end_date, scope, property_usage, property_type } = baseinfo
+        this.callerParams = {
+          case_type,
+          start_date,
+          end_date,
+          scope,
+          property_usage,
+          property_type,
+          type: '地图模式'
+        }
+      }
+    },
+    getDictionary(name) {
+      getDictionary(name).then(res => {
+        const data = res.data
+        name === USAGES ? this.usages = data : this.caseTypes = data
+      })
+    },
+    onMapMoveEndEvent(type, target) {
+      if (!this.callerName) {
+        this.onMapDragEnd()
+      }
+    },
+    onResetSearchClauseClick() {
+      this.typeValue = '价格'
+      this.caseType = '交易'
+      this.usageValue = '住宅'
+      this.searchValue = ''
+      this.keyword = ''
+      this.unique_keyword = ''
+      this.isCaseActive = false
+      this.suggestionResults = []
+      this.$refs.datePicker.resetDate()
+      this.map.setZoom(17)
+      this.map.centerAndZoom(new this.BMap.Point(114.049, 22.5609), 17)
+    },
+    onMapDragEnd() {
+      if (this.zoom > 15 && this.isDragSearch) {
+        this.getParamsWithExtent()
+        getProjectsByExtent(this.params).then(res => {
+          this.communities = res.data
+        }).catch(error => {
+          console.log(error)
+        })
+      }
+    },
+    enableZoom() {
+      this.map.enableScrollWheelZoom()
+      this.map.enableDoubleClickZoom()
+    },
+    disableZoom() {
+      this.map.disableScrollWheelZoom()
+      this.map.disableDoubleClickZoom()
+    },
+    // 智能提示的查询函数
+    querySearchAsync(queryString, cb) {
+      this.getAllParams()
+      this.params.match_type = '户'
+      this.suggestionResults = []
+      getCasesProjectList(this.params).then(res => {
+        this.suggestionResults = res.data
+        cb(this.suggestionResults)
+        this.loading = false
+      }).catch(error => {
+        console.log(error)
+      })
+    },
+    // 案例卡片显示更多
+    onShowMoreCasesEvent(val) {
+      this.listQuery.page += 1
+      this.getParamsForCaseSearch(this.projectData.prj_no)
+      // 查询剩下的案例
+      getCasesList(this.params).then(res => {
+        console.log(res.data)
+        this.projectDetailList = this.projectDetailList.concat(res.data)
+      })
+      if (this.caseTotalCnt <= this.params.limit * this.params.page) {
+        this.isDisableShowAllButton = true
+      }
+    },
+    // 初始化查询参数
+    getAllParams() {
+      const params = {
+        case_type: this.caseType,
+        price_type: this.typeValue,
+        usage: this.usageValue,
+        start_date: this.$refs.datePicker.value[0],
+        end_date: this.$refs.datePicker.value[1],
+        prj_name: this.searchValue
+      }
+      this.params = params
+    },
+    // 根据关键字查询参数
+    getParamsForCaseSearch(prj_no) {
+      let params
+      if (!this.callerName) {
+        params = {
+          prj_no: prj_no,
+          usage: this.usageValue,
+          price_type: this.typeValue,
+          case_type: this.caseType,
+          start_date: this.$refs.datePicker.value[0],
+          end_date: this.$refs.datePicker.value[1],
+          limit: this.listQuery.limit,
+          page: this.listQuery.page
+        }
+      } else {
+        params = {
+          prj_no: prj_no,
+          usage: this.callerParams.property_usage,
+          price_type: '价格',
+          case_type: this.callerParams.case_type,
+          start_date: this.callerParams.start_date,
+          end_date: this.callerParams.end_date,
+          limit: this.listQuery.limit,
+          page: this.listQuery.page
+        }
+      }
+      this.params = params
+    },
+    // 根据范围查询参数
+    getParamsWithExtent() {
+      var bs = this.map.getBounds()
+      var bssw = bs.getSouthWest() // 可视区域左下角
+      var bsne = bs.getNorthEast() // 可视区域右上角
+      const params = {
+        case_type: this.caseType,
+        price_type: this.typeValue,
+        usage: this.usageValue,
+        start_date: this.$refs.datePicker.value[0],
+        end_date: this.$refs.datePicker.value[1],
+        min_x: bssw.lng,
+        min_y: bssw.lat,
+        max_x: bsne.lng,
+        max_y: bsne.lat
+      }
+      this.params = params
+    },
+    // 初始话根据范围获取楼盘
+    getAllProjects() {
+      this.getParamsWithExtent()
+      getProjectsByExtent(this.params).then(res => {
+        this.communities = res.data
+      }).catch(error => {
+        console.log(error)
+      })
+    },
+    // 定位楼盘(单个楼盘时)
+    locateProject(project) {
+      this.displayBounceMarker = (project.cnt === 0)
+      // 改变marker内容(价格或租金)
+      this.priceType = this.typeValue
+      this.projectData = project
+      this.unique_keyword = project.prj_name
+      this.onMarkerClick(...[project])
+    },
+    // 获取案例数据详情
+    getCaseDetailList(prj_no) {
+      this.getParamsForCaseSearch(prj_no)
+      getCasesList(this.params).then(res => {
+        this.caseTotalCnt = res.cnt
+        this.projectDetailList = res.data
+      })
+    },
+    // 根据推荐定位第一个楼盘
+    onEnterKeyUp(key) {
+      if (this.searchValue === '') {
+        return
+      }
+      // 如果有缓冲区则清空
+      if (!this.isDragSearch) {
+        this.map.clearOverlays()
+        this.isDragSearch = true
+      }
+
+      if (this.suggestionResults.length > 0) {
+        const item = this.suggestionResults[0]
+        this.searchValue = this.suggestionResults[0].prj_name
+        const p = new this.BMap.Point(item.x, item.y)
+        this.map.centerAndZoom(p, 17)
+        this.center = p
+        this.locateProject(item)
+      } else {
+        this.searchValue = ''
+      }
+    },
+    // 点击推荐项
+    onSuggestionSelect(item) {
+      this.searchValue = item.prj_name
+      // 如果有缓冲区则清空
+      if (!this.isDragSearch) {
+        this.map.clearOverlays()
+        this.isDragSearch = true
+      }
+      this.projectData = item
+      this.center = new this.BMap.Point(this.projectData.x, this.projectData.y)
+      this.map.centerAndZoom(this.center, 17)
+      this.locateProject(this.projectData)
+    },
+    // 点击查询
+    onSearchCaseClick() {
+      if (!this.searchValue) {
+        this.$message('请输入楼盘名称！')
+        return
+      } else if (this.keyword === this.searchValue) {
+        // 防止search值相同，重新请求数据后无法高亮（会遇到无法回到原点，及拖拽后的marker无法高亮问题）
+        return
+      }
+      // 置空center,防止拖拽后再次点击查询,无法监视到变化
+      this.center = {}
+      this.getAllParams()
+      this.params.match_type = '户'
+      getCasesProjectList(this.params).then(res => {
+        if (res.code === 200) {
+          this.communities = res.data
+          if (this.communities.length === 1) {
+            this.locateProject(...this.communities)
+          } else if (this.communities.length > 1) {
+            // 以查询到的首个marker为中心点
+            this.center = { lng: this.communities[0].x, lat: this.communities[0].y }
+            this.$nextTick(() => {
+              this.keyword = this.searchValue
+            })
+          } else {
+            this.$message('很遗憾, 未能查询到案例！')
+          }
+        }
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '网络错误'
+        })
+      })
+    },
+    // 点击marker
+    onMarkerClick(item) {
+      this.isCaseActive = true
+      this.getCaseDetailList(item.prj_no)
+      this.map.panTo(new this.BMap.Point(item.x, item.y))
+      this.projectData = item
+      this.listQuery.page = 1
+      if (item.cnt > 0) {
+        this.displayBounceMarker = false
+      }
+    },
+    // 重置所有marker
+    onCancleActive() {
+      // 置空marker里的watch属性,防止点击marker后,再次查询相同关键字,无法watch到
+      this.keyword = ''
+      this.unique_keyword = ''
+      const caseOverlayList = this.$refs.caseOverlay
+      caseOverlayList.forEach(item => {
+        item.hasClick = false
+        item.active = false
+        item.blink = false
+      })
+    },
+    onPriceTypeChange(value) {
+      this.isCaseActive = false
+      if (value === '价格') {
+        this.getDictionary(CASE_TYPE)
+        this.caseType = '交易'
+      } else {
+        this.getDictionary(RENT_TYPE)
+        this.caseType = '交易'
+      }
+      this.refreshData()
+    },
+    // 价格类型值改变
+    onCaseTypeChange(value) {
+      this.isCaseActive = false
+      if (!value) {
+        return
+      } else {
+        this.caseType = value
+        this.refreshData()
+      }
+    },
+    onUsageChange(value) {
+      this.usageValue = value
+      this.isCaseActive = false
+      this.refreshData()
+    },
+    refreshData() {
+      this.communities = []
+      this.suggestionResults = []
+      this.searchValue = ''
+      if (this.zoom > 15) {
+        this.getAllProjects()
+      }
+    },
+    onDateChange(value) {
+      console.log(value)
+      this.refreshData()
+    },
+    // 点击案例信息卡控件
+    onCasesBoxActiveChange(val) {
+      this.isCaseActive = !this.isCaseActive
+    },
+    mapReady({ BMap, map }) {
+      this.map = map
+      this.BMap = BMap
+      // data里设置zoom：17的话,无法得到map实例
+      this.zoom = 17
+    },
+    // 根据zoom的改变,请求不同的数据
+    zoomChange({ type, target }) {
+      this.zoom = target.Oa
+      console.log(this.zoom)
+      if (this.zoom < 16 && this.zoom !== 12) {
+        this.$confirm('已超出楼盘显示范围, 回到正常比例尺?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.map.centerAndZoom(new this.BMap.Point(114.049, 22.5609), 17)
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消'
+          })
+        })
+      }
+      if (this.callerName) {
+        getProjectsForRatio(this.callerParams).then(res => {
+          this.communities = res.data
+        })
+      } else {
+        if (this.isDragSearch) {
+          this.communities = []
+          if (this.zoom > 15) {
+            this.getAllProjects()
+          }
+        }
+      }
+    },
+    setMapHeight() {
+      const clientHeight = document.documentElement.clientHeight
+      const topHeight = this.$refs.searchTop ? this.$refs.searchTop.offsetHeight + 51 : 51
+      this.$refs.baiduMap.$el.style.height = this.$refs.proDetailList.style.height = clientHeight - topHeight + 'px'
+    },
+    // 添加可比实例
+    onAddComparableClick(item) {
+      this.$refs.comparablesBox.addComparable(item)
+    },
+    resetForm() {
+      this.$refs.caseForm.resetForm()
+    },
+    // 提交案例表单
+    onCaseFormSubmit() {
+      let caseForm = this.$refs.caseForm.caseForm
+      const el_form = this.$refs.caseForm.$refs.caseForm
+      caseForm.ex_price = this.$refs.caseForm.getEachPrice
+      // 删除空值属性
+      for (const key in caseForm) {
+        if (!caseForm[key]) {
+          delete caseForm[key]
+        }
+      }
+      if (caseForm.case_floor) {
+        caseForm.case_floor = caseForm.case_floor.toString()
+      }
+      if (!caseForm.prj_no) {
+        this.$message({
+          message: '请在楼盘名称的下拉框中选择楼盘!',
+          type: 'info'
+        })
+        return
+      }
+      /* caseForm. */
+      el_form.validate(valid => {
+        if (valid) {
+          // 验证之后删除，防止验证错误
+          caseForm = this.delProperty(caseForm, ['prj_name', 'bldg_name', 'unit_no'])
+          addCases(caseForm).then(res => {
+            if (res.code === 200) {
+              this.$message({
+                message: '添加成功!',
+                type: 'success'
+              })
+            } else {
+              this.$message({
+                message: res.msg,
+                type: 'error'
+              })
+            }
+            setTimeout(() => {
+              this.addCaseDialogVisible = false
+            }, 500)
+          })
+        } else {
+          return false
+        }
+      })
+    },
+    delProperty(obj, keys) {
+      keys.map(key => {
+        delete obj[key]
+      })
+      return obj
+    },
+    onClose() {
+      this.addCaseDialogVisible = false
+    }
+  }
+}
+</script>
+
+<style rel="stylesheet/scss" lang="scss" scoped>
+.comparable-list {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    width: 80%;
+    margin-left: 10%;
+}
+.caseSearch {
+  margin-bottom: 0;
+  .el-input-group__append {
+    background-color: #fc6767;
+    color: white;
+  }
+  .search-top {
+    background: #F0F0F0;
+    overflow: hidden;
+    .el-row {
+      margin: 10px;
+      background: #fff;
+      div:first-child {
+        input::-webkit-input-placeholder {
+          color: #000;
+        }
+      }
+      .fr {
+        float: right;
+      }
+    }
+    .btn {
+      overflow: hidden;
+      padding: 10px 0 10px 10px;
+      span {
+        &:nth-child(1) {
+          float: left;
+        }
+        &:nth-child(2) {
+          float: right;
+          margin-right: 10px;
+        }
+        .el-button {
+          border-radius: 0;
+          margin-left: 0;
+        }
+      }
+    }
+  }
+  .project-detail-list {
+    position: absolute;
+    right: -450px;
+    bottom: 0;
+    width: 450px;
+    height: 728px;
+    padding: 15px 0 15px 15px;
+    transition: right .5s;
+    background: #fff;
+    &.active {
+      right: 0;
+    }
+  }
+}
+</style>
+
+<style rel="stylesheet/scss" lang="scss">
+  /* elementUi 某些样式覆盖：去掉style的scoped, 前面加上父级class（防止污染全局） */
+  .caseSearch .el-range-editor--small.el-input__inner {
+    width: 100%;
+  }
+  .caseSearch {
+    .el-dialog__header, .el-dialog__body, .el-dialog__footer {
+      padding: 10px
+    }
+  }
+</style>
+

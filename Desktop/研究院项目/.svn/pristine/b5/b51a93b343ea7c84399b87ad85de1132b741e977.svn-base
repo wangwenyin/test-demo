@@ -1,0 +1,42 @@
+<template>
+  <div>
+    <span class="sub-title">审核结果</span>
+    <hr style="border:1 dashed #E8E8E8" color="#E8E8E8" size="1">
+    <el-row :gutter="20" style="margin-top:20px;">
+      <el-col :span="24">
+        <el-radio-group v-model="isPass">
+          <el-radio label="是">通过</el-radio>
+          <el-radio label="否">不通过</el-radio>
+        </el-radio-group>
+      </el-col>
+    </el-row>
+    <el-row v-if="isPass === '是'" :gutter="20" style="margin-top:40px;">
+      <el-col :span="6" >
+        <el-checkbox >价格上线</el-checkbox>
+      </el-col>
+      <el-col :span="6">
+        <el-button type="primary">提交并结束流程</el-button>
+      </el-col>
+    </el-row>
+    <el-row v-else :gutter="20" style="margin-top:20px;">
+      <el-col :span="12">
+        <el-input :rows="5" readonly type="textarea" placeholder="请说明不通过审核的理由"/>
+      </el-col>
+      <el-col :span="6">
+        <el-button type="primary">退回估价师</el-button>
+      </el-col>
+    </el-row>
+  </div>
+</template>
+<script>
+export default {
+  data() {
+    return {
+      isPass: '是'
+    }
+  }
+}
+</script>
+<style lang="scss">
+
+</style>

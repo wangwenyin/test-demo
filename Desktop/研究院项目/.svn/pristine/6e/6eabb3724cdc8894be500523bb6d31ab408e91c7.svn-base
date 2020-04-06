@@ -1,0 +1,231 @@
+<template>
+  <div>
+    <el-form ref="caseForm" :rules="rules" :model="caseForm" label-width="100px" label-position="right" size="small" >
+      <el-row :gutter="10">
+        <el-col :span="8">
+          <el-form-item label="楼盘名称：">
+            <el-autocomplete
+              v-model="caseForm.prj_name"
+              :fetch-suggestions="handleProjectSuggestionSearch"
+              :trigger-on-focus="false"
+              value-key="prj_name"
+              placeholder="请输入小区（楼盘）"
+              style="width:200px"
+              @select="handleProjectSelect"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="楼栋名称：">
+            <el-autocomplete
+              v-model="caseForm.bldg_name"
+              :fetch-suggestions="handleBuildingSuggestionSearch"
+              :trigger-on-focus="false"
+              :readonly="isBuildingInputReadonly"
+              value-key="bldg_name"
+              placeholder="请输入楼栋名称"
+              style="width:200px"
+              @select="handleBuildingSelect"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="房号：">
+            <el-autocomplete
+              v-model="caseForm.unit_no"
+              :fetch-suggestions="handleHouseSuggestionSearch"
+              :trigger-on-focus="false"
+              :readonly="isHouseInputReadonly"
+              value-key="unit_no"
+              placeholder="请输入房号"
+              style="width:200px"
+              @select="handleHouseSelect"/>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-row :gutter="10">
+        <el-col :span="8">
+          <el-form-item label="用途：">
+            <el-select v-model="caseForm.usage" style="width:200px">
+              <el-option
+                v-for="item in usages"
+                :key="item"
+                :value="item"/>
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="价格类型：">
+            <el-select v-model="caseForm.price_type" style="width:200px" @change="onPriceTypeChange">
+              <el-option
+                v-for="item in priceTypes"
+                :key="item"
+                :value="item"/>
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="案例类型：">
+            <el-select v-model="caseForm.case_type" style="width:200px">
+              <el-option
+                v-for="item in caseTypes"
+                :key="item"
+                :value="item"/>
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-row :gutter="10">
+        <el-col :span="8">
+          <el-form-item label="朝向：" prop="face_to">
+            <el-input v-model="caseForm.face_to" style="width:200px"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="户型：" prop="house_type">
+            <el-input v-model="caseForm.house_type" style="width:200px" placeholder="厅室卫阳台"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="建筑面积：" prop="built_in_area">
+            <el-input-number v-model="caseForm.built_in_area" controls-position="right" style="width:200px"/>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-row :gutter="10">
+        <el-col :span="8">
+          <el-form-item label="总价(元)：" prop="total_price">
+            <el-input-number v-model="caseForm.total_price" controls-position="right" style="width:200px"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="单价(元)：">
+            <el-input-number v-model="getEachPrice" disabled controls-position="right" style="width:200px"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="案例时间：" prop="ex_time">
+            <el-date-picker v-model="caseForm.ex_time" type="date" value-format="yyyy-MM-dd" placeholder="选择日期" style="width:200px"/>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-row :gutter="10">
+        <el-form-item label="备注：" prop="note">
+          <el-input v-model="caseForm.note" :rows="5" type="textarea" style="width:600px"/>
+        </el-form-item>
+      </el-row>
+    </el-form>
+  </div>
+</template>
+<script>
+import { getProject_list, getBuilding_list, getUnit_list } from '@/api/case'
+
+export default {
+  data() {
+    return {
+      caseForm: {
+        match_type: '户',
+        prj_name: '',
+        bldg_name: '',
+        unit_no: '',
+        usage: '住宅',
+        case_type: '交易',
+        price_type: '价格',
+        face_to: '',
+        house_type: '',
+        built_in_area: 0,
+        total_price: 0,
+        ex_price: 0,
+        ex_time: '',
+        note: ''
+      },
+      rules: {
+        face_to: [
+          { required: true, message: '请输入朝向', trigger: 'blur' }
+        ],
+        house_type: [
+          { required: true, message: '请输入户型', trigger: 'blur' }
+        ],
+        ex_time: [
+          { required: true, message: '请选择日期', trigger: 'blur' }
+        ],
+        note: [
+          { required: true, message: '请填写备注', trigger: 'blur' }
+        ],
+        built_in_area: [
+          { required: true, message: '请输入面积', trigger: 'blur' }
+        ],
+        total_price: [
+          { required: true, message: '请输入总价', trigger: 'blur' }
+        ]
+      },
+      usages: ['住宅', '商业', '办公', '工业', '其他'],
+      caseTypes: ['交易', '估价', '调查', '挂牌'],
+      priceTypes: ['价格', '租金'],
+      isBuildingInputReadonly: true,
+      isHouseInputReadonly: true
+    }
+  },
+  computed: {
+    getEachPrice() {
+      return Math.round(this.caseForm.total_price / this.caseForm.built_in_area)
+    }
+  },
+  methods: {
+    onPriceTypeChange(value) {
+      if (value === '价格') {
+        this.caseTypes = ['交易', '估价', '调查', '挂牌']
+        this.caseType = '交易'
+      } else {
+        this.caseTypes = ['交易', '挂牌']
+        this.caseType = '交易'
+      }
+    },
+    handleProjectSuggestionSearch(queryString, cb) {
+      getProject_list({ prj_name: queryString }).then(res => {
+        if (res.code === 200) {
+          cb(res.data)
+        }
+      })
+    },
+    handleBuildingSuggestionSearch(queryString, cb) {
+      const params = {
+        prj_no: this.caseForm.prj_no,
+        bldg_name: queryString
+      }
+      getBuilding_list(params).then(res => {
+        if (res.code === 200) {
+          cb(res.data)
+        }
+      })
+    },
+    handleHouseSuggestionSearch(queryString, cb) {
+      const params = {
+        bldg_no: this.caseForm.bldg_no,
+        unit_no: queryString
+      }
+      getUnit_list(params).then(res => {
+        if (res.code === 200) {
+          cb(res.data)
+        }
+      })
+    },
+    handleProjectSelect(item) {
+      this.caseForm.prj_no = item.prj_no
+      this.isBuildingInputReadonly = false
+    },
+    handleBuildingSelect(item) {
+      this.caseForm.bldg_no = item.bldg_no
+      this.isHouseInputReadonly = false
+    },
+    handleHouseSelect(item) {
+      this.caseForm.house_no = item.house_no
+      this.$emit('canClick')
+    },
+    resetForm() {
+      this.$refs.caseForm.resetFields()
+    }
+  }
+}
+</script>
+<style>
+
+</style>

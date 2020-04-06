@@ -1,0 +1,44 @@
+import request from '@/utils/request'
+
+// 查询符合条件的消息
+export function getMessages(params) {
+  return request({
+    url: '/messages',
+    method: 'get',
+    params
+  })
+}
+
+// 查询某个消息的详细内容
+export function getMessage(msgId) {
+  return request({
+    url: `/messages/${msgId}`,
+    method: 'get'
+  })
+}
+
+// 发布消息
+export function publishMessage(data) {
+  return request({
+    url: '/messages',
+    method: 'post',
+    data
+  })
+}
+
+// 查询某个用户收到的消息
+export function getUserMessages(params) {
+  return request({
+    url: '/message/user',
+    method: 'get',
+    params
+  })
+}
+
+// 查询某个消息的详细内容
+export function deleteMessage(msgId) {
+  return request({
+    url: `/messages/${msgId}`,
+    method: 'delete'
+  })
+}

@@ -1,0 +1,596 @@
+<template>
+  <div>
+    <el-row
+      class="search-container"
+      style="padding: 5px"
+    >
+      <el-button
+        type="primary"
+        size="small"
+        round
+        @click="onOpenCreateForm"
+      >+创建角色</el-button>
+      <el-input
+        v-model="searchText"
+        placeholder="请输入角色名称"
+        class="input-with-select"
+        style="width:500px;float:right"
+        size="small"
+      >
+        <el-button
+          slot="append"
+          icon="el-icon-search"
+          @click="onBtnRoleSearchClick"
+        />
+      </el-input>
+    </el-row>
+    <el-row style="padding:5px">
+      <el-table
+        ref="roleTable"
+        :data="tableData"
+        :header-cell-style="changeHeaderStyle"
+        style="width:100%"
+        border
+        fit
+        size="small"
+      >
+        <el-table-column
+          label="序号"
+          type="index"
+          width="50"
+          align="center"
+        />
+        <el-table-column
+          label="角色名称"
+          align="center"
+        >
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row.role_name }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="用户数量"
+          align="center"
+        >
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row.staff_num }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="角色描述"
+          align="center"
+          show-overflow-tooltip
+        >
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row.role_desc }}</span>
+          </template>
+        </el-table-column>
+        <!-- <el-table-column
+          label="访问权限"
+          align="center"
+          show-overflow-tooltip
+        >
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row.auth.visit.toString() }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="操作权限"
+          align="center"
+          show-overflow-tooltip
+        >
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row.auth.edit.toString() }}</span>
+          </template>
+        </el-table-column> -->
+        <el-table-column
+          label="操作"
+          width="300"
+          align="center"
+        >
+          <template slot-scope="scope">
+            <el-button
+              size="mini"
+              type="primary"
+              @click="onBtnEditRoleClick(scope.$index, scope.row)"
+            >
+              编辑
+            </el-button>
+            <el-button
+              size="mini"
+              type="success"
+              @click="onBtnAuthorityClick(scope.$index, scope.row)"
+            >
+              权限设置
+            </el-button>
+            <el-button
+              size="mini"
+              type="danger"
+              @click="onBtnDeleteRoleClick(scope.$index, scope.row)"
+            >
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-row
+        type="flex"
+        justify="center"
+        style="margin-top:5px"
+      >
+        <pagination
+          :total="listQuery.total"
+          :page.sync="listQuery.page"
+          :limit.sync="listQuery.limit"
+          :page-sizes="listQuery.pageSizes"
+          @pagination="getRolesList" />
+          <!-- <el-pagination
+          :current-page="listQuery.page"
+          :page-sizes="[10,20,30, 50]"
+          :page-size="listQuery.limit"
+          :total="listQuery.total"
+          background
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="onSizeChange"
+          @current-change="onCurrentChange"
+        /> -->
+      </el-row>
+    </el-row>
+    <el-dialog
+      :visible.sync="createFormVisible"
+      :title="editForm.title"
+      width="50%"
+    >
+      <el-form
+        ref="createForm"
+        :rules="rules"
+        :model="editForm"
+        label-width="100px"
+      >
+        <el-form-item
+          label="角色名称"
+          prop="role_name"
+        >
+          <el-input
+            v-model="editForm.role_name"
+            auto-complete="off"
+          />
+        </el-form-item>
+        <el-form-item
+          label="角色描述"
+          prop="desc"
+        >
+          <el-input
+            v-model="editForm.role_desc"
+            auto-complete="off"
+            type="textarea"
+          />
+        </el-form-item>
+        <!--  <el-row>
+          <el-col :span="12">
+            <div>
+              <el-form-item
+                label="访问权限"
+                prop="authVisit"
+              >
+                <el-checkbox
+                  :indeterminate="editForm.isIndeterminateVisit"
+                  v-model="editForm.checkAllVisit"
+                  @change="onCheckAllVisitChange"
+                >全选</el-checkbox>
+                <el-checkbox-group
+                  v-model="editForm.checkedVisits"
+                  @change="onCheckedVisitChange"
+                >
+                  <el-checkbox
+                    v-for="visit in visitOption"
+                    :label="visit"
+                    :key="visit"
+                    size="mini"
+                  >{{ visit }}</el-checkbox>
+                </el-checkbox-group>
+              </el-form-item>
+            </div>
+          </el-col>
+          <el-col :span="12">
+            <div>
+              <el-form-item
+                label="操作权限"
+                prop="authEdit"
+              >
+                <el-checkbox
+                  :indeterminate="editForm.isIndeterminateEdit"
+                  v-model="editForm.checkAllEdit"
+                  @change="onCheckAllEditChange"
+                >全选</el-checkbox>
+                <el-checkbox-group
+                  v-model="editForm.checkedEdits"
+                  @change="onCheckedEditChange"
+                >
+                  <el-checkbox
+                    v-for="edit in editOption"
+                    :label="edit"
+                    :key="edit"
+                    size="mini"
+                  >{{ edit }}</el-checkbox>
+                </el-checkbox-group>
+              </el-form-item>
+            </div>
+          </el-col>
+        </el-row> -->
+      </el-form>
+      <div
+        slot="footer"
+        class="dialog-footer"
+      >
+        <el-button @click="createFormVisible = false">取 消</el-button>
+        <el-button
+          :disabled="editForm.role_name ===''"
+          type="primary"
+          @click="onBtnOKClick"
+        >确 定</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog
+      :visible.sync="createAuthorityVisible"
+      title="权限设置"
+      width="20%"
+    >
+      <el-tree
+        ref="tree"
+        :data="data2"
+        :props="defaultProps"
+        show-checkbox
+        default-expand-all
+        node-key="id"
+        highlight-current />
+      <div
+        slot="footer"
+        class="dialog-footer"
+      >
+        <el-button @click="createAuthorityVisible = false">取 消</el-button>
+        <el-button
+          type="primary"
+          @click="onBtnAuthOKClick"
+        >确 定</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+<script>
+import Pagination from '@/components/Pagination'
+import { getRolesList, rolesAdd, rolesEdit, deleteRoles } from '@/api/role'
+export default {
+  components: { Pagination },
+  props: {
+    auth: {
+      type: Object,
+      required: false,
+      default() {
+        return {
+          visit: ['个案估价', '批量估价', '问题反馈'],
+          edit: ['删除用户', '发布消息']
+        }
+      }
+    }
+  },
+  data() {
+    return {
+      rules: {
+        role_name: [
+          { type: 'string', required: true, message: '请输入角色名称', trigger: 'blur' }
+        ]
+      },
+      data2: [{
+        id: 1,
+        label: '数据管理',
+        children: [{
+          id: 4,
+          label: '估价对象',
+          children: [{
+            id: 9,
+            label: '新增'
+          }, {
+            id: 10,
+            label: '编辑'
+          }]
+        }, {
+          id: 4,
+          label: '选取实例',
+          children: [{
+            id: 9,
+            label: '新增'
+          }, {
+            id: 10,
+            label: '编辑'
+          }]
+        }
+        ]
+      }, {
+        id: 2,
+        label: '个案估价',
+        children: [{
+          id: 5,
+          label: '估价任务'
+        }, {
+          id: 6,
+          label: '参数管理'
+        }]
+      }, {
+        id: 3,
+        label: '争议处理',
+        children: [{
+          id: 7,
+          label: '价格复核'
+        }, {
+          id: 8,
+          label: '复核统计'
+        }]
+      }],
+      defaultProps: {
+        children: 'children',
+        label: 'label'
+      },
+      searchText: null,
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        pageSizes: [10, 20, 30, 50]
+      },
+      tableData: [],
+      createFormVisible: false,
+      createAuthorityVisible: false,
+      editForm: {
+        id: 'null',
+        role_name: 'null',
+        role_desc: 'null',
+        checkedVisits: [],
+        checkedEdits: [],
+        checkAllVisit: false,
+        checkAllEdit: false,
+        isIndeterminateVisit: false,
+        isIndeterminateEdit: false
+      },
+      visitOption: this.auth.visit,
+      editOption: this.auth.edit
+    }
+  },
+  mounted() {
+    this.getRolesList()
+  },
+  methods: {
+    onBtnAuthOKClick() {
+      this.$refs.tree.setCheckedNodes([{
+        id: 9,
+        label: '新增'
+      }, {
+        id: 6,
+        label: '参数管理'
+      }])
+      console.log(this.$refs.tree.getCheckedNodes())
+    },
+    getRolesList() {
+      const params = {
+        page: this.listQuery.page,
+        limit: this.listQuery.limit,
+        role_name: this.searchText
+      }
+      getRolesList(params).then(response => {
+        if (response.code === 200) {
+          this.tableData = response.data
+          this.listQuery.total = response.cnt
+        } else {
+          this.$notify({
+            title: '错误',
+            message: response.msg,
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    },
+    rolesAdd() {
+      const data = {
+        role_name: this.editForm.role_name,
+        role_desc: this.editForm.role_desc
+      }
+      rolesAdd(data).then(response => {
+        if (response.code === 200) {
+          this.$message({
+            type: 'success',
+            message: '新增成功!'
+          })
+          this.getRolesList()
+        } else {
+          this.$notify({
+            title: '错误',
+            message: '新增失败!',
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    },
+    rolesEdit() {
+      const data = {
+        role_name: this.editForm.role_name,
+        role_desc: this.editForm.role_desc
+      }
+      rolesEdit(this.editForm.id, data).then(response => {
+        if (response.code === 200) {
+          this.$message({
+            type: 'success',
+            message: '修改成功!'
+          })
+          this.getRolesList()
+        } else {
+          this.$notify({
+            title: '错误',
+            message: '修改失败!',
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    },
+    deleteRoles(val) {
+      deleteRoles(val).then(response => {
+        if (response.code === 200) {
+          this.$message({
+            type: 'success',
+            message: '删除成功!'
+          })
+          this.getRolesList()
+        } else {
+          this.$notify({
+            title: '错误!',
+            message: '删除失败!',
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    },
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    },
+    onOpenCreateForm() {
+      this.editForm = {
+        id: '',
+        title: '创建角色',
+        role_name: '',
+        role_desc: '',
+        checkedEdits: [],
+        checkedVisits: [],
+        checkAllVisit: false,
+        checkAllEdit: false,
+        isIndeterminateVisit: false,
+        isIndeterminateEdit: false
+      }
+      this.createFormVisible = true
+      this.$refs.createForm.resetFields()
+    },
+    onSizeChange() {},
+    onCurrentChange() {},
+    onBtnOKClick() {
+      this.createFormVisible = false
+      if (this.editForm.id === '') {
+        this.rolesAdd()
+      } else {
+        this.rolesEdit()
+      }
+    },
+    onBtnEditRoleClick(index, row) {
+      let checkAllVisit = false
+      let checkAllEdit = false
+      let isIndeterminateVisit = false
+      let isIndeterminateEdit = false
+      if (row.auth.visit.length === this.auth.visit.length) {
+        checkAllVisit = true
+      }
+      if (row.auth.edit.length === this.auth.edit.length) {
+        checkAllEdit = true
+      }
+      if (
+        row.auth.visit.length < this.auth.visit.length &&
+        row.auth.visit.length > 0
+      ) {
+        isIndeterminateVisit = true
+      }
+      if (
+        row.auth.edit.length < this.auth.edit.length &&
+        row.auth.edit.length > 0
+      ) {
+        isIndeterminateEdit = true
+      }
+      this.editForm = {
+        id: row.role_id,
+        title: '编辑角色',
+        role_name: row.role_name,
+        role_desc: row.role_desc,
+        checkedVisits: row.auth.visit,
+        checkedEdits: row.auth.edit,
+        checkAllVisit,
+        checkAllEdit,
+        isIndeterminateVisit,
+        isIndeterminateEdit
+      }
+      this.createFormVisible = true
+      this.$refs.createForm.resetFields()
+    },
+    onBtnDeleteRoleClick(index, row) {
+      if (row.staff_num === 0) {
+        this.$confirm('删除操作不可逆，是否确定?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+          .then(() => {
+            this.deleteRoles(row.role_id)
+          })
+          .catch(() => {
+            this.$message({
+              type: 'info',
+              message: '已取消删除'
+            })
+          })
+      } else {
+        this.$alert('角色人数大于0时不可删除角色', '删除失败', {
+          confirmButtonText: '确定',
+          type: 'error'
+        })
+      }
+    },
+    onBtnAuthorityClick(index, row) {
+      this.createAuthorityVisible = true
+      this.$refs.tree.setCheckedNodes([{
+        id: 9,
+        label: '新增'
+      }, {
+        id: 6,
+        label: '参数管理'
+      }])
+      console.log(row.auth)
+    },
+    onBtnRoleSearchClick() {
+      /* if (this.searchText === '') {
+        this.$notify({
+          title: '提示',
+          message: '请选择查询条件，确保查询内容不能为空！',
+          duration: 3000
+        })
+        return
+      } */
+      this.getRolesList()
+    },
+    onCheckAllVisitChange(val) {
+      this.editForm.checkedVisits = val ? this.auth.visit : []
+      this.isIndeterminateVisit = false
+    },
+    onCheckedVisitChange(value) {
+      const checkedCount = value.length
+      this.editForm.checkAllVisit = checkedCount === this.visitOption.length
+      this.isIndeterminateVisit =
+        checkedCount > 0 && checkedCount < this.visitOption.length
+    },
+    onCheckAllEditChange(val) {
+      this.editForm.checkedEdits = val ? this.auth.edit : []
+      this.isIndeterminateEdit = false
+    },
+    onCheckedEditChange(value) {
+      const checkedCount = value.length
+      this.editForm.checkAllEdit = checkedCount === this.editOption.length
+      this.isIndeterminateEdit =
+        checkedCount > 0 && checkedCount < this.editOption.length
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+.el-checkbox,
+.el-radio {
+  margin: 0 5px;
+  line-height: 15px;
+}
+</style>

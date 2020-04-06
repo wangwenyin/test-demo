@@ -1,0 +1,247 @@
+<template>
+  <div>
+    <el-row
+      class="search-container"
+      style="padding: 5px"
+    >
+      <el-button
+        type="primary"
+        size="small"
+        round
+        style="float:left;margin-left:10px;"
+        @click="onBtnPublishClick"
+      >发布</el-button>
+      <el-input
+        placeholder="请输入查询内容"
+        size="small"
+        style="float:right;margin-right:10px;width:400px"
+      >
+        <el-select
+          slot="prepend"
+          v-model="searchOption.clause"
+          style="width:120px;"
+          placeholder="请选择"
+        >
+          <el-option
+            label="标题"
+            value="标题"
+          />
+          <el-option
+            label="发布人"
+            value="发布人"
+          />
+        </el-select>
+        <el-button
+          slot="append"
+          icon="el-icon-search"
+          @click="onSearchTaskClick"
+        />
+      </el-input>
+      <date-picker
+        :no-default-value="false"
+        style="float:right;margin-right:10px;"
+      />
+    </el-row>
+    <div style="margin:10px;">
+      <el-table
+        :data="list"
+        :header-cell-style="changeHeaderStyle"
+        style="width: 100%;"
+        border
+        fit
+        size="small"
+      >
+        <el-table-column
+          label="序号"
+          type="index"
+          width="50"
+          align="center"
+        />
+        <el-table-column
+          label="标题"
+          min-width="500"
+          align="center"
+          prop="title"
+        />
+        <el-table-column
+          :filters="noticeStatus"
+          :filter-method="filterNoticeStatus"
+          label="状态"
+          width="150"
+          align="center"
+          prop="status"
+        />
+        <el-table-column
+          label="日期"
+          width="200"
+          align="center"
+          prop="publish_time"
+        />
+        <el-table-column
+          label="发布人"
+          width="150"
+          align="center"
+          prop="publisher"
+        />
+        <el-table-column
+          label="操作"
+          width="250"
+          align="left"
+        >
+          <template slot-scope="scope">
+            <el-button
+              size="mini"
+              @click="onBtnViewClick(scope.$index, scope.row)"
+            >
+              查看
+            </el-button>
+            <el-button
+              v-if="scope.row.status !== '已删除'"
+              size="mini"
+              type="warning"
+              @click="onBtnDeleteClickClick(scope.$index, scope.row)"
+            >
+              删除
+            </el-button>
+            <el-button
+              v-if="scope.row.status === '已删除'"
+              size="mini"
+              @click="onBtnRestoreClick(scope.$index, scope.row)"
+            >
+              恢复
+            </el-button>
+            <el-button
+              v-if="scope.row.status === ''"
+              size="mini"
+              @click="onBtnTopClick(scope.$index, scope.row)"
+            >
+              置顶
+            </el-button>
+            <el-button
+              v-if="scope.row.status === '置顶'"
+              size="mini"
+              @click="onBtnDownClick(scope.$index, scope.row)"
+            >
+              取消置顶
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-row
+        type="flex"
+        justify="center"
+        style="margin-top:5px"
+      >
+        <el-pagination
+          :current-page="listQuery.page"
+          :page-sizes="[10,20,30, 50]"
+          :page-size="listQuery.limit"
+          :total="listQuery.total"
+          background
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="onSizeChange"
+          @current-change="onCurrentChange"
+        />
+      </el-row>
+    </div>
+  </div>
+</template>
+<script>
+import DatePicker from '@/components/DateTimePicker'
+export default {
+  components: { DatePicker },
+  data() {
+    return {
+      searchOption: {
+        clause: '标题',
+        text: null
+      },
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0
+      },
+      list: [
+        {
+          title:
+            '内容从后台读取。状态分为“（空）”（表示普通），“置顶”，“已删除”，状态列可以筛选。',
+          status: '置顶',
+          publish_time: '2018-12-10 14:30',
+          publisher: '张三'
+        },
+        {
+          title: '通过右侧的按钮操作删除、恢复和置顶一条通知。',
+          status: '',
+          publish_time: '2018-12-30 10:30',
+          publisher: '张三'
+        },
+        {
+          title:
+            '默认排序方式为优先显示置顶通知，沉底显示已删除通知，然后按发布时间逆序排列。',
+          status: '',
+          publish_time: '2018-10-30 14:30',
+          publisher: '张三'
+        },
+        {
+          title: '分页显示，默认每页显示10条。',
+          status: '已删除',
+          publish_time: '2018-10-30 14:30',
+          publisher: '张三'
+        },
+        {
+          title: '点左上角“发布”按钮可以发布一则新通知。点右侧“查看”可以查看或修改一条通知。',
+          status: '已删除',
+          publish_time: '2018-10-30 14:30',
+          publisher: '张三'
+        }
+      ],
+      noticeStatus: [
+        {
+          text: '置顶',
+          value: '置顶'
+        },
+        {
+          text: '普通',
+          value: ''
+        },
+        {
+          text: '已删除',
+          value: '已删除'
+        }
+      ]
+    }
+  },
+  methods: {
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    },
+    onBtnPublishClick() {
+      this.$router.push({ name: 'NoticePublish' })
+    },
+    onBtnViewClick() {
+      this.$router.push({ name: 'NoticeModify' })
+    },
+    onBtnDeleteClickClick(index, row) {
+      row.status = '已删除'
+    },
+    onBtnRestoreClick(index, row) {
+      row.status = ''
+    },
+    onBtnTopClick(index, row) {
+      row.status = '置顶'
+    },
+    onBtnDownClick(index, row) {
+      row.status = ''
+    },
+    filterNoticeStatus(value, row) {
+      return row.status === value
+    },
+    onSizeChange() {},
+    onCurrentChange() {},
+    onSearchTaskClick() {}
+  }
+}
+</script>
+<style lang="scss" scoped>
+</style>
+

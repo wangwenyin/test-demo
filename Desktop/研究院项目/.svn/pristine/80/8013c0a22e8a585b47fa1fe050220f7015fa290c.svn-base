@@ -1,0 +1,251 @@
+<template>
+  <div>
+    <el-row
+      v-show="isChartVisible"
+      class="chart"
+      style="padding: 5px"
+    >
+      <el-card class="box-card float-left">左饼图，按照用户选择的统计项及数据筛选条件从后台获取数据生成饼图<br>
+        卡片内左侧为选项，右侧为图表<br>
+        登录日志统计项包括：按用户，按部门，按年，按月<br>
+        访问日志统计项包括：按姓名，按部门，按IP，按响应状态码，按访问链接<br>
+        <el-radio
+          v-model="radPieType"
+          label="1"
+        >按用户统计</el-radio><br>
+        <el-radio
+          v-model="radPieType"
+          label="2"
+        >按部门统计</el-radio><br>
+        <el-radio
+          v-model="radPieType"
+          label="3"
+        >按月统计</el-radio>
+      </el-card>
+      <el-card class="box-card float-right">右直方图，按照用户选择的统计项及数据筛选条件从后台获取数据生成直方图<br>
+        卡片内左侧为选项，右侧为图表<br>
+        登录日志统计项包括：按用户，按部门，按年，按月<br>
+        访问日志统计项包括：按姓名，按部门，按IP，按响应状态码，按访问链接
+      </el-card>
+    </el-row>
+    <el-row
+      class="toolbar"
+      style="padding: 5px"
+    >
+      <el-tooltip
+        class="item"
+        effect="dark"
+        content="显示/隐藏图表"
+        placement="top-start"
+      >
+        <el-button
+          size="small"
+          class="float-left tool-item"
+          type="primary"
+          round
+          @click="showChart"
+        >图表</el-button>
+      </el-tooltip>
+      <el-select
+        v-model="searchOption.logType"
+        style="width:120px;"
+        class="float-left tool-item"
+        placeholder="请选择"
+        size="small"
+      >
+        <el-option
+          label="登录日志"
+          value="登录日志"
+        />
+        <el-option
+          label="访问日志"
+          value="访问日志"
+        />
+      </el-select>
+      <date-picker
+        :no-default-value="false"
+        class="float-left tool-item"
+      />
+      <el-input
+        v-model="searchOption.text"
+        placeholder="请输入查询内容"
+        size="small"
+        class="float-left tool-item"
+        style="width:400px;"
+      >
+        <el-select
+          slot="prepend"
+          v-model="searchOption.clause"
+          style="width:120px;"
+          placeholder="请选择"
+        >
+          <el-option
+            label="用户名"
+            value="用户名"
+          />
+          <el-option
+            label="姓名"
+            value="姓名"
+          />
+          <el-option
+            label="部门"
+            value="部门"
+          />
+        </el-select>
+        <el-button
+          slot="append"
+          icon="el-icon-search"
+          @click="onBtnLogSearchClick"
+        />
+      </el-input>
+      <span class="float-left tool-item">显示列：
+        <el-select
+          v-model="showNames"
+          size="small"
+          multiple
+          collapse-tags
+          placeholder="请选择"
+        >
+          <el-option
+            v-for="item in colNames"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </span>
+    </el-row>
+    <div style="margin:10px;">
+      <el-table
+        :data="list"
+        :header-cell-style="changeHeaderStyle"
+        style="width: 100%;"
+        border
+        fit
+        size="small"
+      >
+        <el-table-column
+          label="序号"
+          type="index"
+          width="50"
+          align="center"
+        />
+        <el-table-column
+          label="XXX"
+          min-width="500"
+          prop="title"
+        />
+      </el-table>
+      <el-row
+        type="flex"
+        justify="center"
+        style="margin-top:5px"
+      >
+        <el-pagination
+          :current-page="listQuery.page"
+          :page-sizes="[10,20,30, 50]"
+          :page-size="listQuery.limit"
+          :total="listQuery.total"
+          background
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="onSizeChange"
+          @current-change="onCurrentChange"
+        />
+      </el-row>
+    </div>
+  </div>
+</template>
+<script>
+import DatePicker from '@/components/DateTimePicker'
+export default {
+  components: { DatePicker },
+  data() {
+    return {
+      isChartVisible: false,
+      searchOption: {
+        logType: '登陆日志',
+        clause: '登录名',
+        text: null
+      },
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0
+      },
+      colNames: [],
+      filterColumns: [],
+      showNames: [],
+      list: [
+        {
+          title: '选择的日志类型不同，表格包含的列不同，检索条件中的选项也不同'
+        },
+        {
+          title: '列名根据colNames动态生成，检索条件根据filterColumns动态生成'
+        },
+        {
+          title: '例如：'
+        },
+        {
+          title:
+            '　　登录日志包含列：用户名，真实姓名，部门，浏览器，登录IP，登录时间'
+        },
+        {
+          title: '　　登录日志检索列：用户名，真实姓名，部门'
+        },
+        {
+          title:
+            '　　访问日志包含列：用户名，真实姓名，部门，浏览器，登录IP，访问时间，响应状态码，响应信息，访问链接，请求参数，请求类型'
+        },
+        {
+          title:
+            '　　访问日志检索列：用户名，真实姓名，部门，登录IP，响应状态码，响应信息，访问链接，请求参数，请求类型'
+        },
+        {
+          title:
+            '用户可以自行设置默认显示的列（参见“用户管理”页中的“显示列”功能）'
+        },
+        {
+          title: '当窗口太窄时，上方的工具要自适应排成两行'
+        },
+        {
+          title: '上方图表显示和消失要有收缩效果'
+        }
+      ],
+      radPieType: '',
+      radHisType: ''
+    }
+  },
+  methods: {
+    onBtnLogSearchClick() {},
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    },
+    showChart() {
+      this.isChartVisible = !this.isChartVisible
+    },
+    onCurrentChange() {},
+    onSizeChange() {}
+  }
+}
+</script>
+<style lang="scss" scoped>
+.box-card {
+  width: 49%;
+  height: 300px;
+}
+.float-left {
+  float: left;
+}
+.float-right {
+  float: right;
+}
+.tool-item {
+  margin-left: 10px;
+  margin-top: 2px;
+}
+.toolbar.el-row {
+  padding: 5px;
+  border-bottom: 1px solid #d8dce5;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.12), 0 0 3px 0 rgba(0, 0, 0, 0.04);
+}
+</style>

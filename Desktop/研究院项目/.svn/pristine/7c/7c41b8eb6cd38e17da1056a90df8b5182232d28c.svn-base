@@ -1,0 +1,102 @@
+<template>
+  <div style="margin:10px">
+    <el-table v-loading="loading" :data="marketInfoList" :header-cell-style="changeHeaderStyle" style="width:100%" border fit stripe size="small" >
+      <el-table-column label="序号" type="index" width="50" align="center"/>
+      <el-table-column prop="name" label="行政区" align="center"/>
+      <el-table-column prop="description" min-width="250" label="房地产市场状况" align="center"/>
+      <el-table-column label="操作" width="150" align="center">
+        <template slot-scope="scope">
+          <el-button size="mini" type="primary" @click="onEditClicK(scope.row)">修改</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-dialog :visible.sync="editVisible" title="编辑房地产市场状况" width="50%" >
+      <el-form ref="editForm" :rules="rules" :model="form" label-width="80px">
+        <el-form-item :label="form.name" prop="description">
+          <el-input v-model="form.description" :autosize="{ minRows: 5, maxRows: 10}" type="textarea"/>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button size="small" @click="onCancel">取 消</el-button>
+        <el-button size="small" type="primary" @click="onBtnOKClick('editForm')" >确 定</el-button>
+      </div>
+  </el-dialog></div>
+</template>
+<script>
+import { getParameter, saveAppraisalParameters } from '@/api/singleapp'
+export default {
+  data() {
+    return {
+      marketInfoList: [],
+      editVisible: false,
+      form: {},
+      loading: false,
+      rules: {
+        description: [{ type: 'string', required: true, message: '请填写房地产市场分析内容', trigger: 'blur' }]
+      }
+    }
+  },
+  mounted() {
+    this.getMarketAnalysisInfo()
+  },
+  methods: {
+    getMarketAnalysisInfo() {
+      const params = { item: '房地产市场状况' }
+      getParameter(params).then(response => {
+        if (response.code === 200) {
+          this.marketInfoList = response.data
+        } else {
+          this.$notify({
+            title: '错误',
+            message: response.msg,
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    },
+    onEditClicK(val) {
+      this.editVisible = true
+      this.form = val
+    },
+    onBtnOKClick(formName) {
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          this.form.item = '房地产市场状况'
+          saveAppraisalParameters(this.form).then(response => {
+            if (response.code === 200) {
+              this.$notify({
+                title: '成功',
+                message: response.msg,
+                type: 'success',
+                duration: 2000
+              })
+              this.editVisible = false
+            } else {
+              this.$notify({
+                title: '错误',
+                message: response.msg,
+                type: 'error',
+                duration: 2000
+              })
+            }
+          })
+        } else {
+          return false
+        }
+      })
+    },
+    // 选择方法框，取消按钮
+    onCancel() {
+      this.editVisible = false
+    },
+
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+
+</style>

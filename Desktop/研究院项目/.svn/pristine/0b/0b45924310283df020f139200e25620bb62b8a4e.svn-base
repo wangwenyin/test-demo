@@ -1,0 +1,123 @@
+<template>
+  <div :class="{'app':!detail} ">
+    <div class="margin10">
+      <el-button v-if="editEnabled" class="btn-topz" size="small" type="text" @click="onCompleteReportClick">完成</el-button>
+      <el-button v-if="!detail" class="btn-topz" size="small" type="text" @click="onDownloadReportClick">下载</el-button>
+      <el-button v-if="editEnabled" class="btn-topz" size="small" type="text" @click="onSaveReportClick">保存</el-button>
+      <el-tabs v-model="active" type="card" >
+        <el-tab-pane label="物业及估价信息" name="wygixx">
+          <report-results :form="form" :detail="detail"/>
+        </el-tab-pane>
+        <el-tab-pane label="资料文件" name="zlwj">
+          <report-attachment :task-id="taskId" :detail="detail"/>
+        </el-tab-pane>
+      </el-tabs>
+    </div>
+    <el-row style="margin-top:20px;margin-bottom:20px;">
+      <el-col :span="24">
+        <el-button v-if="editEnabled" size="small" class="btn-right" @click="onSaveReportClick">保存</el-button>
+        <el-button v-if="editEnabled" size="small" class="btn-right" type="primary" @click="onCompleteReportClick">完成</el-button>
+        <el-button v-if="editEnabled" size="small" class="btn-right" type="primary" @click="onPreviousStepClick">上一步</el-button>
+      </el-col>
+    </el-row>
+  </div>
+</template>
+<script>
+import ReportResults from './components/ReportResults'
+import ReportAttachment from './components/ReportAttachment'
+import { getReport, saveReport, completeReport, downloadReport, getTaskInfo } from '@/api/singleapp'
+export default {
+  components: { ReportResults, ReportAttachment },
+  props: {
+    detail: {
+      type: Boolean,
+      default: false
+    }
+  },
+  data() {
+    return {
+      active: 'wygixx',
+      form: {},
+      d_bgxm: false,
+      t_bxnlfx: false,
+      t_fxtsfx: false,
+      taskId: null,
+      editEnabled: true,
+      taskInfo: null
+    }
+  },
+  created() {
+    this.getReport()
+    this.getTaskInfo()
+  },
+  mounted() {
+
+  },
+  methods: {
+    onPreviousStepClick() {
+      this.$router.push({ name: 'SingleappNetValue', query: { taskId: this.taskId }})
+    },
+    onCompleteReportClick() {
+      const completeParam = { task_id: this.$route.query.taskId }
+      completeReport(completeParam).then(response => {
+        if (response.code === 200) {
+          this.$message({ message: '完成', type: 'success' })
+          this.$router.push({ name: 'SingleappTasks' })
+        } else {
+          alert(response.msg)
+        }
+      })
+    },
+    getReport() {
+      this.taskId = this.$route.query.taskId
+      getReport(this.taskId).then(response => {
+        this.form = response
+      })
+    },
+    getTaskInfo() {
+      getTaskInfo(this.taskId).then(response => {
+        if (response.code === 200) {
+          this.taskInfo = response.data
+          if (this.taskInfo.status === '任务完成') {
+            this.editEnabled = false
+          }
+        } else {
+          this.$notify({
+            title: '错误',
+            message: response.msg,
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    },
+    onSaveReportClick() {
+      saveReport(this.$route.query.taskId, this.form).then(response => {
+        if (response.code === 200) {
+          this.$message({ message: '保存成功', type: 'success' })
+        } else {
+          alert(response.msg)
+        }
+      })
+    },
+    onDownloadReportClick() {
+      downloadReport(this.$route.query.taskId).then(response => {
+        if (response.code === 200) {
+          console.log(response)
+          this.$message({ message: '下载成功', type: 'success' })
+          window.location.href = response.url
+        } else {
+          alert(response.msg)
+        }
+      })
+    }
+  }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss" scoped>
+  @import '@/styles/app.scss';
+  .btn-right{
+    float:right;
+    margin-right:10px;
+  }
+</style>

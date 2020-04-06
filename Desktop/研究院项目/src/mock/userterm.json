@@ -1,0 +1,54 @@
+{
+  "status":200,
+  "msg": "ok",
+  "data":[
+        {
+          "term": "70",
+          "correctfactor": "1"
+        },
+        {
+          "term": "69",
+          "correctfactor": "0.9997"
+        },
+        {
+          "term": "68",
+          "correctfactor": "0.9996"
+        },
+        {
+          "term": "67",
+          "correctfactor": "0.9995"
+        },
+        {
+          "term": "66",
+          "correctfactor": "0.9994"
+        },
+        {
+          "term": "65",
+          "correctfactor": "0.9993"
+        },
+        {
+          "term": "64",
+          "correctfactor": "0.9992"
+        },
+        {
+          "term": "63",
+          "correctfactor": "0.9991"
+        },
+        {
+          "term": "62",
+          "correctfactor": "0.9990"
+        },
+        {
+          "term": "61",
+          "correctfactor": "0.9989"
+        },
+        {
+          "term": "60",
+          "correctfactor": "0.9988"
+        },
+        {
+          "term": "59",
+          "correctfactor": "0.9987"
+        }
+      ]
+    }

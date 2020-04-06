@@ -1,0 +1,19 @@
+import request from '@/utils/request'
+
+// 查询明细
+export function getLogDetail(params) {
+  return request({
+    url: '/logs/detail',
+    method: 'get',
+    params
+  })
+}
+
+// 统计明细
+export function getLogStat(params) {
+  return request({
+    url: '/logs/stat',
+    method: 'get',
+    params
+  })
+}

@@ -1,0 +1,59 @@
+import request from '@/utils/request'
+
+export function getMembers(params) {
+  return request({
+    url: '/users',
+    method: 'get',
+    params
+  })
+}
+
+export function getUsers(params) {
+  return request({
+    url: '/users',
+    method: 'get',
+    params
+  })
+}
+
+export function createUser(data) {
+  return request({
+    url: '/users',
+    method: 'post',
+    data
+  })
+}
+
+export function feedback(data) {
+  return request({
+    url: '/proposal',
+    method: 'post',
+    data
+  })
+}
+
+export function deleteUser(username, state) {
+  return request({
+    url: '/users/' + username,
+    method: 'delete',
+    data: {
+      state
+    }
+  })
+}
+
+export function updateUser(username, data) {
+  return request({
+    url: '/users/' + username,
+    method: 'put',
+    data
+  })
+}
+
+export function resetUserPwd(data) {
+  return request({
+    url: '/user/reset',
+    method: 'post',
+    data
+  })
+}

@@ -1,0 +1,165 @@
+<template>
+  <div :class="className" :style="{height:height,width:width}"/>
+</template>
+
+<script>
+import echarts from 'echarts'
+require('echarts/theme/macarons') // echarts theme
+import { debounce } from '@/utils'
+import { getStatProperty } from '@/api/statistic'
+export default {
+  name: 'LineChart',
+  props: {
+    className: {
+      type: String,
+      default: 'chart'
+    },
+    width: {
+      type: String,
+      default: '100%'
+    },
+    height: {
+      type: String,
+      default: '250px'
+    },
+    autoResize: {
+      type: Boolean,
+      default: true
+    },
+    chartData: {
+      type: Object,
+      default: null
+    }
+  },
+  data() {
+    return {
+      chart: null,
+      x: [],
+      y: [],
+      list: []
+    }
+  },
+  watch: {
+    chartData: {
+      deep: true,
+      handler(val) {
+        this.setOptions(val)
+      }
+    }
+  },
+  mounted() {
+    this.fetchData()
+    if (this.autoResize) {
+      this.__resizeHanlder = debounce(() => {
+        if (this.chart) {
+          this.chart.resize()
+        }
+      }, 100)
+      window.addEventListener('resize', this.__resizeHanlder)
+    }
+
+    // 监听侧边栏的变化
+    const sidebarElm = document.getElementsByClassName('sidebar-container')[0]
+    sidebarElm.addEventListener('transitionend', this.__resizeHanlder)
+  },
+  beforeDestroy() {
+    if (!this.chart) {
+      return
+    }
+    if (this.autoResize) {
+      window.removeEventListener('resize', this.__resizeHanlder)
+    }
+
+    const sidebarElm = document.getElementsByClassName('sidebar-container')[0]
+    sidebarElm.removeEventListener('transitionend', this.__resizeHanlder)
+
+    this.chart.dispose()
+    this.chart = null
+  },
+  methods: {
+    initChart() {
+      this.chart = echarts.init(this.$el, 'macarons')
+      this.chart.setOption({
+        xAxis: {
+          type: 'category',
+          data: this.x,
+          boundaryGap: false,
+          axisTick: {
+            show: false
+          }
+        },
+        grid: {
+          left: 10,
+          right: 10,
+          bottom: 20,
+          top: 30,
+          containLabel: true
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'cross'
+          },
+          padding: [5, 10]
+        },
+        yAxis: {
+          scale: true,
+          type: 'value',
+          axisTick: {
+            show: false
+          }
+        },
+        /* legend: {
+          data: ['actual']
+        }, */
+        series: [{
+          name: '数量',
+          smooth: true,
+          type: 'line',
+          itemStyle: {
+            normal: {
+              color: '#3888fa',
+              label: {
+                show: true
+              },
+              lineStyle: {
+                color: '#3888fa',
+                width: 2
+              },
+              areaStyle: {
+                color: '#f3f8ff'
+              }
+            }
+          },
+          symbolSize: 10,
+          data: this.y,
+          animationDuration: 2800,
+          animationEasing: 'quadraticOut'
+        }]
+      })
+    },
+    fetchData() {
+      getStatProperty({
+        type: '用途'
+      }).then(response => {
+        if (response.code === 200) {
+          for (var i = 0; i < response.data.length; i++) {
+            this.y.push(response.data[i].count)
+            this.x.push(response.data[i].usage)
+          }
+          this.initChart()
+        } else {
+          this.$message({
+            type: 'error',
+            message: '获取数据失败!',
+            duration: 5 * 1000
+          })
+        }
+      })
+      /* this.x = ['2017-07', '2017-08', '2017-09', '2017-10', '2017-11', '2017-12', '2018-01', '2018-02', '2018-03', '2018-04', '2018-05', '2018-06', '2018-07',
+        '2018-08', '2018-09', '2018-10', '2018-11', '2018-12']
+      this.y = [55305, 51289, 54796, 56912, 56462, 55992, 56755, 57021, 58050, 60050, 61619, 61325, 60937, 62030, 62233, 63258, 63465, 62548] */
+    }
+  }
+}
+</script>

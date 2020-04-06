@@ -1,0 +1,179 @@
+<template>
+  <div>
+    <el-row class="search-container" style="padding: 5px">
+      <el-button v-if="isAdmin" type="primary" size="small" round style="float:left;margin-left:10px;" @click="onPublishMessageClick">发布消息</el-button>
+      <el-input v-model="searchOption.text" placeholder="请输入查询内容" size="small" style="float:right;margin-right:10px;width:400px" >
+        <el-select slot="prepend" v-model="searchOption.clause" style="width:120px;" placeholder="请选择">
+          <el-option label="标题" value="标题"/>
+          <el-option label="等级" value="等级"/>
+          <el-option label="内容" value="内容"/>
+          <el-option label="发布人" value="发布人"/>
+          <el-option label="发布对象" value="发布对象"/>
+        </el-select>
+        <el-button slot="append" icon="el-icon-search" @click="onSearchTaskClick"/>
+      </el-input>
+      <date-picker ref="datePicker" :no-default-value="false" style="float:right;margin-right:10px;" />
+
+    </el-row>
+    <div style="margin:10px;">
+      <el-table :data="messageList" :header-cell-style="changeHeaderStyle" style="width: 100%;" border fit size="small">
+        <el-table-column label="序号" type="index" width="50" align="center"/>
+        <el-table-column label="标题" min-width="500" align="center">
+          <template slot-scope="scope">
+            {{ scope.row.title }}
+          </template>
+        </el-table-column>
+        <el-table-column label="等级" width="200" align="center">
+          <template slot-scope="scope">
+            <el-tag :type="scope.row.grade === '重要' ? 'danger' : 'info'" style="margin-left: 10px" size="mini">
+              {{ scope.row.grade }}
+            </el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="发布时间" width="200" align="center">
+          <template slot-scope="scope">
+            {{ scope.row.publish_time }}
+          </template>
+        </el-table-column>
+        <el-table-column label="发布人" width="200" align="center">
+          <template slot-scope="scope">
+            {{ scope.row.publisher }}
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="150" align="center">
+          <template slot-scope="scope">
+            <el-button size="mini" @click="onDetailClick(scope.$index, scope.row)">
+              查看
+            </el-button>
+            <el-button v-if="isAdmin" size="mini" type="warning" @click="onWithdrawClick(scope.$index, scope.row)">
+              撤回
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-row type="flex" justify="center" style="margin-top:5px">
+        <pagination
+          :total="listQuery.total"
+          :page.sync="listQuery.page"
+          :limit.sync="listQuery.limit"
+          @pagination="getMessages" />
+          <!-- <el-pagination :current-page="listQuery.page" :page-sizes="[10,20,30, 50]" :page-size="listQuery.limit" :total="listQuery.total" background layout="total, sizes, prev, pager, next, jumper" @size-change="onPageLimitChange" @current-change="onCurrentPageChange"/> -->
+      </el-row>
+    </div>
+  </div>
+</template>
+<script>
+import DatePicker from '@/components/DateTimePicker'
+import Pagination from '@/components/Pagination'
+import { getMessages, deleteMessage } from '@/api/message'
+export default {
+  components: { DatePicker, Pagination },
+  data() {
+    return {
+      searchOption: {
+        clause: '请选择',
+        text: ''
+      },
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0
+      },
+      taskType: '我的任务',
+      messageList: []
+    }
+  },
+  computed: {
+    isAdmin() {
+      if (this.$store.state.user.roles.indexOf('admin') >= 0) {
+        return true
+      } else {
+        return false
+      }
+    }
+  },
+  mounted() {
+    this.getMessages()
+  },
+  methods: {
+    onSearchTaskClick() {
+      if (this.searchOption.text === '' || this.searchOption.clause === '请选择') {
+        this.$notify({
+          title: '提示',
+          message: '请选择查询条件，确保查询内容不能为空！',
+          duration: 3000
+        })
+        return
+      }
+      this.getMessages()
+    },
+    getMessages(val) {
+      if (val) {
+        this.listQuery.limit = val.limit
+        this.listQuery.page = val.page
+      }
+      const params = {
+        start_date: this.$refs.datePicker.value[0],
+        end_date: this.$refs.datePicker.value[1],
+        page: this.listQuery.page,
+        limit: this.listQuery.limit,
+        title: (this.searchOption.clause === '标题' ? this.searchOption.text : null),
+        grade: (this.searchOption.clause === '等级' ? this.searchOption.text : null),
+        publisher: (this.searchOption.clause === '发布人' ? this.searchOption.text : null),
+        publishTarget: (this.searchOption.clause === '发布对象' ? this.searchOption.text : null),
+        content: (this.searchOption.clause === '内容' ? this.searchOption.text : null)
+      }
+      getMessages(params).then(response => {
+        if (response.code === 200) {
+          this.messageList = response.data
+          this.listQuery.total = response.cnt
+        } else {
+          this.$notify({
+            title: '获取消息失败',
+            message: response.msg,
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    },
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    },
+    onPublishMessageClick() {
+      this.$router.push({ name: 'MessagePublish' })
+    },
+    onDetailClick(index, row) {
+      this.$router.push({ name: 'MessageDetail', query: { msgId: row.id }})
+    },
+    onWithdrawClick(index, row) {
+      deleteMessage(row.id).then(response => {
+        if (response.code === 200) {
+          // 跳转到消息发布页面
+          response.data.publish_target = response.data.publish_target.split(',')
+          this.$router.push({ name: 'MessagePublish', params: response.data })
+        } else {
+          this.$notify({
+            title: '删除消息失败',
+            message: response.msg,
+            type: 'error',
+            duration: 3000
+          })
+        }
+      })
+    },
+    onCurrentPageChange(val) {
+      this.listQuery.page = val
+      this.getMessages()
+    },
+    onPageLimitChange(val) {
+      this.listQuery.limit = val
+      this.getMessages()
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+
+</style>
+

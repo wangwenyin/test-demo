@@ -1,0 +1,262 @@
+<template>
+  <div>
+    <el-row class="search-container" style="padding: 5px" >
+      <el-input v-model="searchOption.text" placeholder="请输入查询内容" size="small" style="float:right;margin-right:10px;width:400px" @keyup.enter.native="onInputEnter">
+        <el-select slot="prepend" v-model="searchOption.clause" style="width:120px;" placeholder="请选择" @change="onChangeValue" >
+          <el-option label="用户名" value="用户名" />
+          <el-option label="昵称" value="昵称" />
+          <el-option label="用户状态" value="用户状态" />
+          <!-- <el-option label="手机号码" value="手机号码" /> -->
+        </el-select>
+        <el-button slot="append" icon="el-icon-search" @click="onSearchUserClick" />
+      </el-input>
+    </el-row>
+    <div style="margin:10px;">
+      <el-table :data="list" :header-cell-style="changeHeaderStyle" style="width: 100%;" border fit size="small" >
+        <el-table-column label="序号" type="index" width="50" />
+        <el-table-column label="用户名" align="center" prop="login_name" />
+        <el-table-column label="昵称" align="center" prop="nick_name" />
+        <el-table-column label="用户状态" align="center" prop="state" width="100">
+          <template slot-scope="scope">
+            <el-tag :type="setTagTypeByState(scope.row.state)" size="mini" >{{ scope.row.state }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="手机号码" align="center" prop="mobile" />
+        <el-table-column label="unionid" align="center" prop="unionid" />
+        <el-table-column label="区域" align="center" prop="location" width="100" />
+        <el-table-column label="操作" align="center" prop="op" width="150" >
+          <template slot-scope="scope" >
+            <el-button size="mini" type="primary" @click="onBtnShowUserClick(scope.$index, scope.row)" >查看</el-button>
+            <el-button
+              v-if="scope.row.state === '有效'"
+              size="mini"
+              type="warning"
+              @click="onUpdateUser(scope.row,'停用','停用')"
+            >停用</el-button>
+            <el-button
+              v-if="scope.row.state === '停用'"
+              size="mini"
+              @click="onUpdateUser(scope.row,'有效','启用')"
+            >启用</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-row type="flex" justify="center" style="margin-top:5px" >
+        <pagination
+          :total="listQuery.total"
+          :page.sync="listQuery.page"
+          :limit.sync="listQuery.limit"
+          :page-sizes="listQuery.pageSizes"
+          @pagination="getUsers" />
+      </el-row>
+      <el-dialog :visible.sync="userInfoFormVisible" title="查看用户信息" width="50%">
+        <el-form ref="userInfoForm" :model="userInfoForm" label-width="100px" size="small" >
+          <el-row>
+            <el-col :span="12">
+              <el-form-item label="用户名" prop="login_name" >
+                <el-input v-model="userInfoForm.login_name" auto-complete="off" disabled />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="昵称" prop="nick_name" >
+                <el-input v-model="userInfoForm.nick_name" auto-complete="off" disabled />
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row>
+            <el-col :span="12">
+              <el-form-item label="手机" prop="mobile" >
+                <el-input v-model="userInfoForm.mobile" auto-complete="off" disabled />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="unionid" prop="unionid" >
+                <el-input v-model="userInfoForm.unionid" auto-complete="off" disabled />
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row>
+            <el-col :span="12">
+              <el-form-item label="用户状态" prop="state" >
+                <el-input v-model="userInfoForm.state" auto-complete="off" disabled />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="区域" prop="location" >
+                <el-input v-model="userInfoForm.location" auto-complete="off" disabled />
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <!-- <el-form-item label="证照扫描件" prop="note" >
+            <img src="">
+          </el-form-item> -->
+          <!-- <el-form-item label="备注" prop="note" >
+            <el-input v-model="userInfoForm.note" auto-complete="off" type="textarea" disabled />
+          </el-form-item> -->
+        </el-form>
+        <div slot="footer" class="dialog-footer" >
+          <el-button @click="userInfoFormVisible = false">关闭</el-button>
+          <!--  <el-button type="primary" @click="onBtnOKClick('editForm')">确 定</el-button> -->
+        </div>
+      </el-dialog>
+    </div>
+  </div>
+</template>
+<script>
+import DatePicker from '@/components/DateTimePicker'
+import Pagination from '@/components/Pagination'
+import { getUsers, updateUser } from '@/api/publicservice/user'
+export default {
+  components: { DatePicker, Pagination },
+  data() {
+    return {
+      userInfoFormVisible: false,
+      searchOption: {
+        clause: '用户名',
+        text: null
+      },
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        pageSizes: [10, 20, 30, 50]
+      },
+      list: [],
+      /* userStatus: [
+        {
+          text: '有效',
+          value: '有效'
+        },
+        {
+          text: '停用',
+          value: '停用'
+        }
+      ], */
+      userInfoForm: {}
+    }
+  },
+  mounted() {
+    this.getUsers()
+  },
+  methods: {
+    onInputEnter() {
+      this.getUsers({ page: 1, limit: 10 })
+    },
+    onChangeValue() {
+      this.searchOption.text = '请输入查询内容'
+    },
+    getUsers(val) {
+      if (val) {
+        this.listQuery.limit = val.limit
+        this.listQuery.page = val.page
+      }
+      const params = {
+        page: this.listQuery.page,
+        limit: this.listQuery.limit,
+        login_name:
+          this.searchOption.clause === '用户名' ? (this.searchOption.text === '' ? null : this.searchOption.text) : null,
+        nick_name:
+          this.searchOption.clause === '昵称' ? (this.searchOption.text === '' ? null : this.searchOption.text) : null,
+        state:
+          this.searchOption.clause === '用户状态' ? (this.searchOption.text === '' ? null : this.searchOption.text) : null
+        /* mobile:
+          this.searchOption.clause === '手机号码' ? (this.searchOption.text === '' ? null : this.searchOption.text) : null */
+      }
+      getUsers(params).then(response => {
+        if (response.code === 200) {
+          this.list = response.data
+          this.listQuery.total = response.cnt
+        } else {
+          this.$message({
+            type: 'error',
+            message: '数据获取出错!',
+            duration: 5 * 1000
+          })
+        }
+      })
+    },
+    onUpdateUser(row, state, val) {
+      this.$confirm('此操作将' + val + '该用户, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        updateUser(row.login_name, { state: state }).then(response => {
+          if (response.code === 200) {
+            this.$message({
+              type: 'success',
+              message: val + '成功!'
+            })
+            row.state = state
+          } else {
+            this.$message({
+              type: 'info',
+              message: val + '失败'
+            })
+          }
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消'
+        })
+      })
+    },
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    },
+    onSearchUserClick() {
+      this.getUsers({ page: 1, limit: 10 })
+    },
+    onBtnShowUserClick(index, row) {
+      // 从后台读用户信息
+      // 以下仅供演示
+      this.userInfoForm = {
+        login_name: row.login_name,
+        nick_name: row.nick_name,
+        mobile: row.mobile,
+        state: row.state,
+        unionid: row.unionid,
+        location: row.location
+      }
+      this.userInfoFormVisible = !this.userInfoFormVisible
+    },
+    setTagTypeByState(state) {
+      if (state === '有效') {
+        return 'primary'
+      } else if (state === '停用') {
+        return 'warning'
+      }
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+.highlight {
+  background-color: pink;
+}
+.table-expand {
+  font-size: 0;
+}
+
+.table-expand label {
+  width: 200px;
+  color: #99a9bf;
+}
+.table-expand .el-form-item {
+  margin-right: 0;
+  margin-bottom: 0;
+  width: 50%;
+}
+.box-card {
+  width: 49%;
+  height: 300px;
+}
+.float-left {
+  float: left;
+}
+.float-right {
+  float: right;
+}
+</style>
+

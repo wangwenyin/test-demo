@@ -1,0 +1,665 @@
+<template>
+  <div>
+    <el-row
+      class="search-container"
+      style="padding: 5px"
+    >
+      <el-button
+        type="primary"
+        size="small"
+        round
+        @click="onBtnCreateUserClick"
+      >+创建用户</el-button>
+      <el-input
+        v-model="searchOption.text"
+        placeholder="请输入内容"
+        class="input-with-select"
+        style="width:500px;float:right"
+        size="small"
+      >
+        <el-select
+          slot="prepend"
+          v-model="searchOption.clause"
+          style="width:120px;"
+          placeholder="请选择"
+        >
+          <el-option
+            label="用户名"
+            value="用户名"
+          />
+          <el-option
+            label="姓名"
+            value="姓名"
+          />
+          <el-option
+            label="部门"
+            value="部门"
+          />
+          <el-option
+            label="角色"
+            value="角色"
+          />
+          <el-option
+            label="状态"
+            value="状态"
+          />
+          <el-option
+            label="执业估价师"
+            value="执业估价师"
+          />
+        </el-select>
+        <el-button
+          slot="append"
+          icon="el-icon-search"
+          @click="queryUser"
+        />
+      </el-input>
+    </el-row>
+    <el-row style="padding:5px">
+      <el-table
+        ref="taskTable"
+        :data="userList"
+        :header-cell-style="changeHeaderStyle"
+        style="width:100%"
+        border
+        fit
+        size="small"
+      >
+        <el-table-column
+          label="序号"
+          type="index"
+          width="50"
+        />
+        <el-table-column label="用户名">
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row.login_name }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="姓名">
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row.real_name }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="部门">
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row.department }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="角色">
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row.roles.toString() }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态">
+          <template slot-scope="scope">
+            <el-tag :type="setTagTypeByState(scope.row.state)" size="mini">{{ scope.row.state }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="执业估价师">
+          <template slot-scope="scope">
+            <el-tag :type="setTagTypeByCertificate(scope.row.isCertified)" size="mini">{{ scope.row.isCertified }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="操作"
+          width="300"
+        >
+          <template slot-scope="scope">
+            <el-button
+              :disabled="scope.row.state!=='有效'"
+              size="mini"
+              type="primary"
+              @click="onBtnEditUserClick(scope.$index, scope.row)"
+            >
+              编辑
+            </el-button>
+            <el-button
+              :disabled="scope.row.state==='无效'"
+              size="mini"
+              type="warning"
+              @click="onBtnDisableUserClick(scope.$index, scope.row)"
+            >
+              <span v-if="scope.row.state ==='有效'">停用</span>
+              <span v-else-if="scope.row.state ==='停用'">启用</span>
+              <span v-else>无效</span>
+            </el-button>
+            <el-button
+              size="mini"
+              type="danger"
+              @click="onBtnDeleteUserClick(scope.$index, scope.row)"
+            >
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-row
+        type="flex"
+        justify="center"
+        style="margin-top:5px"
+      >
+        <el-pagination
+          :current-page="listQuery.page"
+          :page-sizes="[10,20,30, 50]"
+          :page-size="listQuery.limit"
+          :total="listQuery.total"
+          background
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="onSizeChange"
+          @current-change="onCurrentChange"
+        />
+      </el-row>
+    </el-row>
+    <el-dialog
+      :visible.sync="editDialogFormVisible"
+      :title="editForm.title"
+      width="50%"
+    >
+      <el-form
+        ref="editForm"
+        :model="editForm"
+        :rules="editForm.rules"
+        label-width="100px"
+        size="small"
+      >
+        <el-row>
+          <el-col :span="12">
+            <el-form-item
+              label="用户名"
+              prop="login_name"
+            >
+              <el-input
+                v-model="editForm.login_name"
+                :disabled="editForm.title === '编辑用户'"
+                auto-complete="off"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item
+              label="姓名"
+              prop="real_name"
+            >
+              <el-input
+                v-model="editForm.real_name"
+                :disabled="editForm.title === '编辑用户'"
+                auto-complete="off"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item
+              v-if="editForm.title === '编辑用户'"
+              label="密码"
+              prop="password"
+            >
+              <el-button
+                type="primary"
+                size="small"
+                @click="onBtnResetPasswordClick"
+              >重置密码</el-button>
+              <span
+                style="margin-left:10px"
+              >{{ initPassword }}</span>
+            </el-form-item>
+            <el-form-item
+              v-if="editForm.title === '创建用户'"
+              label="创建密码"
+              prop="pw"
+            >
+              <el-input
+                v-model="editForm.pw"
+                type="password"
+              />
+            </el-form-item>
+            <el-form-item
+              v-if="editForm.title === '创建用户'"
+              label="确认密码"
+              prop="pwConfirm"
+            >
+              <el-input
+                v-model="editForm.pwConfirm"
+                type="password"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item
+              label="部门"
+              prop="department"
+            >
+              <el-select
+                v-model="editForm.department"
+                placeholder="请选择"
+                style="width:100%"
+              >
+                <el-option
+                  label="评估部"
+                  value="评估部"
+                />
+                <el-option
+                  label="数据部"
+                  value="数据部"
+                />
+                <el-option
+                  label="开发部"
+                  value="开发部"
+                />
+                <el-option
+                  label="选项从后台读取"
+                  value="选项从后台读取"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item
+              label="角色"
+              prop="roles"
+            >
+              <el-select
+                v-model="editForm.roles"
+                multiple
+                collapse-tags
+                placeholder="请选择">
+                <el-option
+                  v-for="item in roleOptions"
+                  :key="item"
+                  :label="item"
+                  :value="item">
+                </el-option>
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="12">
+            <el-form-item label="执业估价师">
+              <el-select
+                v-model="editForm.isCertified"
+                style="width:100%"
+              >
+                <el-option
+                  label="是"
+                  value="是"
+                />
+                <el-option
+                  label="否"
+                  value="否"
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item
+              label="手机"
+              prop="mobile"
+            >
+              <el-input
+                v-model="editForm.mobile"
+                auto-complete="off"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item
+          label="备注"
+          prop="note"
+        >
+          <el-input
+            v-model="editForm.note"
+            auto-complete="off"
+            type="textarea"
+          />
+        </el-form-item>
+      </el-form>
+      <div
+        slot="footer"
+        class="dialog-footer"
+      >
+        <el-button size="mini" type="primary" plain style="float:left;">批量创建</el-button>
+        <el-button size="mini" plain style="float:left;">下载模板</el-button>
+        <el-button @click="editDialogFormVisible = false">取 消</el-button>
+        <el-button
+          type="primary"
+          @click="onBtnUpdateUserOKClick"
+        >确 定</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+<script>
+import { getUsers, createUser, deleteUser, resetUserPwd } from '@/api/user'
+import md5 from 'md5'
+export default {
+  components: { },
+  data() {
+    return {
+      searchOption: {
+        clause: '用户名',
+        text: null
+      },
+      userList: [],
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0
+      },
+      roles: [],
+      createDialogFormVisible: false,
+      editDialogFormVisible: false,
+      editForm: {
+      },
+      initPassword: null,
+      createRules: {
+        login_name: [
+          { required: true, message: '请输入用户名', trigger: 'blur' }
+        ],
+        real_name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
+        department: [
+          { required: true, message: '请选择部门', trigger: 'blur' }
+        ],
+        roles: [{ required: true, message: '请选择角色', trigger: 'blur' }],
+        mobile: [{ type: 'number', message: '手机号码必须为数字', trigger: 'blur' }],
+        pw: [{ required: true, message: '请设置密码', trigger: 'blur' }],
+        pwConfirm: [{ required: true, validator: this.validatePass, trigger: 'blur' }]
+      },
+      editRules: {
+        real_name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
+        roles: [{ required: true, message: '请选择角色', trigger: 'blur' }],
+        login_name: [
+          { required: true, message: '请输入用户名', trigger: 'blur' }
+        ],
+        department: [
+          { required: true, message: '请选择部门', trigger: 'blur' }
+        ],
+        mobile: [{ type: 'number', message: '手机号码必须为数字', trigger: 'blur' }]
+      },
+      roleOptions:['估价人员','数据人员','admin','test','从后台读角色列表','ccb/v1/roles/names']
+    }
+  },
+  mounted() {
+    const params = {
+      page: 1,
+      limit: this.listQuery.limit
+    }
+    getUsers(params).then(response => {
+      debugger
+      this.userList = response.data
+      this.listQuery.total = response.cnt
+    })
+  },
+  methods: {
+    setTagTypeByCertificate(isCertified) {
+      if (isCertified === '否') {
+        return 'info'
+      } else {
+        return ''
+      }
+    },
+    setTagTypeByState(state){
+      if (state === '无效') {
+        return 'info'
+      } else if (state === '停用') {
+        return 'warning'
+      } else {
+        return ''
+      }
+    },
+    validatePass(rule, value, callback) {
+      if (value === '') {
+        callback(new Error('请再次输入密码'))
+      } else if (value !== this.editForm.pw) {
+        callback(new Error('两次输入密码不一致!'))
+      } else {
+        callback()
+      }
+    },
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    },
+    queryUser() {
+      const params = {
+        page: 1,
+        limit: this.listQuery.limit,
+        login_name:
+          this.searchOption.clause === '用户名' ? this.searchOption.text : null,
+        real_name:
+          this.searchOption.clause === '姓名' ? this.searchOption.text : null,
+        department:
+          this.searchOption.clause === '部门' ? this.searchOption.text : null,
+        state:
+          this.searchOption.clause === '状态' ? this.searchOption.text : null
+      }
+      // 查询明细
+      getUsers(params)
+        .then(res => {
+          this.userList = res.data
+          this.listQuery.total = res.cnt
+        })
+        .catch(error => {
+          console.log(error)
+        })
+    },
+    onBtnSaveUserOKClick() {
+      this.$refs['createForm'].validate(valid => {
+        if (valid) {
+          // this.createForm.role = this.createForm.role.join(';')
+          createUser(this.createForm).then(response => {
+            if (response.code === 200) {
+              this.$notify({
+                title: '成功',
+                message: '保存成功',
+                type: 'success',
+                duration: 2000
+              })
+              this.createDialogFormVisible = false
+              // 刷新用户表格
+              const params = {
+                page: 1,
+                limit: this.listQuery.limit
+              }
+              getUsers(params).then(response => {
+                this.userList = response.data
+                this.listQuery.total = response.cnt
+                this.listQuery.page = 1
+              })
+            } else {
+              this.$notify({
+                title: '失败',
+                message: response.msg,
+                type: 'error',
+                duration: 2000
+              })
+            }
+          })
+        } else {
+          console.log('error submit!!')
+          return false
+        }
+      })
+    },
+    generatePass() {
+      this.initPassword = ''
+      for (let i = 0; i < 6; i++) {
+        this.initPassword += Math.floor(Math.random() * 10)
+      }
+      this.createForm.password = md5(this.initPassword)
+    },
+    onBtnResetPasswordClick() {
+      this.initPassword = ''
+      for (let i = 0; i < 6; i++) {
+        this.initPassword += Math.floor(Math.random() * 10)
+      }
+      this.editForm.password = md5(this.initPassword)
+      const params = {
+        login_name: this.editForm.login_name,
+        password: this.editForm.password
+      }
+      resetUserPwd(params).then(response => {
+        if (response.code === 200) {
+          this.$message({
+            type: 'success',
+            message: '重置密码成功!'
+          })
+        } else {
+          this.$message({
+            type: 'error',
+            message: response.msg
+          })
+        }
+      })
+    },
+    onBtnDeleteUserClick(index, row) {
+      this.$confirm('此操作将永久删除该用户, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          deleteUser(row.login_name, '无效').then(response => {
+            if (response.code === 200) {
+              this.$message({
+                type: 'success',
+                message: '删除成功!'
+              })
+              row.state = '无效'
+            } else {
+              this.$message({
+                type: 'info',
+                message: '删除失败'
+              })
+            }
+          })
+        })
+        .catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消删除'
+          })
+        })
+    },
+    onBtnEditUserClick(index, row) {
+      // 根据row信息生成对象
+      this.editForm = {
+        title: '编辑用户',
+        real_name: row.real_name,
+        login_name: row.login_name,
+        password: null,
+        department: row.department,
+        mobile: row.mobile,
+        roles: row.roles,
+        note: row.note,
+        isCertified: row.isCertified,
+        rules: this.editRules
+      }
+      this.editDialogFormVisible = true
+    },
+    onBtnCreateUserClick() {
+      this.editForm = {
+        title: '创建用户',
+        real_name: null,
+        login_name: null,
+        password: null,
+        department: null,
+        mobile: null,
+        roles: [],
+        note: null,
+        isCertified: '否',
+        rules: this.createRules
+      }
+      this.editDialogFormVisible = true
+    },
+    onBtnDisableUserClick(index, row) {
+      this.$confirm('确定该操作, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          const state = row.state === '停用' ? '有效' : '停用'
+          deleteUser(row.login_name, state).then(response => {
+            if (response.code === 200) {
+              this.$message({
+                type: 'success',
+                message: '操作成功!'
+              })
+              row.state = state
+            } else {
+              this.$message({
+                type: 'info',
+                message: response.msg
+              })
+            }
+          })
+        })
+        .catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消'
+          })
+        })
+    },
+    onCurrentChange(val) {
+      this.listQuery.page = val
+      const params = {
+        page: this.listQuery.page,
+        limit: this.listQuery.limit,
+        login_name:
+          this.searchOption.clause === '用户名' ? this.searchOption.text : null,
+        real_name:
+          this.searchOption.clause === '姓名' ? this.searchOption.text : null,
+        department:
+          this.searchOption.clause === '部门' ? this.searchOption.text : null,
+        state:
+          this.searchOption.clause === '状态' ? this.searchOption.text : null
+      }
+      // 查询明细
+      getUsers(params)
+        .then(res => {
+          this.userList = res.data
+        })
+        .catch(error => {
+          console.log(error)
+        })
+    },
+    onSizeChange(val) {
+      this.listQuery.limit = val
+      const params = {
+        page: this.listQuery.page,
+        limit: this.listQuery.limit,
+        login_name:
+          this.searchOption.clause === '用户名' ? this.searchOption.text : null,
+        real_name:
+          this.searchOption.clause === '姓名' ? this.searchOption.text : null,
+        department:
+          this.searchOption.clause === '部门' ? this.searchOption.text : null,
+        state:
+          this.searchOption.clause === '状态' ? this.searchOption.text : null
+      }
+      // 查询明细
+      getUsers(params)
+        .then(res => {
+          this.userList = res.data
+        })
+        .catch(error => {
+          console.log(error)
+        })
+    },
+    onBtnUpdateUserOKClick() {}
+  }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss" >
+.search-container {
+  height: 45px;
+  padding: 4px;
+  background-color: white;
+  border-bottom: 1px solid #d8dce5;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.12), 0 0 3px 0 rgba(0, 0, 0, 0.04);
+}
+</style>

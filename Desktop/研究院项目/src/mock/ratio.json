@@ -1,0 +1,42 @@
+{
+  "status":200,
+  "msg": "ok",
+  "data":[
+    {
+      "name": "福田区住宅房地产批量估价结果比率分析",
+      "creator": "张三",
+      "create_date": "2018-09-21",
+      "property_type": "房产",
+      "property_usage": "住宅",
+      "state": "参数设置",
+      "result": "不通过"
+    },
+    {
+      "name": "全市商业房地产收益法估价结果比率分析",
+      "creator": "张三",
+      "create_date": "2018-05-14",
+      "property_type": "房产",
+      "property_usage": "商业",
+      "state": "参数设置",
+      "result": "不通过"
+    },
+    {
+      "name": "2017年住宅房地产批量估价结果比率分析",
+      "creator": "李某",
+      "create_date": "2018-03-16",
+      "property_type": "房产",
+      "property_usage": "住宅",
+      "state": "比率分析",
+      "result": "不通过"
+    },
+    {
+      "name": "工业房地产成本法估价结果比率分析",
+      "creator": "王某",
+      "create_date": "2018-02-26",
+      "property_type": "土地",
+      "property_usage": "工业",
+      "state": "审核完毕",
+      "result": "通过"
+    }
+  ]
+}

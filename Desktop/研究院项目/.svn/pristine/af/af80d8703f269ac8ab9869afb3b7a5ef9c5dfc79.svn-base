@@ -1,0 +1,325 @@
+<template>
+  <div>
+    <el-row style="border:1px solid #d8dce5;line-height:25px;padding:10px;">
+      <el-select v-model="caseType" placeholder="请选择案例类型" size="small" style="width:200px">
+        <el-option v-for="item in caseTypeOptions" :key="item" :label="item" :value="item"/>
+      </el-select>
+      <el-select v-model="priceType" placeholder="请选择价格类型" size="small" style="width:200px">
+        <el-option v-for="item in priceTypeOptions" :key="item" :label="item" :value="item"/>
+      </el-select>
+      <el-select v-model="district" placeholder="请选择行政区" size="small" style="width:200px">
+        <el-option v-for="item in districtOptions" :key="item" :label="item" :value="item"/>
+      </el-select>
+      <el-select v-model="caseState" placeholder="案例状态" size="small" style="width:200px">
+        <el-option v-for="item in caseStateOptions" :key="item.value" :label="item.label" :value="item.value"/>
+      </el-select>
+      <el-button type="primary" size="small" @click="onCaseSearchBtnClick">查询</el-button>
+      <el-button size="small" @click="onCaseClearBtnClick">清空</el-button>
+    </el-row>
+    <el-row :gutter="10" style="padding:10px;">
+      <el-table v-loading="loading" ref="caseTable" :data="caseData" :header-cell-style="changeHeaderStyle" highlight-current-row style="width:100%" border fit size="small" @current-change="onCaseTableCurrentChange">
+        <el-table-column v-for="item in caseFields" :prop="item.prop" :label="item.label" :key="item.prop"/>
+      </el-table>
+      <pagination
+        :total="listQuery.total"
+        :page.sync="listQuery.page"
+        :limit.sync="listQuery.limit"
+        :page-sizes="listQuery.pageSizes"
+        style="text-align: center;"
+        @pagination="getCase" />
+    </el-row>
+    <el-row style="border:1px solid #d8dce5;line-height:25px;padding:10px;">
+      <el-input v-model="prj_name" :disabled="prj_enable" placeholder="楼盘名称" size="small" style="width:200px;"/>
+      <el-input v-model="bldg_name" :disabled="bldg_enable" placeholder="楼栋名称" size="small" style="width:200px;"/>
+      <el-input v-model="unit_no" :disabled="nuit_enable" placeholder="户号" size="small" style="width:200px;"/>
+      <el-button size="small" type="primary" @click="onSearchBtnClick" >查询</el-button>
+      <el-button size="small" @click="onClearBtnClick">清空</el-button>
+    </el-row>
+    <el-row :gutter="10" style="padding:10px;">
+      <el-col :span="8">
+        <el-table ref="projectTable" :data="projectData" :header-cell-style="changeHeaderStyle" max-height="300" highlight-current-row style="width:100%" border fit size="small" @current-change="onProjectTableCurrentChange">
+          <el-table-column type="index" width="50"/>
+          <el-table-column v-for="item in projectFields" :prop="item.prop" :label="item.label" :key="item.prop"/>
+        </el-table>
+      </el-col>
+      <el-col :span="8">
+        <el-table ref="buildingTable" :data="buildingData" :header-cell-style="changeHeaderStyle" max-height="300" highlight-current-row style="width:100%" border fit size="small" @current-change="onBuildingTableCurrentChange">
+          <el-table-column type="index" width="50"/>
+          <el-table-column v-for="item in buildingFields" :prop="item.prop" :label="item.label" :key="item.prop"/>
+        </el-table>
+      </el-col>
+      <el-col :span="8">
+        <el-table ref="houseTable" :data="houseData" :header-cell-style="changeHeaderStyle" max-height="300" highlight-current-row style="width:100%" border fit size="small" @current-change="onHouseTableCurrentChange">
+          <el-table-column type="index" width="50"/>
+          <el-table-column v-for="item in houseFields" :prop="item.prop" :label="item.label" :key="item.prop"/>
+        </el-table>
+      </el-col>
+    </el-row>
+    <el-row style="border:1px solid #d8dce5;line-height:25px;padding:10px;">
+      <el-button size="small" type="primary" @click="onMatchingClick('1')">案例匹配</el-button>
+      <el-button size="small" type="danger" @click="onMatchingClick('0')">无法匹配</el-button>
+      <el-button size="small" type="success" style="float:right;margin-right:10px;" @click="onSubmitClick">提交入库</el-button>
+    </el-row>
+  </div>
+</template>
+<script>
+import Pagination from '@/components/Pagination'
+import {
+  getImportationCasesNew, getImportationCases, getImportationCasesPrjname, setImportationCasesMatching, submitImportation
+} from '@/api/data'
+import { getDictionary } from '@/api/common'
+export default {
+  components: { Pagination },
+  data() {
+    return {
+      caseType: '',
+      priceType: '',
+      district: '',
+      caseState: '',
+      caseTypeOptions: [],
+      priceTypeOptions: [],
+      districtOptions: [],
+      caseStateOptions: [
+        { value: 0, label: '无法匹配' },
+        { value: 1, label: '匹配成功' },
+        { value: 2, label: '待匹配' }
+      ],
+      caseFields: [
+        { label: '状态', prop: 'cast_state' },
+        { label: '案例编号', prop: 'case_no' },
+        { label: '楼盘名称', prop: 'prj_name' },
+        { label: '楼栋名称', prop: 'bldg_name' },
+        { label: '户名称', prop: 'unit_no' },
+        { label: '行政区', prop: 'district' },
+        { label: '建筑面积', prop: 'prj_area' },
+        { label: '用途', prop: 'property_usage' },
+        { label: '案例类型', prop: 'case_type' },
+        { label: '案例日期', prop: 'ex_time' },
+        { label: '案例单价', prop: 'each_price' },
+        { label: '案例总价', prop: 'total_price' },
+        { label: '案例来源', prop: 'case_from' }
+      ],
+      projectFields: [
+        { label: '楼盘名称', prop: 'prj_name' },
+        { label: '行政区', prop: 'district' },
+        { label: '街道办', prop: 'subdistrict' },
+        { label: '建筑年代', prop: 'const_year' }
+      ],
+      buildingFields: [
+        { label: '楼栋名称', prop: 'bldg_name' },
+        { label: '总层数', prop: 'bldg_floors' }
+      ],
+      houseFields: [
+        { label: '户号', prop: 'unit_no' },
+        { label: '建筑面积', prop: 'house_area' },
+        { label: '所在楼层', prop: 'floor_no' },
+        { label: '用途', prop: 'house_usage1' }
+      ],
+      caseData: [],
+      projectData: [],
+      buildingData: [],
+      houseData: [],
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        pageSizes: [10, 20, 30, 50]
+      },
+      taskId: '',
+      case_no: '',
+      prj_name: '',
+      prj_no: '',
+      prj_enable: true,
+      bldg_name: '',
+      bldg_no: '',
+      bldg_enable: true,
+      unit_no: '',
+      nuit_enable: true,
+      loading: false,
+      property_type: ''
+    }
+  },
+  mounted() {
+    this.getCase()
+    this.getOption()
+  },
+  methods: {
+    // 获取下拉选项
+    getOption() {
+      getDictionary('行政区').then(response => {
+        this.districtOptions = response.data
+      })
+      getDictionary('案例类型').then(response => {
+        this.caseTypeOptions = response.data
+      })
+      getDictionary('价格类型').then(response => {
+        this.priceTypeOptions = response.data
+      })
+    },
+    // 案例查询
+    onCaseSearchBtnClick: function() {
+      this.getCase()
+    },
+    // 清空案例查询条件
+    onCaseClearBtnClick: function() {
+      this.caseType = ''
+      this.priceType = ''
+      this.district = ''
+      this.caseState = ''
+    },
+    // 获取案例数据
+    getCase(val) {
+      if (val) {
+        this.listQuery.limit = val.limit
+        this.listQuery.page = val.page
+      } else {
+        this.listQuery.page = 1
+      }
+      this.loading = true
+      const params = { 'caseType': this.caseType === '' ? null : this.caseType, 'priceType': this.priceType === '' ? null : this.priceType, 'district': this.district === '' ? null : this.district, 'caseState': this.caseState === '' ? null : this.caseState, 'page': this.listQuery.page, 'limit': this.listQuery.limit }
+      getImportationCasesNew(params).then(response => {
+        // 接口问题，应该统一为data
+        this.caseData = response.data
+        this.listQuery.total = response.total_num
+        this.loading = false
+      })
+    },
+    // 查询楼盘，楼栋，户
+    onSearchBtnClick() {
+      if (this.bldg_no !== '') { // 如果选定了楼栋，则查询户的数据
+        const params = { 'property_name': this.unit_no !== '' ? this.unit_no : null, 'property_type': '户', 'property_no': this.bldg_no }
+        getImportationCases(params).then(response => {
+          this.houseData = response.data
+        })
+      } else if (this.prj_no !== '') { // 如果选定了楼盘，则查询楼栋的数据
+        const params = { 'property_name': this.bldg_name !== '' ? this.bldg_name : null, 'property_type': '楼栋', 'property_no': this.prj_no }
+        getImportationCases(params).then(response => {
+          this.buildingData = response.data
+        })
+      } else if (this.prj_name !== '') { // 如果没有输入条件或者只输入了楼盘，则查询楼盘数据
+        const params = { 'property_name': this.prj_name, 'property_type': '楼盘' }
+        getImportationCases(params).then(response => {
+          this.projectData = response.data
+        })
+      } else {
+        this.$message({
+          type: 'error',
+          message: '请输入楼盘名称进行查询'
+        })
+      }
+    },
+    // 清空楼盘，楼栋，户查询条件
+    onClearBtnClick: function() {
+      this.prj_name = ''
+      this.bldg_name = ''
+      this.unit_no = ''
+      this.prj_no = ''
+      this.bldg_no = ''
+      this.prj_enable = false
+      this.bldg_enable = true
+      this.nuit_enable = true
+      this.property_type = ''
+      this.projectData = []
+      this.buildingData = []
+      this.houseData = []
+    },
+    // 点击案例列表中的案例 触发事件
+    onCaseTableCurrentChange(val) {
+      if (val) {
+        this.case_no = val.case_no
+        this.taskId = val.id
+        const params = { 'prop_name': val.property_name }
+        getImportationCasesPrjname(params).then(response => {
+          this.prj_name = response.prj_name
+          this.prj_enable = false
+          this.onSearchBtnClick()
+        })
+      }
+    },
+    // 点击项目列表
+    onProjectTableCurrentChange(val) {
+      if (val) {
+        this.prj_no = val.prj_no
+        this.prj_name = val.prj_name
+        this.prj_enable = true
+        this.bldg_enable = false
+        this.property_type = '楼盘'
+        this.onSearchBtnClick()
+      }
+    },
+    // 点击楼栋列表
+    onBuildingTableCurrentChange(val) {
+      if (val) {
+        this.bldg_no = val.bldg_no
+        this.bldg_name = val.bldg_name
+        this.prj_enable = true
+        this.bldg_enable = true
+        this.nuit_enable = false
+        this.property_type = '楼栋'
+        this.onSearchBtnClick()
+      }
+    },
+    // 点击户列表
+    onHouseTableCurrentChange(val) {
+      if (val) {
+        this.unit_no = val.unit_no
+        this.property_type = '户'
+      }
+    },
+    // 案例匹配
+    onMatchingClick(val) {
+      const params = { 'status': val, 'id': this.taskId }
+      if (this.property_type === '户') {
+        params['house_no'] = this.unit_no
+      } else if (this.property_type === '楼栋') {
+        params['bldg_no'] = this.bldg_no
+      } else if (this.property_type === '楼盘') {
+        params['prj_no'] = this.prj_no
+      } else {
+        this.$message({
+          type: 'error',
+          message: '请先选择匹配的对象!'
+        })
+        return
+      }
+      setImportationCasesMatching(this.case_no, params).then(response => {
+        if (response.code === 200) {
+          this.$message({
+            type: 'success',
+            message: '操作成功!'
+          })
+        } else {
+          this.$message({
+            type: 'info',
+            message: response.msg
+          })
+        }
+      })
+    },
+    // 提交入库
+    onSubmitClick() {
+      submitImportation('case').then(response => {
+        if (response.code === 200) {
+          this.$message({
+            type: 'success',
+            message: '提交成功!'
+          })
+        } else {
+          this.$message({
+            type: 'info',
+            message: response.msg
+          })
+        }
+      })
+    },
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    }
+  }
+}
+</script>
+<style  lang="scss" scoped>
+.el-input-number--small{
+      width: 100%;
+}
+</style>

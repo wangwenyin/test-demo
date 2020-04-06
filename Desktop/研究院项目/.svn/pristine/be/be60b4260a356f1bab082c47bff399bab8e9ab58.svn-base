@@ -1,0 +1,471 @@
+<template>
+  <div>
+    <el-row
+      v-show="isChartVisible"
+      class="chart"
+      style="padding: 5px"
+    >
+      <el-card class="box-card float-left">参见日志管理中的图表说明<br>
+        左饼图<br>
+        <el-radio v-model="radPieType" label="1">按注册-年统计</el-radio><br>
+        <el-radio v-model="radPieType" label="2">按注册-月统计</el-radio><br>
+        <el-radio v-model="radPieType" label="3">按注册-日统计</el-radio><br>
+        <el-radio v-model="radPieType" label="4">按最近一次访问-年统计</el-radio><br>
+        <el-radio v-model="radPieType" label="5">按最近一次访问-月统计</el-radio><br>
+        <el-radio v-model="radPieType" label="6">按最近一次访问-日统计</el-radio>
+      </el-card>
+      <el-card class="box-card float-right">右直方图</el-card>
+    </el-row>
+    <el-row
+      class="search-container"
+      style="padding: 5px"
+    >
+      <el-tooltip
+        class="item"
+        effect="dark"
+        content="显示/隐藏图表"
+        placement="top-start"
+      >
+        <el-button
+          size="small"
+          style="float:left;margin-left:10px;"
+          type="primary"
+          round
+          @click="showChart"
+        >图表</el-button>
+      </el-tooltip>
+      <el-tooltip
+        class="item"
+        effect="dark"
+        content="启用所有选中的用户"
+        placement="top-start"
+      >
+        <el-button
+          size="small"
+          style="float:left;margin-left:10px;"
+          @click="activeSelected"
+        >启用</el-button>
+      </el-tooltip>
+      <el-tooltip
+        class="item"
+        effect="dark"
+        content="停用所有选中的用户"
+        placement="top-start"
+      >
+        <el-button
+          size="small"
+          style="float:left;margin-left:10px;"
+          @click="deactiveSelected"
+        >停用</el-button>
+      </el-tooltip>
+      <el-input
+        placeholder="请输入查询内容"
+        size="small"
+        style="float:right;margin-right:10px;width:400px"
+      >
+        <el-select
+          slot="prepend"
+          v-model="searchOption.clause"
+          style="width:120px;"
+          placeholder="请选择"
+        >
+          <el-option
+            label="用户名"
+            value="用户名"
+          />
+          <el-option
+            label="真实姓名"
+            value="真实姓名"
+          />
+          <el-option
+            label="身份证号"
+            value="身份证号"
+          />
+        </el-select>
+        <el-button
+          slot="append"
+          icon="el-icon-search"
+          @click="onSearchTaskClick"
+        />
+      </el-input>
+      <span style="float:right;margin-right:10px;">显示列：
+        <el-select
+          v-model="colNames"
+          size="small"
+          multiple
+          collapse-tags
+          placeholder="请选择"
+        >
+          <el-option
+            v-for="item in options"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </span>
+    </el-row>
+    <div style="margin:10px;">
+      <el-table
+        :data="list"
+        :header-cell-style="changeHeaderStyle"
+        style="width: 100%;"
+        border
+        fit
+        size="small"
+      >
+        <el-table-column
+          type="selection"
+          align="center"
+        />
+        <el-table-column type="expand">
+          <template slot-scope="props">
+            <el-form
+              size="mini"
+              label-position="left"
+              inline
+              class="table-expand"
+            >
+              <el-form-item label="用户名">
+                <span>{{ props.row.用户名 }}</span>
+              </el-form-item>
+              <el-form-item label="真实姓名">
+                <span>{{ props.row.真实姓名 }}</span>
+              </el-form-item>
+              <el-form-item label="用户状态">
+                <span>{{ props.row.用户状态 }}</span>
+              </el-form-item>
+              <el-form-item label="注册日期">
+                <span>{{ props.row.注册日期 }}</span>
+              </el-form-item>
+              <el-form-item label="上次登录时间">
+                <span>{{ props.row.上次登录时间 }}</span>
+              </el-form-item>
+              <el-form-item label="上次登录IP">
+                <span>{{ props.row.上次登录IP }}</span>
+              </el-form-item>
+              <el-form-item label="身份证号码或组织代码">
+                <span>{{ props.row.身份证号码或组织代码 }}</span>
+              </el-form-item>
+              <el-form-item label="不动产权证号">
+                <span>{{ props.row.不动产权证号 }}</span>
+              </el-form-item>
+              <el-form-item label="通讯地址">
+                <span>{{ props.row.通讯地址 }}</span>
+              </el-form-item>
+              <el-form-item label="Email">
+                <span>{{ props.row.Email }}</span>
+              </el-form-item>
+              <el-form-item label="手机号码">
+                <span>{{ props.row.手机号码 }}</span>
+              </el-form-item>
+            </el-form>
+          </template>
+        </el-table-column>
+        <el-table-column
+          v-if="showColumn('用户名')"
+          align="center"
+          prop="用户名"
+          label="用户名"
+        />
+        <el-table-column
+          v-if="showColumn('真实姓名')"
+          align="center"
+          prop="真实姓名"
+          label="真实姓名"
+        />
+        <el-table-column
+          v-if="showColumn('用户状态')"
+          :filters="userStatus"
+          :filter-method="filterUserStatus"
+          align="center"
+          prop="用户状态"
+          label="用户状态"
+        >
+          <template slot-scope="scope">
+            <div :class="scope.row.用户状态=='待审核'? 'highlight' :''"> {{ scope.row.用户状态 }}</div>
+          </template>
+        </el-table-column>
+        <el-table-column
+          v-if="showColumn('注册日期')"
+          align="center"
+          prop="注册日期"
+          label="注册日期"
+          sortable
+        />
+        <el-table-column
+          v-if="showColumn('上次登录时间')"
+          align="center"
+          prop="上次登录时间"
+          label="上次登录时间"
+          sortable
+        />
+        <el-table-column
+          v-if="showColumn('上次登录IP')"
+          align="center"
+          prop="上次登录IP"
+          label="上次登录IP"
+        />
+        <el-table-column
+          v-if="showColumn('身份证号码或组织代码')"
+          align="center"
+          prop="身份证号码或组织代码"
+          label="身份证号码或组织代码"
+        />
+        <el-table-column
+          v-if="showColumn('不动产权证号')"
+          align="center"
+          prop="不动产权证号"
+          label="不动产权证号"
+        />
+        <el-table-column
+          v-if="showColumn('通讯地址')"
+          align="center"
+          prop="通讯地址"
+          label="通讯地址"
+        />
+        <el-table-column
+          v-if="showColumn('Email')"
+          align="center"
+          prop="Email"
+          label="Email"
+        />
+        <el-table-column
+          v-if="showColumn('手机号码')"
+          align="center"
+          prop="手机号码"
+          label="手机号码"
+        />
+        <el-table-column
+          align="center"
+          prop="操作"
+          label="操作"
+        >
+          <template slot-scope="scope">
+            <el-button
+              size="mini"
+              @click="activeUser(scope.$index, scope.row)"
+            >{{ scope.row.激活 }}</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-row
+        type="flex"
+        justify="center"
+        style="margin-top:5px"
+      >
+        <el-pagination
+          :current-page="listQuery.page"
+          :page-sizes="[10,20,30, 50]"
+          :page-size="listQuery.limit"
+          :total="listQuery.total"
+          background
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="onSizeChange"
+          @current-change="onCurrentChange"
+        />
+      </el-row>
+    </div>
+  </div>
+</template>
+<script>
+import DatePicker from '@/components/DateTimePicker'
+export default {
+  components: { DatePicker },
+  data() {
+    return {
+      isChartVisible: false,
+      colNames: [
+        '用户名',
+        '真实姓名',
+        '用户状态',
+        '注册日期',
+        '上次登录时间',
+        '上次登录IP',
+        'Email'
+      ],
+      options: [
+        {
+          value: '用户名'
+        },
+        {
+          value: '真实姓名'
+        },
+        {
+          value: '用户状态'
+        },
+        {
+          value: '注册日期'
+        },
+        {
+          value: '上次登录时间'
+        },
+        {
+          value: '上次登录IP'
+        },
+        {
+          value: '身份证号码或组织代码'
+        },
+        {
+          value: '通讯地址'
+        },
+        {
+          value: 'Email'
+        },
+        {
+          value: '手机号码'
+        }
+      ],
+      searchOption: {
+        clause: '标题',
+        text: null
+      },
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0
+      },
+      list: [
+        {
+          用户名: '13800138000',
+          真实姓名: '张家界',
+          注册日期: '2019-1-2 10:00',
+          用户状态: '正常',
+          上次登录时间: '2019-1-2 10:00',
+          上次登录IP: 'xxx.xxx.xx.xxx',
+          身份证号码或组织代码: 'xxxxxxxxxxxxxxxxxx',
+          不动产权证号: '1234567890',
+          通讯地址: '广东省深圳市南山区',
+          Email: 'xxx@qq.com',
+          手机号码: '13800138000',
+          激活: '停用'
+        },
+        {
+          用户名: '12365896325',
+          真实姓名: '周口店',
+          注册日期: '2019-1-2 10:00',
+          用户状态: '待审核',
+          上次登录时间: '2019-1-2 10:00',
+          上次登录IP: 'xxx.xxx.xx.xxx',
+          身份证号码或组织代码: 'xxxxxxxxxxxxxxxxxx',
+          不动产权证号: '6543165464',
+          通讯地址: '广东省深圳市南山区',
+          Email: 'xxx@qq.com',
+          手机号码: '12365896325',
+          激活: '启用'
+        },
+        {
+          用户名: '13965896325',
+          真实姓名: '莫干山',
+          注册日期: '2019-1-2 10:00',
+          用户状态: '待审核',
+          上次登录时间: '2019-1-2 10:00',
+          上次登录IP: 'xxx.xxx.xx.xxx',
+          身份证号码或组织代码: 'xxxxxxxxxxxxxxxxxx',
+          不动产权证号: '6543165464',
+          通讯地址: '广东省深圳市南山区',
+          Email: 'xxx@qq.com',
+          手机号码: '13965896325',
+          激活: '启用'
+        },
+        {
+          用户名: '13965896320',
+          真实姓名: '林海',
+          注册日期: '2019-1-2 10:00',
+          用户状态: '停用',
+          上次登录时间: '2019-1-2 10:00',
+          上次登录IP: 'xxx.xxx.xx.xxx',
+          身份证号码或组织代码: 'xxxxxxxxxxxxxxxxxx',
+          不动产权证号: 'xxxx',
+          通讯地址: '广东省深圳市南山区',
+          Email: 'xxx@qq.com',
+          手机号码: '13965896320',
+          激活: '启用'
+        },
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
+      ],
+      userStatus: [
+        {
+          text: '正常',
+          value: '正常'
+        },
+        {
+          text: '停用',
+          value: '停用'
+        },
+        {
+          text: '待审核',
+          value: '待审核'
+        }
+      ],
+      radPieType: ''
+    }
+  },
+  methods: {
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    },
+    filterUserStatus(value, row) {
+      return row.用户状态 === value
+    },
+
+    showColumn(val) {
+      for (var i = 0; i < this.colNames.length; i++) {
+        if (this.colNames[i] === val) return true
+      }
+      return false
+    },
+    activeUser(index, row) {
+      if (row.激活 === '启用') {
+        row.激活 = '停用'
+        row.用户状态 = '正常'
+      } else {
+        row.激活 = '启用'
+        row.用户状态 = '停用'
+      }
+    },
+    onCurrentChange() {},
+    onSizeChange() {},
+    onSearchTaskClick() {},
+    activeSelected() {},
+    deactiveSelected() {},
+    showChart() {
+      this.isChartVisible = !this.isChartVisible
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+.highlight {
+  background-color: pink;
+}
+.table-expand {
+  font-size: 0;
+}
+
+.table-expand label {
+  width: 200px;
+  color: #99a9bf;
+}
+.table-expand .el-form-item {
+  margin-right: 0;
+  margin-bottom: 0;
+  width: 50%;
+}
+.box-card {
+  width: 49%;
+  height: 300px;
+}
+.float-left {
+  float: left;
+}
+.float-right {
+  float: right;
+}
+</style>
+

@@ -1,0 +1,151 @@
+<template>
+  <div style="margin:10px">
+    <el-row style="margin:20px 100px 20px 100px">
+      <el-col :span="20" :offset="2">
+        <el-form ref="form" :model="form" label-width="100px" size="small">
+          <el-form-item label="标题">
+            <el-input v-model="form.title"/>
+          </el-form-item>
+          <el-form-item label="发布人">
+            <el-input v-model="form.publisher" disabled />
+          </el-form-item>
+          <el-form-item label="发布时间">
+            <el-input v-model="form.publish_time" disabled />
+          </el-form-item>
+          <el-form-item label="修改人">
+            <el-input v-model="form.editor" disabled />
+          </el-form-item>
+          <el-form-item label="修改时间">
+            <el-input v-model="form.edit_time" disabled />
+          </el-form-item>
+          <el-form-item label="内容">
+            <tinymce :height="300" v-model="form.content"/>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" size="small" @click="onSubmitClick">发布</el-button>
+            <el-button @click="onCancelClick">返回</el-button>
+          </el-form-item>
+        </el-form>
+      </el-col>
+    </el-row>
+  </div>
+</template>
+<script>
+import Tinymce from '@/components/Tinymce'
+import { updateNotices, getNoticesById } from '@/api/publicservice/notices'
+export default {
+  components: {
+    Tinymce
+  },
+  data() {
+    return {
+      form: {
+        content: '',
+        title: '',
+        publisher: '',
+        publish_time: '',
+        editor: '',
+        edit_time: '',
+        state: ''
+      },
+      notice_id: ''
+    }
+  },
+  mounted() {
+    this.notice_id = this.$route.query.notice_id
+    this.getNoticesById()
+  },
+  methods: {
+    onBlur() {
+    },
+    getNoticesById() {
+      getNoticesById(this.notice_id).then(response => {
+        if (response.code === 200) {
+          this.form = response.data
+          /* this.title = response.data.title
+          this.content = response.data.content
+          this.publisher = response.data.publisher
+          this.publish_time = response.data.publish_time
+          this.editor = response.data.editor
+          this.edit_time = response.data.edit_time
+          this.state = response.data.state */
+        } else {
+          this.$message({
+            type: 'error',
+            message: '获取失败!',
+            duration: 5 * 1000
+          })
+        }
+      }).catch(err => {
+        console.log(err)
+        this.$message({
+          type: 'error',
+          message: '网络出错!',
+          duration: 5 * 1000
+        })
+      })
+    },
+    updateNotices() {
+      const data = {
+        title: this.form.title,
+        content: this.form.content
+      }
+      updateNotices(this.notice_id, data).then(response => {
+        if (response.code === 200) {
+          this.$message({
+            type: 'success',
+            message: '修改成功!'
+          })
+          this.$router.push({ name: 'Notice' })
+        } else {
+          this.$message({
+            type: 'error',
+            message: '修改失败!',
+            duration: 5 * 1000
+          })
+        }
+      }).catch(err => {
+        console.log(err)
+        this.$message({
+          type: 'error',
+          message: '网络出错!',
+          duration: 5 * 1000
+        })
+      })
+    },
+    onSubmitClick() {
+      if (this.form.title && this.form.content && this.form.title.length <= 15) {
+        this.updateNotices()
+      } else {
+        this.$message({
+          message: '标题和内容均不可为空,且标题字数长度不可超过15',
+          type: 'warning',
+          duration: 5 * 1000
+        })
+      }
+    },
+    onCancelClick() {
+      this.$confirm('是否确认放弃修改？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$router.push({ name: 'Notice' })
+      })
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+.button {
+  margin-top: 10px;
+  text-align: center;
+}
+.sub-message {
+  color: grey;
+  text-align: center;
+  font-size: 15px;
+  line-height: 18px;
+  margin: auto auto 10px auto;
+}
+</style>

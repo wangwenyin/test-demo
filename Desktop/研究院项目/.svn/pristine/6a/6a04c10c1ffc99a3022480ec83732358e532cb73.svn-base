@@ -1,0 +1,233 @@
+<template>
+  <div>
+    <el-row class="search-container" style="padding: 5px">
+      <el-col :span="16">
+        <el-radio-group v-model="taskType" style="margin-left:10px" size="small" @change="onTaskTypeChange">
+          <el-radio-button label="我的任务">我的任务</el-radio-button>
+          <el-radio-button label="全部任务">全部任务</el-radio-button>
+        </el-radio-group>
+      </el-col>
+      <el-col :span="8">
+        <el-input v-model="searchOption.text" placeholder="请输入查询内容" size="small" >
+          <el-select slot="prepend" v-model="searchOption.clause" style="width:120px;" placeholder="请选择">
+            <el-option label="任务名称" value="任务名称" />
+            <el-option label="参与人员" value="参与人员" />
+            <el-option label="物业用途" value="物业用途" />
+          </el-select>
+          <el-button slot="append" icon="el-icon-search" @click="onSearchTaskClick"/>
+        </el-input>
+      </el-col>
+    </el-row>
+    <el-row style="padding:5px">
+      <el-table ref="taskTable" :data="taskList" :header-cell-style="changeHeaderStyle" style="width:100%" border fit stripe size="small" >
+        <el-table-column label="序号" type="index" width="50" align="center"/>
+        <el-table-column prop="id" label="任务编号" align="center"/>
+        <el-table-column prop="name" min-width="250" label="任务名称" align="center"/>
+        <el-table-column prop="creator" label="创建人员" align="center"/>
+        <el-table-column label="创建时间" min-width="110" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.create_time }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="prop_usage" label="物业用途" align="center"/>
+        <el-table-column prop="method" label="估价方法" align="center"/>
+        <el-table-column label="参与人员" align="center" min-width="120" show-overflow-tooltip>
+          <template slot-scope="scope">
+            <span>{{ scope.row.members }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="status" label="任务进度" align="center">
+          <template slot-scope="scope">
+            <el-tag :type="(scope.row.status === '任务完成'? 'success':'primary')" size="medium">{{ scope.row.status }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="150" align="center">
+          <template slot-scope="scope">
+            <router-link :to="{ name:'SingleTaskDetail' , query: { taskId: scope.row.id,status:scope.row.status }}">
+              <el-button size="mini" >详情</el-button>
+            </router-link>
+            <el-button v-if="isShowOperationButton(scope.row)" size="mini" type="primary" @click="onTaskOperationClick(scope.row)">作业</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-row type="flex" justify="center" style="margin-top:5px">
+        <pagination
+          :total="listQuery.total"
+          :page.sync="listQuery.page"
+          :limit.sync="listQuery.limit"
+          :page-sizes="listQuery.pageSizes"
+          @pagination="getTaskList" />
+      </el-row>
+    </el-row>
+    <el-dialog :visible.sync="choseMethodVisible" title="选择估价方法" width="50%" >
+      <el-form ref="editForm" :rules="rules" :model="form" label-width="120px">
+        <el-form-item label="估价方法：" prop="method">
+          <el-select v-model="form.method" size="small" placeholder="选择估价方法" style="width: 100%;" >
+            <el-option
+              v-for="item in methodOptions"
+              :key="item"
+              :label="item"
+              :value="item"/>
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button size="small" @click="onCancel">取 消</el-button>
+        <el-button size="small" type="primary" @click="onBtnOKClick('editForm')" >确 定</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+<script>
+import Pagination from '@/components/Pagination'
+import { searchTasks, setMethod, getProperty } from '@/api/singleapp'
+import { mapGetters } from 'vuex'
+export default {
+  components: { Pagination },
+  data() {
+    return {
+      taskType: '我的任务',
+      searchOption: {
+        clause: '请选择',
+        text: ''
+      },
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        pageSizes: [10, 20, 30, 50]
+      },
+      taskList: [],
+      selectedTaskList: [],
+      form: {
+        method: '',
+        taskId: ''
+      },
+      methodOptions: ['比较法', '收益法'],
+      rules: {
+        method: [{ type: 'string', required: true, message: '请选择估价方法', trigger: 'blur' }]
+      },
+      choseMethodVisible: false
+    }
+  },
+  computed: {
+    ...mapGetters(['name', 'roles']),
+    canGenerateReport() {
+      return (this.selectedTaskList.length > 0)
+    }
+  },
+  mounted() {
+    this.getTaskList()
+  },
+  methods: {
+    // 控制作业按钮是否显示
+    isShowOperationButton(row) {
+      if (row.status !== '任务完成' && row.members.indexOf(this.name) >= 0) {
+        return true
+      } else {
+        return false
+      }
+    },
+    // 获取任务列表
+    getTaskList(val) {
+      if (val) {
+        this.listQuery.limit = val.limit
+        this.listQuery.page = val.page
+      }
+      const params = {
+        page: this.listQuery.page,
+        limit: this.listQuery.limit,
+        name: (this.searchOption.clause === '任务名称' ? this.searchOption.text : null),
+        members: (this.searchOption.clause === '参与人员' ? this.searchOption.text : null),
+        usage: (this.searchOption.clause === '物业用途' ? this.searchOption.text : null)
+      }
+      // console.log(params)
+      if (!params.members) {
+        if (this.taskType === '我的任务') {
+          params.members = this.name
+        }
+      }
+      searchTasks(params).then(response => {
+        this.taskList = response.data
+        this.listQuery.total = response.cnt
+      })
+    },
+    // 点击查询按钮 按条件查询
+    onSearchTaskClick() {
+      if (this.searchOption.text === '' || this.searchOption.clause === '请选择') {
+        this.$notify({
+          title: '提示',
+          message: '请选择查询条件，确保查询内容不能为空！',
+          duration: 3000
+        })
+        return
+      }
+      this.getTaskList({ page: 1, limit: 10 })
+    },
+    // 点击作业按钮，根据不同的状态做出不同的操作
+    onTaskOperationClick(val) {
+      if (val.status === '选取方法') {
+        this.form.taskId = val.id
+        this.choseMethodVisible = true
+      } else if (val.status === '实例选取') {
+        getProperty({ task_id: val.id }).then(response => {
+          this.$router.push({ name: 'CaseSearch', query: { caller: 'singleapp', prj_no: response.data.prj_no, taskId: val.id, method: val.method }})
+        })
+      } else if (val.status === '价格评估' || val.status === '租金评估') {
+        this.$router.push({ name: 'SingleappAdjustment', query: { taskId: val.id, method: val.method }})
+      } else if (val.status === '报告撰写') {
+        this.$router.push({ name: 'SingleappReport', query: { taskId: val.id }})
+      //  this.$router.push({ name: 'SingleappAppraisedCost', query: { taskId: val.id }})
+      } else if (val.status === '价格复核') {
+        // 应该跳转到对应任务的复核处理页面，暂时数据未通，先跳转到列表页
+        // this.$router.push({ name: 'DisputeTask' })
+        this.$router.push({ name: 'DisputeDetail', params: { taskId: val.id, cur_node: '复核估价', status: '正常流程', byHandle: true }})
+      } else if (val.status === '收益测算') {
+        this.$router.push({ name: 'SingleappAppraisedRent', query: { taskId: val.id }})
+      } else if (val.status === '成本评估') {
+        this.$router.push({ name: 'SingleappAppraisedCost', query: { taskId: val.id }})
+      }
+    },
+    // 切换我的任务和全部任务
+    onTaskTypeChange() {
+      this.searchOption.clause = '请选择'
+      this.searchOption.text = ''
+      this.getTaskList({ page: 1, limit: 10 })
+    },
+    // 保存选择的方法  还需调用提交设置方法的接口
+    onBtnOKClick(formName) {
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          setMethod(this.form.taskId, { method: this.form.method }).then(response => {
+            if (response.code === 200) {
+              this.$message({
+                type: 'success',
+                message: '操作成功!'
+              })
+              this.choseMethodVisible = false
+              this.getTaskList()
+            } else {
+              this.$message({
+                type: 'info',
+                message: response.msg
+              })
+            }
+          })
+        } else {
+          return false
+        }
+      })
+    },
+    // 选择方法框，取消按钮
+    onCancel() {
+      this.choseMethodVisible = false
+    },
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+
+</style>

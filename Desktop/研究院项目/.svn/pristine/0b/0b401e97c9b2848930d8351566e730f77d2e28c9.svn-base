@@ -1,0 +1,146 @@
+<template>
+  <div>
+    <el-form ref="caseForm" :model="caseForm" label-width="100px" label-position="right" size="small" >
+      <el-row :gutter="10">
+        <el-col :span="8">
+          <el-form-item label="楼盘名称：">
+            <el-autocomplete
+              v-model="caseForm.prj_name"
+              :fetch-suggestions="handleProjectSuggestionSearch"
+              :trigger-on-focus="false"
+              value-key="prj_name"
+              placeholder="请输入小区（楼盘）"
+              style="width:200px"
+              @keyup.native="handleProjectInputChange"
+              @select="handleProjectSelect"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="楼栋名称：">
+            <el-autocomplete
+              v-model="caseForm.bldg_name"
+              :fetch-suggestions="handleProjectSuggestionSearch"
+              :trigger-on-focus="false"
+              value-key="prj_name"
+              placeholder="请输入楼栋名称"
+              style="width:200px"
+              @keyup.native="handleProjectInputChange"
+              @select="handleProjectSelect"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="房号：">
+            <el-autocomplete
+              v-model="caseForm.unit_no"
+              :fetch-suggestions="handleProjectSuggestionSearch"
+              :trigger-on-focus="false"
+              value-key="prj_name"
+              placeholder="请输入房号"
+              style="width:200px"
+              @keyup.native="handleProjectInputChange"
+              @select="handleProjectSelect"/>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-row :gutter="10">
+        <el-col :span="8">
+          <el-form-item label="用途：">
+            <el-select v-model="caseForm.usage" style="width:200px">
+              <el-option
+                v-for="item in usages"
+                :key="item"
+                :value="item"/>
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="价格类型：">
+            <el-select v-model="caseForm.price_type" style="width:200px">
+              <el-option
+                v-for="item in priceTypes"
+                :key="item"
+                :value="item"/>
+            </el-select>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="案例类型：">
+            <el-select v-model="caseForm.case_type" style="width:200px">
+              <el-option
+                v-for="item in caseTypes"
+                :key="item"
+                :value="item"/>
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-row :gutter="10">
+        <el-col :span="8">
+          <el-form-item label="朝向：">
+            <el-input v-model="caseForm.face_to" style="width:200px"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="户型：">
+            <el-input v-model="caseForm.layout" style="width:200px" placeholder="厅室卫阳台"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="建筑面积：">
+            <el-input-number v-model="caseForm.built_in_area" controls-position="right" style="width:200px"/>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-row :gutter="10">
+        <el-col :span="8">
+          <el-form-item label="总价（元）：">
+            <el-input-number v-model="caseForm.total_price" controls-position="right" style="width:200px"/>
+          </el-form-item>
+        </el-col>
+        <el-col :span="8">
+          <el-form-item label="单价（元）：">
+            <el-input-number v-model="getEachPrice" disabled controls-position="right" style="width:200px"/>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-row :gutter="10">
+        <el-form-item label="备注：">
+          <el-input v-model="caseForm.note" :rows="5" type="textarea" style="width:600px"/>
+        </el-form-item>
+      </el-row>
+    </el-form>
+  </div>
+</template>
+<script>
+export default {
+  data() {
+    return {
+      caseForm: {
+        prj_name: '',
+        bldg_name: '',
+        unit_no: '',
+        usage: '住宅',
+        case_type: '交易',
+        price_type: '价格',
+        face_to: '',
+        layout: '',
+        built_in_area: 0,
+        total_price: 0,
+        each_price: 0,
+        note: ''
+      },
+      usages: ['住宅', '商业', '办公', '工业', '其他'],
+      caseTypes: ['交易', '调查'],
+      priceTypes: ['价格', '租金']
+    }
+  },
+  computed: {
+    getEachPrice() {
+      return Math.round(this.caseForm.total_price / this.caseForm.built_in_area)
+    }
+  }
+}
+</script>
+<style>
+
+</style>

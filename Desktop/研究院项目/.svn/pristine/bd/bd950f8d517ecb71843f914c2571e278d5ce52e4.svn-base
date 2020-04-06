@@ -1,0 +1,288 @@
+<template>
+  <div :class="{'div-n': !detail, 'div-d': detail}">
+    <el-row v-if="detail">
+      <el-col :span="24">
+        <div class="title">总体情况</div>
+        <div class="border" />
+      </el-col>
+    </el-row>
+    <el-form ref="form" label-width="100px" label-position="right">
+      <el-row class="title-row">
+        <span class="title-small">结论</span>
+      </el-row>
+      <el-row>
+        <span class="text-sm">
+          {{ form.conclusion }}
+        </span>
+      </el-row>
+      <el-row class="title-row">
+        <span class="title-small">估价水平检验</span>
+      </el-row>
+      <el-row>
+        <table class="table">
+          <tr class="tr_title">
+            <td class="td">
+              <span class="normal">类型</span>
+            </td>
+            <td class="td">
+              <span class="normal">案例数量</span>
+            </td>
+            <td class="td">
+              <span class="normal-red">比率中位数</span>
+            </td>
+            <td class="td">
+              <span class="normal">比率平均数</span>
+            </td>
+            <td class="td">
+              <span class="normal">案例详情</span>
+            </td>
+          </tr>
+          <tr class="tr" >
+            <td class="td">
+              <span class="normal">{{ form.index[0].item }}</span>
+            </td>
+            <td class="td">
+              <span class="normal">{{ form.index[0].cnt }}</span>
+            </td>
+            <td class="td">
+              <span class="normal-red">{{ form.index[0].median }}</span>
+            </td>
+            <td class="td">
+              <span class="normal">{{ form.index[0].average }}</span>
+            </td>
+            <td class="td">
+              <el-popover placement="top-start" width="750" trigger="click">
+                <el-table :data="caseAllList.slice((currentpage-1)*pagesize,currentpage*pagesize)" border size="mini" >
+                  <el-table-column width="180" property="xmmc" label="项目名称" />
+                  <el-table-column width="180" property="ldmc" label="楼栋名称" />
+                  <el-table-column width="100" property="hh" label="房号" />
+                  <el-table-column width="100" property="sjc" label="实际层" />
+                  <el-table-column width="120" property="fwyt1" label="用途主类" />
+                  <el-table-column width="120" property="jzmj" label="建筑面积" />
+                  <el-table-column width="120" property="dj" label="案例单价" />
+                  <el-table-column width="120" property="sj" label="案例时间" />
+                  <el-table-column width="120" property="sl_type" label="案例类型" />
+                  <el-table-column width="120" property="source" label="案例来源" />
+                  <el-table-column width="120" property="pgdj" label="评估单价" />
+                  <el-table-column width="120" property="jzsd" label="价值时点" />
+                  <el-table-column width="120" property="ratio" label="价格比率" />
+                </el-table>
+                <el-pagination :total="caseAllList.length" :current-page="currentpage" :page-sizes="[5,10, 20, 50, 100]" :page-size="pagesize" layout="total, sizes, prev, pager, next, jumper" style="margin-top:8px;text-align:center" small @size-change="handleSizeChange" @current-change="handleCurrentChange" />
+                <el-button slot="reference" type="text" class="btn-mid" size="small" @click="view()">查看</el-button>
+              </el-popover>
+            </td>
+          </tr>
+        </table>
+      </el-row>
+      <el-row>
+        <el-col :span="22">
+          <span class="text-sm">说明：</span>
+        </el-col>
+      </el-row>
+      <el-row>
+        <span class="text-sm">{{ form.level }}</span>
+      </el-row>
+      <el-row class="title-row">
+        <span class="title-small">估价结果一致性检验</span>
+      </el-row>
+      <el-row>
+        <table class="table">
+          <tr class="tr_title">
+            <td class="td">
+              <span class="normal">类型</span>
+            </td>
+            <td class="td">
+              <span class="normal">案例数量</span>
+            </td>
+            <td class="td">
+              <span class="normal">比率极差</span>
+            </td>
+            <td class="td">
+              <span class="normal">平均绝对离差</span>
+            </td>
+            <td class="td">
+              <span class="normal-red">离散系数</span>
+            </td>
+            <td class="td">
+              <span class="normal">比率标准差</span>
+            </td>
+            <td class="td">
+              <span class="normal">变异系数</span>
+            </td>
+            <td class="td">
+              <span class="normal-red">价格相关差</span>
+            </td>
+          </tr>
+          <tr class="tr">
+            <td class="td">
+              <span class="normal">{{ form.index[0].item }}</span>
+            </td>
+            <td class="td">
+              <span class="normal">{{ form.index[0].cnt }}</span>
+            </td>
+            <td class="td">
+              <span class="normal">{{ form.index[0].rang }}</span>
+            </td>
+            <td class="td">
+              <span class="normal">{{ form.index[0].aad }}</span>
+            </td>
+            <td class="td">
+              <span class="normal-red">{{ form.index[0].cod }}</span>
+            </td>
+            <td class="td">
+              <span class="normal">{{ form.index[0].std }}</span>
+            </td>
+            <td class="td">
+              <span class="normal">{{ form.index[0].cov }}</span>
+            </td>
+            <td class="td">
+              <span class="normal-red">{{ form.index[0].prd }}</span>
+            </td>
+          </tr>
+        </table>
+      </el-row>
+      <el-row>
+        <el-col :span="22">
+          <span class="text-sm">说明：</span>
+        </el-col>
+      </el-row>
+      <el-row>
+        <span class="text-sm"> {{ form.uniformity }}</span>
+      </el-row>
+      <el-row class="title-row">
+        <span class="title-small">正态性检验</span>
+      </el-row>
+      <el-row>
+        <el-col :span="24">
+          <NormalityChart id="overall" :histogram-data="histogramData" :width="width" />
+        </el-col>
+      </el-row>
+    </el-form>
+  </div>
+</template>
+<script>
+import NormalityChart from '@/views/resultaudit/components/NormalityChart'
+import { getCaseShow
+} from '@/api/ratio'
+export default {
+  components: {
+    NormalityChart
+  },
+  props: {
+    form: {
+      type: Object,
+      default: null
+    },
+    detail: {
+      type: Boolean,
+      default: false
+    },
+    width: {
+      type: String,
+      default: '100%'
+    },
+    'histogram-data': {
+      type: Array,
+      default: []
+    }
+  },
+  data() {
+    return {
+      caseAllList: [],
+      currentpage: 1,
+      pagesize: 10
+    }
+  },
+  methods: {
+    view() {
+      const params = { offset: 0 } // usage1: 总体情况
+      getCaseShow(this.form.id, params).then(response => {
+        this.caseAllList = response.data
+      })
+    },
+    save(method, item, comment) {
+      var params = {
+        method: method,
+        item: item,
+        comment: comment
+      }
+      this.$emit('save', params)
+    },
+    handleSizeChange(size) {
+      this.pageSize = size
+    },
+    handleCurrentChange(val) {
+      this.currentpage = { val }.val
+    },
+    typeIndex(index) {
+      return index + (this.currentpage - 1) * this.pagesize + 1
+    }
+  }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss" scoped>
+@import "../../styles/app.scss";
+.normal {
+  width: -webkit-fill-available;
+}
+.normal-red {
+  width: -webkit-fill-available;
+  color: red;
+  display: inline-block;
+  text-align: center;
+}
+.title-row {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+.btn-mid {
+  width: 100%;
+  min-width: 80px;
+}
+.el-textarea__inner {
+  margin-left: 2%;
+  width: 96%;
+}
+.text-sm {
+  margin-left: 2%;
+  font-size: 14px;
+}
+.noborder.el-input__inner {
+  border: none;
+}
+.el-input.is-disabled .el-input__inner {
+  border: none;
+}
+.el-input--small .el-input__inner {
+  border: none;
+  text-align: center;
+}
+.el-input-number {
+  width: 100%;
+}
+.tr-black {
+  text-align: center;
+  line-height: 38px;
+  background-color: #585858;
+  height: 38px;
+}
+.div-n {
+  width: 100%;
+}
+.div-d {
+  width: 80%;
+}
+.title {
+  font-size: 17px;
+  font-weight: bold;
+  margin-top: 10px;
+  margin-left: 20px;
+  margin-bottom: 10px;
+}
+.border {
+  border: 0.5px solid #c0c4cc;
+  margin-bottom: 20px;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+</style>

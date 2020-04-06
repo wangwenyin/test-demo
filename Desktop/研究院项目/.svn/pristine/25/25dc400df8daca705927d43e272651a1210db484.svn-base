@@ -1,0 +1,697 @@
+<template>
+  <div class="app">
+    <div class="margin10 maxdialog">
+      <div id="progressDiv" style="display: none">
+        <div class="fade" />
+        <div class="succ-pop">
+          <el-progress :percentage="percentage" :stroke-width="5" style="text-align:center;padding-top:33px" />
+        </div>
+      </div>
+      <el-form ref="form" :model="form" :rules="rules" class="demo-ruleForm" label-width="100px" label-position="right">
+        <el-row>
+          <el-col :span="24">
+            <div class="title">方案设计</div>
+            <div class="border" />
+          </el-col>
+        </el-row>
+        <el-row style="padding-left:20px">
+          <el-col :span="17">
+            <el-form-item label="任务名称：" size="small" prop="name">
+              <el-input v-model="form.name" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row style="padding-left:20px">
+          <el-col :span="17">
+            <el-form-item label="分析目的：" size="small" prop="purpose">
+              <el-select v-model="form.purpose" style="width:100%">
+                <el-option label="检验评估结果的准确性和公平性" value="检验评估结果的准确性和公平性" />
+                <el-option label="判定是否需要重新评估" value="判定是否需要重新评估" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row style="padding-left:20px">
+          <el-col :span="16">
+            <el-form-item label="物业类型：" prop="type">
+              <el-radio-group v-model="form.type">
+                <el-radio label="房产" />
+                <el-radio label="土地" />
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row style="padding-left:20px">
+          <el-col :span="16">
+            <el-form-item label="物业用途：" prop="usage">
+              <el-checkbox :indeterminate="wyyt_isIndeterminate" v-model="wyyt_checkAll" @change="wyyt_handleCheckAllChange">全部</el-checkbox>
+              <el-checkbox-group v-model="wyyt" @change="wyyt_handleCheckedChange">
+                <el-checkbox v-for="item in ytzlOptions" :label="item" :key="item">{{ item }}</el-checkbox>
+              </el-checkbox-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row style="padding-left:20px">
+          <el-col :span="24">
+            <el-form-item label="行政区：" prop="district">
+              <el-checkbox :indeterminate="xzq_isIndeterminate" v-model="xzq_checkAll" @change="xzq_handleCheckAllChange">全市</el-checkbox>
+              <el-checkbox-group v-model="xzq" @change="xzq_handleCheckedChange">
+                <el-checkbox v-for="xzq in xzqOptions" :label="xzq" :key="xzq">{{ xzq }}</el-checkbox>
+              </el-checkbox-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row style="padding-left:20px">
+          <el-col :span="17">
+            <el-form-item label="价值时点" prop="value_date">
+              <el-select v-model="form.value_date" style="width:100%" size="small">
+                <el-option v-for="item in jzsdOptions" :key="item" :label="item" :value="item" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row style="padding-left:20px">
+          <el-col :span="24">
+            <el-form-item label="分组检验：" prop="method">
+              <el-checkbox-group v-model="form.method" @change="fxfs_handleCheckedChange">
+                <el-checkbox :disabled="true" :checked="true" label="总体情况" />
+                <el-checkbox :disabled="disabledfirst" label="用途主类" />
+                <el-checkbox :disabled="disabledsecond" label="用途细类" />
+                <el-checkbox :disabled="disabledxzq" label="行政区" />
+              </el-checkbox-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row style="padding-left:20px">
+          <el-col :span="17">
+            <el-form-item label="备注：" prop="note">
+              <el-input v-model="form.note" type="textarea" style="width:100%;" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <div class="title">案例设置</div>
+            <div class="border" />
+          </el-col>
+        </el-row>
+        <el-row style="padding-left:20px">
+          <el-col :span="11">
+            <el-form-item label="案例类型：" prop="allx">
+              <el-checkbox-group v-model="allx">
+                <el-checkbox v-for="item in jglxOptions" :label="item" :key="item">{{ item }}</el-checkbox>
+              </el-checkbox-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row style="padding-left:20px">
+          <el-col :span="11">
+            <el-form-item label="起止日期：" required>
+              <el-col :span="8">
+                <el-form-item prop="case.start">
+                  <el-date-picker v-model="form.case.start" type="date" size="small" value-format="yyyy-MM-dd" placeholder="选择日期" style="width: 100%;" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="2">&nbsp;&nbsp;&nbsp;至&nbsp;&nbsp;</el-col>
+              <el-col :span="8">
+                <el-form-item prop="case.end">
+                  <el-date-picker v-model="form.case.end" type="date" size="small" value-format="yyyy-MM-dd" placeholder="选择日期" style="width: 100%;" />
+                </el-form-item>
+              </el-col>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row style="padding-left:20px">
+          <el-col :span="13">
+            <el-form-item label="案例概况：">
+              <span>{{ count }}</span>
+            </el-form-item>
+          </el-col>
+          <el-col :span="2" style="padding-top:2px">
+            <el-popover placement="top-start" width="750" trigger="click">
+              <el-table :data="caseList.slice((currentpage-1)*pagesize,currentpage*pagesize)" border size="mini" >
+                <el-table-column width="180" property="xmmc" label="项目名称" />
+                <el-table-column width="180" property="ldmc" label="楼栋名称" />
+                <el-table-column width="100" property="hh" label="房号" />
+                <el-table-column width="100" property="sjc" label="实际层" />
+                <el-table-column width="120" property="fwyt1" label="用途主类" />
+                <el-table-column width="120" property="jzmj" label="建筑面积" />
+                <el-table-column width="120" property="dj" label="案例单价" />
+                <el-table-column width="120" property="sj" label="案例时间" />
+                <el-table-column width="120" property="sl_type" label="案例类型" />
+                <el-table-column width="120" property="source" label="案例来源" />
+              </el-table>
+              <pagination
+                :total="caseList.length"
+                :page-sizes="[5,10, 20, 50, 100]"
+                :current-page="currentpage"
+                :page-size="pagesize"
+                style="margin-top:8px;text-align:center"
+                small
+                layout="total, sizes, prev, pager, next, jumper"
+                @size-change="handleSizeChange"
+                @current-change="handleCurrentChange"/>
+              <el-button slot="reference" type="primary" size="small">查看</el-button>
+            </el-popover>
+            <!-- <router-link :to="{name:'CaseSearch'}">
+              <el-button type="primary" size='small'>查看</el-button>
+            </router-link> -->
+            <!-- <el-button type="primary" size='small'>查看</el-button> -->
+          </el-col>
+        </el-row>
+        <el-row style="padding-left:20px">
+          <el-col :span="16">
+            <el-form-item label="抽样方式：" prop="case.way.type">
+              <el-radio-group v-model="form.case.way.type" style="margin-top: -10px;">
+                <el-radio label="byNumber">按数量抽取:
+                  <el-input-number v-model="number" size="small" controls-position="right" />&nbsp;&nbsp;宗&nbsp;&nbsp;&nbsp;&nbsp;
+                </el-radio>
+                <el-radio label="byPercentage" style="margin-top:10px;margin-left:1px">按百分比抽取:
+                  <el-input-number v-model="percent" size="small" controls-position="right" />&nbsp;&nbsp;%
+                </el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row style="padding-left:20px">
+          <el-col :span="16">
+            <el-form-item label="价格指数：" prop="case.index.use">
+              <el-radio-group v-model="indexUse" @change="jzzs_handleCheckedChange">
+                <el-radio label="false">不采用价格指数修正案例</el-radio>
+                <el-radio label="true">采用所选价格指数修正案例</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row style="padding-left:20px">
+          <el-col :span="17">
+            <el-form-item label="选择指数：">
+              <el-select v-model="zs" :disabled="indexUse!=='true'" size="small" style="width:100%" value-key="key" @change="zs_handleChange" >
+                <el-option v-for="item in zsoptions" :key="item.id" :label="item.name" :value="item.id" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="3">
+            <router-link :to="{name:'CaseSearch'}">
+              <el-button type="primary" size="small" style="margin-left: 10px;margin-top: 3px;">查看</el-button>
+            </router-link>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="17">
+            <el-form-item>
+              <el-button size="small" class="btn_l" @click="cancel">取消</el-button>
+              <el-button size="small" class="btn_l" @click="save">保存</el-button>
+              <el-button type="primary" size="small" class="btn_l" @click="nextStep('form')" >下一步</el-button>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+    </div>
+  </div>
+</template>
+<script>
+import {
+  saveTestTasks,
+  getTestTaskById,
+  getPriceIndexs,
+  getCsaeCount,
+  getCasePreview
+} from '@/api/ratio'
+import { getDictionary } from '@/api/common'
+import { mapGetters } from 'vuex'
+import { formatDate } from '@/utils/date'
+const fxfsOptions = [
+  '在全体数据进行比率分析',
+  '按一级用途分组进行比率分析',
+  '按行政区分组进行比率分析',
+  '按二级用途分组进行比率分析'
+]
+export default {
+  data() {
+    return {
+      jzsdOptions: [], // 价值时点 下拉选项
+      ytzlOptions: [], // 用途主类下拉选项
+      xzqOptions: [], // 行政区 下拉选项
+      jglxOptions: [], // 价格类型（案例类型） 下拉选项
+      timer: null,
+      disabled: false,
+      percentage: 0,
+      number: 3000,
+      percent: 20,
+      fxfsOptionsSelect: [],
+      zs: {},
+      type: '',
+      cyfs: '按数量抽取:',
+      cyff: '简单随机抽样',
+      jgzs: '采用所选价格指数修正案例',
+      xzzs: '福田区市存量房价格指数',
+      indexUse: 'false',
+      wyyt_checkAll: false,
+      wyyt_isIndeterminate: false,
+      xzq_checkAll: true,
+      xzq_isIndeterminate: false,
+      xzq: [],
+      fxfsOptions: fxfsOptions,
+      fxfsAll: '',
+      fxfsFirst: '',
+      fxfsSecond: '',
+      fxfsXZQ: '',
+      disabledall: false,
+      disabledfirst: true,
+      disabledsecond: false,
+      disabledxzq: true,
+      disabledselect: false,
+      wyyt: [],
+      allx: [],
+      wyytCount: 0,
+      xzqCount: 0,
+      zsoptions: [],
+      count: '',
+      form: {
+        create_date: formatDate(new Date(), 'yyyy-MM-dd'),
+        purpose: '检验评估结果的准确性和公平性',
+        type: '',
+        usage: '住宅',
+        method: ['行政区'],
+        case: {
+          type: ['交易'],
+          way: {
+            type: 'byNumber',
+            value: 1
+          },
+          index: {
+            use: false,
+            id: 0,
+            name: ' '
+          }
+        }
+      },
+      rules: {
+        name: [{ required: true, message: '请输入任务名称', trigger: 'blur' }],
+        purpose: [
+          { required: true, message: '请选择分析目的', trigger: 'change' }
+        ],
+        'case.start': [
+          { required: true, message: '请选择时间', trigger: 'change' }
+        ],
+        'case.end': [
+          { required: true, message: '请选择时间', trigger: 'change' }
+        ],
+        usage: [
+          {
+            required: true,
+            message: '请至少选择一个物业用途',
+            trigger: 'change'
+          }
+        ],
+        district: [
+          { required: true, message: '请至少选择一个行政区', trigger: 'change' }
+        ],
+        method: [
+          {
+            type: 'array',
+            required: true,
+            message: '请至少选择一个分析方式',
+            trigger: 'change'
+          }
+        ],
+        allx: [
+          {
+            type: 'array',
+            required: false,
+            message: '请至少选择一个案例类型',
+            trigger: 'change'
+          }
+        ],
+        'case.way.type': [
+          { required: true, message: '请选择抽样方式', trigger: 'change' }
+        ],
+        cyff: [
+          { required: true, message: '请选择抽样方法', trigger: 'change' }
+        ],
+        'case.index.use': [
+          { required: true, message: '请选择价格指数', trigger: 'change' }
+        ],
+        type: [
+          { required: true, message: '请选择物业类型', trigger: 'change' }
+        ],
+        value_date: [
+          { required: true, message: '请选择时间', trigger: 'change' }
+        ]
+      },
+      caseList: [],
+      currentpage: 1,
+      pagesize: 10,
+      offset: 0
+    }
+  },
+  computed: {
+    ...mapGetters(['name', 'roles'])
+  },
+  watch: {
+    wyyt(val) {
+      this.form.usage = val.toString()
+      this.getCsaeCount()
+    },
+    xzq(val) {
+      this.form.district = val.toString()
+      this.getCsaeCount()
+    },
+    allx(val) {
+      this.form.case.type = val.toString()
+      this.getCsaeCount()
+    },
+    'form.type'(val) {
+      this.getCsaeCount()
+    },
+    'form.value_date'(val) {
+      this.getCsaeCount()
+    },
+    'form.case.start'(val) {
+      this.getCsaeCount()
+    },
+    'form.case.end'(val) {
+      this.getCsaeCount()
+    }
+  },
+  mounted() {
+    this.getOption()
+    this.getPriceIndexs()
+    // this.getCasePreview()
+    if (this.$route.query.id) {
+      this.getTestTaskById()
+    } else {
+      this.form.type = '房产'
+      this.allx = this.form.case.type
+    }
+  },
+  methods: {
+    onCasePreview() {
+      const routerData = this.$router.resolve({
+        name: 'CasePreview',
+        query: {
+          propType: this.form.type,
+          propUsage: this.form.usage,
+          district: this.form.district,
+          valueDate: this.form.value_date,
+          caseType: this.form.case.type,
+          startDate: this.form.case.start,
+          endDate: this.form.case.end,
+          offset: this.offset
+        }
+      })
+      window.open(routerData.href, '_blank')
+    },
+    handleCurrentChange(val) {
+      this.currentpage = { val }.val
+    },
+    handleSizeChange(val) {
+      this.pagesize = { val }.val
+    },
+    typeIndex(index) {
+      return index + (this.currentpage - 1) * this.pagesize + 1
+    },
+    getTestTaskById() {
+      getTestTaskById(this.$route.query.id).then(response => {
+        console.log(response.data)
+        this.form = response.data
+        if (this.form.create_date) {
+          this.form.create_date = formatDate(
+            new Date(this.form.create_date),
+            'yyyy-MM-dd'
+          )
+        }
+        if (this.form.value_date) {
+          this.form.value_date = formatDate(
+            new Date(this.form.value_date),
+            'yyyy-MM-dd'
+          )
+        }
+        if (this.form.case.start) {
+          this.form.case.start = formatDate(
+            new Date(this.form.case.start),
+            'yyyy-MM-dd'
+          )
+        }
+        if (this.form.case.end) {
+          this.form.case.end = formatDate(
+            new Date(this.form.case.end),
+            'yyyy-MM-dd'
+          )
+        }
+        if (this.form.usage) {
+          this.wyyt = this.form.usage.split(',')
+          if (this.wyyt.length === this.ytzlOptions.length) {
+            this.wyyt_checkAll = true
+          } else {
+            this.wyyt_checkAll = false
+          }
+        }
+        if (this.form.district) {
+          this.xzq = this.form.district.split(',')
+          if (this.xzq.length === this.xzqOptions.length) {
+            this.xzq_checkAll = true
+          } else {
+            this.xzq_checkAll = false
+          }
+        }
+        if (this.form.case.type) {
+          this.allx = this.form.case.type.split(',')
+        }
+        this.form.type = this.form.type
+      })
+    },
+    cancel() {
+      if (
+        this.form.hasOwnProperty('name') ||
+        this.form.hasOwnProperty('value_date')
+      ) {
+        this.$confirm('您有数据尚未保存, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+          .then(() => {
+            this.$router.push({ name: 'rateanal' })
+          })
+          .catch(() => {
+            this.$message({
+              type: 'info',
+              message: '已取消'
+            })
+          })
+      } else {
+        this.$router.push({ name: 'rateanal' })
+      }
+    },
+    save() {
+      this.form.next = false
+      this.form.creator = this.name
+      if (this.form.case.way.type === 'byNumber') {
+        this.form.case.way.value = this.number
+      } else {
+        this.form.case.way.value = this.percent
+      }
+      saveTestTasks(this.form).then(response => {
+        if (response.code === 200) {
+          this.$message({ message: '保存成功', type: 'success' })
+        } else {
+          alert(response.msg)
+        }
+      })
+    },
+    nextStep(formName) {
+      this.$refs[formName].validate(valid => {
+        if (valid) {
+          this.form.next = true
+          this.form.creator = this.name
+          if (this.form.case.way.type === 'byNumber') {
+            this.form.case.way.value = this.number
+          } else {
+            this.form.case.way.value = this.percent
+          }
+          saveTestTasks(this.form).then(response => {
+            if (response.code === 200) {
+              this.$message({ message: '保存成功', type: 'success' })
+              this.$router.push({
+                name: 'rateanal',
+                query: { id: response.taskid }
+              })
+            } else {
+              alert(response.msg)
+            }
+          })
+        } else {
+          console.log('error submit!!')
+          return false
+        }
+      })
+    },
+    wyyt_handleCheckAllChange(val) {
+      this.wyyt = val ? this.ytzlOptions : []
+      this.wyyt_isIndeterminate = false
+      this.disabledfirst = !val
+    },
+    wyyt_handleCheckedChange(value) {
+      this.wyytCount = value.length
+      this.wyyt_checkAll = this.wyytCount === this.ytzlOptions.length
+      this.wyyt_isIndeterminate =
+        this.wyytCount > 0 && this.wyytCount < this.ytzlOptions.length
+      if (this.wyytCount < 2) {
+        this.disabledfirst = true
+      } else {
+        this.disabledfirst = false
+      }
+    },
+    jzzs_handleCheckedChange() {
+      if (this.indexUse === 'false') {
+        this.form.case.index.use = false
+      } else {
+        this.form.case.index.use = true
+      }
+    },
+    xzq_handleCheckAllChange(val) {
+      this.xzq = val ? this.xzqOptions : []
+      this.xzq_isIndeterminate = false
+      this.disabledxzq = !val
+    },
+    xzq_handleCheckedChange(value) {
+      this.xzqCount = value.length
+      this.xzq_checkAll = this.xzqCount === this.xzqOptions.length
+      this.xzq_isIndeterminate =
+        this.xzqCount > 0 && this.xzqCount < this.xzqOptions.length
+      if (this.xzqCount < 2) {
+        this.disabledxzq = true
+      } else {
+        this.disabledxzq = false
+      }
+    },
+    fxfs_handleCheckedChange(value) {
+      this.fxfsOptionsSelect.push(value)
+    },
+    zs_handleChange(val) {
+      this.zsoptions.forEach(element => {
+        if (element.id === val) {
+          this.form.case.index.name = element.name
+          this.form.case.index.id = val
+        }
+      })
+    },
+    getPriceIndexs() {
+      getPriceIndexs().then(response => {
+        response.data.forEach(element => {
+          this.zsoptions.push(element)
+        })
+      })
+    },
+    // 获取案例概况
+    getCsaeCount() {
+      // 只有所有参数都具备时才调接口，避免出现多次调接口失败的问题
+      /* console.log(this.form.type)
+      console.log(this.form.usage)
+      */
+      if (this.form.type && this.form.usage && this.form.district && this.form.value_date && this.form.case.type && this.form.case.start && this.form.case.end) {
+        const params = {
+          propType: this.form.type,
+          propUsage: this.form.usage,
+          district: this.form.district,
+          valueDate: this.form.value_date,
+          caseType: this.form.case.type,
+          startDate: this.form.case.start,
+          endDate: this.form.case.end
+        }
+        getCsaeCount(params).then(response => {
+          this.count = response.data
+          this.getCasePreview()
+        })
+      }
+    },
+    getCasePreview() {
+      if (this.form.type && this.form.usage && this.form.district && this.form.value_date && this.form.case.type && this.form.case.start && this.form.case.end) {
+        const params = {
+          propType: this.form.type,
+          propUsage: this.form.usage,
+          district: this.form.district,
+          valueDate: this.form.value_date,
+          caseType: this.form.case.type,
+          startDate: this.form.case.start,
+          endDate: this.form.case.end,
+          offset: this.offset
+        }
+        getCasePreview(params).then(response => {
+          this.caseList = response.data
+        })
+      }
+    },
+    // 获取下拉选项
+    getOption() {
+      getDictionary('价值时点').then(response => {
+        this.jzsdOptions = response.data
+      })
+      getDictionary('用途主类').then(response => {
+        this.ytzlOptions = response.data
+        if (!this.$route.query.id) {
+          this.wyyt = ['住宅']// 默认选中住宅
+        }
+      })
+      getDictionary('行政区').then(response => {
+        this.xzqOptions = response.data
+        if (!this.$route.query.id) {
+          this.xzq_handleCheckAllChange(this.xzqOptions)// 行政区默认选中全市
+        }
+        // this.xzq_handleCheckAllChange(this.xzqOptions)// 行政区默认选中全市
+      })
+      getDictionary('价格类型').then(response => {
+        // console.log(response.data)
+        this.jglxOptions = response.data
+      })
+    }
+  }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss" scoped>
+@import "../../styles/app.scss";
+.margin60 {
+  margin-left: 60px;
+  margin-right: 60px;
+}
+.fade {
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 99;
+}
+.succ-pop {
+  width: 300px;
+  height: 80px;
+  background: #fff;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  margin-left: -200px;
+  margin-top: -150px;
+  z-index: 999;
+  border-radius: 5px;
+}
+
+.border {
+  border: 0.5px solid #c0c4cc;
+  margin-bottom: 20px;
+}
+.title {
+  font-size: 17px;
+  font-weight: bold;
+  margin-top: 10px;
+  margin-left: 20px;
+  margin-bottom: 10px;
+}
+.btn_l {
+  float: right;
+  margin-left: 10px;
+  margin-top: 3px;
+}
+</style>

@@ -1,0 +1,152 @@
+<template>
+  <div class="dashboard-container">
+    <!-- <div class="dashboard-text">name:{{ name }}</div>
+    <div class="dashboard-text">roles:<span v-for="role in roles" :key="role">{{ role }}</span></div> -->
+    <!-- <el-row :gutter="10" class="user-panel">
+      <div style="float:left;margin-left:100px;">
+        <img class="user-avatar" src="http://211.154.135.29:88/public/user.png" >
+      </div>
+      <div style="float:left;margin-left:20px">
+        <div style="line-height:40px;font-size:30px;font-weight:bold;">{{ name }}</div>
+        <div style="line-height:30px;font-size:20px;margin-top:20px;color:#707070">评估部</div>
+      </div>
+    </el-row> -->
+    <el-row :gutter="10" style="margin-bottom:10px">
+      <!-- <el-col :span="12">
+        <el-card style=" width: 100%;">
+          <div slot="header" class="clearfix">
+            <span>2018年11月全市房源成交套数</span>
+          </div>
+          <div class="chart-wrapper" >
+            <bar-chart :data1="firstHandData_num" :data2="secondHandData_num"/>
+          </div>
+        </el-card>
+      </el-col> -->
+      <el-col :xs="24" :sm="24" :lg="12" :xl="12">
+        <el-card style=" width: 100%;">
+          <div slot="header" class="clearfix">
+            <span class="card-title">待办任务</span>
+            <el-button style="float: right; padding: 3px 0" type="text" @click="handleShowMessageCenter">查看更多</el-button>
+          </div>
+          <div style="height:200px;width:100%">
+            <todo-task-box :data1="firstHandData_size" :data2="secondHandData_size"/>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :xs="24" :sm="24" :lg="12" :xl="12">
+        <el-card style=" width: 100%;">
+          <div slot="header" class="clearfix">
+            <span class="card-title">消息中心</span>
+            <el-button style="float: right; padding: 3px 0" type="text" @click="handleShowMessageCenter">查看更多</el-button>
+          </div>
+          <div style="height:200px;width:100%">
+            <message-box/>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+    <el-row :gutter="10">
+      <!-- <el-col :span="8">
+        <el-table :data="list" style="width: 100%;padding-top: 15px;">
+          <el-table-column label="消息" min-width="200">
+            <template slot-scope="scope">
+              {{ scope.row.order_no | orderNoFilter }}
+            </template>
+          </el-table-column>
+          <el-table-column label="日期" width="60" align="center">
+            <template slot-scope="scope">
+              ¥{{ scope.row.price | toThousandFilter }}
+            </template>
+          </el-table-column>
+          <el-table-column label="状态" width="60" align="center">
+            <template slot-scope="scope">
+              <el-tag :type="scope.row.status | statusFilter"> {{ scope.row.status }}</el-tag>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-col> -->
+      <el-col :xs="24" :sm="24" :lg="12" :xl="12">
+        <el-card style=" width: 100%;">
+          <div slot="header" class="clearfix">
+            <span class="card-title">2018年12月全市房源成交套数</span>
+          </div>
+          <div class="chart-wrapper" >
+            <bar-chart :data1="firstHandData_size" :data2="secondHandData_size"/>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :xs="24" :sm="24" :lg="12" :xl="12">
+        <el-card style=" width: 100%;">
+          <div slot="header" class="clearfix">
+            <span class="card-title">全市新房价格指数</span>
+          </div>
+          <div class="chart-wrapper" >
+            <line-chart />
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+  </div>
+</template>
+
+<script>
+import { mapGetters } from 'vuex'
+import BarChart from './components/BarChart'
+import LineChart from './components/LineChart'
+import MessageBox from './components/MessageBox'
+import TodoTaskBox from './components/TodoTaskBox'
+export default {
+  name: 'Dashboard',
+  components: { BarChart, LineChart, MessageBox, TodoTaskBox },
+  data() {
+    return {
+      messagesList: null,
+      noticesList: null,
+      rolesNames: '',
+      roleName: '',
+      firstHandData_num: [1985, 1867, 751, 225],
+      secondHandData_num: [4175, 452, 94, 140],
+      firstHandData_size: [3375, 1700, 1005, 178],
+      secondHandData_size: [3810, 354, 103, 109]
+    }
+  },
+  computed: {
+    ...mapGetters([
+      'name',
+      'roles',
+      'permission_routers'
+    ])
+  },
+  methods: {
+    handleShowMessageCenter() {
+      this.$router.push({ name: 'MessageManage' })
+    }
+  }
+}
+</script>
+
+<style rel="stylesheet/scss" lang="scss" scoped>
+.dashboard {
+  &-container {
+    margin: 20px;
+  }
+  &-text {
+    font-size: 30px;
+    line-height: 46px;
+  }
+}
+.user-panel{
+  background: white;
+  margin: 0 0 10px 0;
+  padding: 10px;
+}
+.user-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 10px;
+}
+.card-title {
+  font-size: 16px;
+  font-weight: bold;
+}
+</style>

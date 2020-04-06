@@ -1,0 +1,54 @@
+{
+  "status":200,
+  "msg": "ok",
+  "data":[
+    {
+      "time": "2017-11",
+      "priceIndex": "55040",
+      "chainRatio": "-0.20%",
+      "sameRatio": "33.79%"
+    },
+    {
+      "time": "2017-10",
+      "priceIndex": "55040",
+      "chainRatio": "-0.20%",
+      "sameRatio": "33.79%"
+    },
+    {
+      "time": "2017-09",
+      "priceIndex": "55040",
+      "chainRatio": "-0.20%",
+      "sameRatio": "33.79%"
+    },
+    {
+      "time": "2017-08",
+      "priceIndex": "55040",
+      "chainRatio": "-0.20%",
+      "sameRatio": "33.79%"
+    },
+    {
+      "time": "2017-07",
+      "priceIndex": "55040",
+      "chainRatio": "-0.20%",
+      "sameRatio": "33.79%"
+    },
+    {
+      "time": "2017-06",
+      "priceIndex": "55040",
+      "chainRatio": "-0.20%",
+      "sameRatio": "33.79%"
+    },
+    {
+      "time": "2017-05",
+      "priceIndex": "55040",
+      "chainRatio": "-0.20%",
+      "sameRatio": "33.79%"
+    },
+    {
+      "time": "2017-04",
+      "priceIndex": "55040",
+      "chainRatio": "-0.20%",
+      "sameRatio": "33.79%"
+    }
+  ]
+}

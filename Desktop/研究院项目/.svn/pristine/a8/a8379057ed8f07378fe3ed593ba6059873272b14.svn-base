@@ -1,0 +1,347 @@
+<template>
+  <div>
+    <el-row
+      class="search-container"
+      style="padding: 5px"
+    >
+      <el-button
+        type="primary"
+        size="small"
+        round
+        @click="onOpenCreateForm"
+      >+创建部门</el-button>
+      <el-input
+        v-model="searchOption.text"
+        placeholder="请输入部门名称"
+        class="input-with-select"
+        style="width:500px;float:right"
+        size="small"
+        @keyup.enter.native="onInputEnter"
+      >
+        <el-button
+          slot="append"
+          icon="el-icon-search"
+          @click="onBtnDepartmentSearchClick"
+        />
+      </el-input>
+    </el-row>
+    <el-row style="padding:5px">
+      <el-table
+        ref="departmentTable"
+        :data="tableData"
+        :header-cell-style="changeHeaderStyle"
+        style="width:100%"
+        border
+        fit
+        size="small"
+      >
+        <el-table-column
+          label="序号"
+          type="index"
+          width="50"
+          align="center"
+        />
+        <el-table-column
+          label="部门名称"
+          align="center"
+        >
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row.dept_name }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="员工数量"
+          align="center"
+        >
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row.staff_num }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="部门描述"
+          align="center"
+        >
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row.dept_desc }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          label="操作"
+          width="300"
+          align="center"
+        >
+          <template slot-scope="scope">
+            <el-button
+              size="mini"
+              type="primary"
+              @click="onBtnEditClick(scope.$index, scope.row)"
+            >
+              编辑
+            </el-button>
+            <el-button
+              size="mini"
+              type="danger"
+              @click="onBtnDeleteClick(scope.$index, scope.row)"
+            >
+              删除
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-row
+        type="flex"
+        justify="center"
+        style="margin-top:5px"
+      >
+        <pagination
+          :total="listQuery.total"
+          :page.sync="listQuery.page"
+          :limit.sync="listQuery.limit"
+          :page-sizes="listQuery.pageSizes"
+          @pagination="getDepartmentList" />
+      </el-row>
+    </el-row>
+    <el-dialog
+      ref="dialog"
+      :visible.sync="createFormVisible"
+      :title="editForm.title"
+      width="50%"
+    >
+      <el-form
+        ref="createForm"
+        :rules="rules"
+        :model="editForm"
+        label-width="100px"
+      >
+        <el-form-item
+          label="部门名称"
+          prop="name"
+        >
+          <el-input
+            v-model="editForm.name"
+            auto-complete="off"
+          />
+        </el-form-item>
+        <el-form-item
+          label="部门描述"
+          prop="desc"
+        >
+          <el-input
+            v-model="editForm.desc"
+            auto-complete="off"
+            type="textarea"
+          />
+        </el-form-item>
+      </el-form>
+      <div
+        slot="footer"
+        class="dialog-footer"
+      >
+        <el-button @click="cancel">取 消</el-button>
+        <el-button
+          :disabled="editForm.name ===''"
+          type="primary"
+          @click="onBtnOKClick"
+        >确 定</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+<script>
+import Pagination from '@/components/Pagination'
+import { getDepartmentList, departmentAdd, departmentEdit, deleteDepartment } from '@/api/department'
+export default {
+  components: { Pagination },
+  data() {
+    return {
+      searchOption: {
+        clause: '登录名',
+        text: null
+      },
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        pageSizes: [10, 20, 30, 50]
+      },
+      tableData: [],
+      createFormVisible: false,
+      editForm: {
+        id: 'null',
+        name: 'null',
+        desc: 'null',
+        auth: '1'
+      },
+      rules: {
+        name: [
+          { type: 'string', required: true, message: '请输入部门名称', trigger: 'blur' }
+        ]
+      }
+    }
+  },
+  mounted() {
+    this.getDepartmentList()
+  },
+  methods: {
+    cancel() {
+      this.createFormVisible = false
+    },
+    getDepartmentList() {
+      const params = {
+        page: this.listQuery.page,
+        limit: this.listQuery.limit,
+        name: this.searchOption.text
+      }
+      getDepartmentList(params).then(response => {
+        if (response.code === 200) {
+          this.tableData = response.data
+          this.listQuery.total = response.cnt
+        } else {
+          this.$notify({
+            title: '错误',
+            message: response.msg,
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    },
+    departmentAdd() {
+      const data = {
+        dept_name: this.editForm.name,
+        dept_desc: this.editForm.desc
+      }
+      departmentAdd(data).then(response => {
+        if (response.code === 200) {
+          this.$message({
+            type: 'success',
+            message: '新增成功!'
+          })
+          this.getDepartmentList()
+        } else {
+          this.$notify({
+            title: '错误',
+            message: '新增失败!',
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    },
+    departmentEdit() {
+      const data = {
+        dept_name: this.editForm.name,
+        dept_desc: this.editForm.desc
+      }
+      departmentEdit(this.editForm.id, data).then(response => {
+        if (response.code === 200) {
+          this.$message({
+            type: 'success',
+            message: '修改成功!'
+          })
+          this.getDepartmentList()
+        } else {
+          this.$notify({
+            title: '错误',
+            message: '修改失败!',
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    },
+    deleteDepartment(val) {
+      deleteDepartment(val).then(response => {
+        if (response.code === 200) {
+          this.$message({
+            type: 'success',
+            message: '删除成功!'
+          })
+          this.getDepartmentList()
+        } else {
+          this.$notify({
+            title: '错误!',
+            message: '删除失败!',
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    },
+    onBtnDepartmentSearchClick() {
+      /* if (this.searchOption.text === '') {
+        this.$notify({
+          title: '提示',
+          message: '请选择查询条件，确保查询内容不能为空！',
+          duration: 3000
+        })
+        return
+      } */
+      this.getDepartmentList()
+    },
+    onInputEnter() {
+      this.getDepartmentList()
+    },
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    },
+    onOpenCreateForm() {
+      this.editForm = {
+        id: '',
+        title: '创建部门',
+        name: '',
+        desc: ''
+      }
+      this.createFormVisible = true
+      this.$refs.createForm.resetFields()
+    },
+    onSizeChange() {},
+    onCurrentChange() {},
+    onBtnOKClick() {
+      this.createFormVisible = false
+      if (this.editForm.id === '') {
+        this.departmentAdd()
+      } else {
+        this.departmentEdit()
+      }
+    },
+    onBtnEditClick(index, row) {
+      this.editForm = {
+        id: row.dept_id,
+        title: '编辑部门',
+        name: row.dept_name,
+        desc: row.dept_desc
+      }
+      this.createFormVisible = true
+      this.$refs.createForm.resetFields()
+      // if (this.editForm.name !== '') {
+      //   this.rules = {}
+      // }
+    },
+    onBtnDeleteClick(index, row) {
+      if (row.staff_num === 0) {
+        this.$confirm('删除操作不可逆，是否确定?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+          .then(() => {
+            this.deleteDepartment(row.dept_id)
+          })
+          .catch(() => {
+            this.$message({
+              type: 'info',
+              message: '已取消删除'
+            })
+          })
+      } else {
+        this.$alert('部门人数大于0时不可删除部门', '删除失败', {
+          confirmButtonText: '确定'
+        })
+      }
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+</style>

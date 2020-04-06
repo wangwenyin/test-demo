@@ -1,0 +1,51 @@
+import request from '@/utils/request'
+// 获取部门列表
+export function getRolesList(params) {
+  return request({
+    url: '/roles',
+    method: 'get',
+    params
+  })
+}
+
+// 新建部门
+export function rolesAdd(data) {
+  return request({
+    url: '/roles',
+    method: 'post',
+    data
+  })
+}
+
+// 编辑部门
+export function rolesEdit(id, data) {
+  return request({
+    url: `/roles/${id} `,
+    method: 'put',
+    data
+  })
+}
+
+// 删除指定ID的部门
+export function deleteRoles(id) {
+  return request({
+    url: `/roles/${id}`,
+    method: 'delete'
+  })
+}
+
+// 获取某个部门的信息
+export function getRolesById(id) {
+  return request({
+    url: `/roles/${id}`,
+    method: 'get'
+  })
+}
+
+// 获取某个部门的信息
+export function getRolesAuth(id) {
+  return request({
+    url: `/roles/auth/${id}`,
+    method: 'put'
+  })
+}

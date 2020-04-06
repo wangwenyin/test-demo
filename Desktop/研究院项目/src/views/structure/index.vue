@@ -1,0 +1,187 @@
+<template>
+  <div class="search">
+    <div ref="searchTop" class="search__top">
+      <el-row >
+        <el-col :span="24" >
+          <el-select v-model="struc_type" placeholder="请选择构筑物类型" size="small" @change="onSearchBtnClick">
+            <el-option
+              v-for="item in struc_typeOptions"
+              :key="item"
+              :label="item"
+              :value="item"/>
+          </el-select>
+          <el-select v-model="struc_usage" placeholder="请选择构筑物用途" size="small" @change="onSearchBtnClick">
+            <el-option
+              v-for="item in struc_usageOptions"
+              :key="item"
+              :label="item"
+              :value="item"/>
+          </el-select>
+          <el-select v-model="district" placeholder="请选择区域" clearable size="small" @change="onSearchBtnClick">
+            <el-option
+              v-for="item in districtOptions"
+              :key="item"
+              :label="item"
+              :value="item"/>
+          </el-select>
+          <el-input v-model="struc_name" style="width: 180px;" size="small" placeholder="构筑物名称" @keyup.enter.native="onSearchBtnClick"/>
+          <el-button type="primary" size="small" @click="onSearchBtnClick">查询</el-button>
+          <el-button size="small" @click="onClearBtnClick">清空</el-button>
+        </el-col>
+      </el-row>
+    </div>
+    <el-row style="padding:5px">
+      <el-table :data="strucList" :header-cell-style="changeHeaderStyle" style="width:100%" border fit stripe size="small">
+        <el-table-column label="序号" type="index" width="50" align="center"/>
+        <el-table-column prop="struc_name" min-width="250" label="构筑物名称" align="center"/>
+        <el-table-column prop="address" label="坐落" align="center"/>
+        <el-table-column prop="district" label="行政区" align="center"/>
+        <el-table-column prop="subdistrict" label="街道" align="center"/>
+        <el-table-column prop="struc_type" label="类型" align="center"/>
+        <el-table-column prop="struc_usage" label="用途" align="center"/>
+        <el-table-column label="竣工日期" min-width="110" align="center">
+          <template slot-scope="scope">
+            <span>{{ scope.row.const_enddate }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="struc_area" label="建筑面积" align="center"/>
+        <el-table-column prop="land_area" label="占地面积" align="center"/>
+      </el-table>
+      <el-row type="flex" justify="center" style="margin-top:5px">
+        <pagination
+          :total="listQuery.total"
+          :page.sync="listQuery.page"
+          :limit.sync="listQuery.limit"
+          :page-sizes="listQuery.pageSizes"
+          @pagination="getData" />
+      </el-row>
+    </el-row>
+  </div>
+</template>
+<script>
+import Pagination from '@/components/Pagination'
+import { getDictionary } from '@/api/common'
+import { getStructures } from '@/api/data'
+export default {
+  components: { Pagination },
+  data() {
+    return {
+      struc_type: '',
+      struc_usage: '',
+      district: '',
+      struc_name: '',
+      struc_typeOptions: '',
+      struc_usageOptions: '',
+      districtOptions: '',
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        pageSizes: [10, 20, 30, 50]
+      },
+      strucList: []
+    }
+  },
+  created() {
+    this.getOption()
+  },
+  mounted() {
+    this.getData()
+  },
+  methods: {
+    // 获取下拉选项
+    getOption() {
+      getDictionary('构筑物类型').then(response => {
+        this.struc_typeOptions = response.data
+      })
+      getDictionary('构筑物用途').then(response => {
+        this.struc_usageOptions = response.data
+      })
+      getDictionary('行政区').then(response => {
+        this.districtOptions = response.data
+      })
+    },
+    // 查询
+    onSearchBtnClick: function() {
+      this.getData()
+    },
+    getData(val) {
+      if (val) {
+        this.listQuery.limit = val.limit
+        this.listQuery.page = val.page
+      } else {
+        this.listQuery.page = 1
+      }
+      const params = { 'struc_type': this.struc_type === '' ? null : this.struc_type, 'district': this.district === '' ? null : this.district, 'struc_usage': this.struc_usage === '' ? null : this.struc_usage, 'struc_name': this.struc_name === '' ? null : this.struc_name, 'page': this.listQuery.page, 'limit': this.listQuery.limit }
+      getStructures(params).then(response => {
+        this.strucList = response.data
+        this.listQuery.total = response.total_num
+      })
+    },
+
+    // 清空
+    onClearBtnClick: function() {
+      this.struc_type = ''
+      this.struc_usage = ''
+      this.district = ''
+      this.struc_name = ''
+      this.getData()
+    },
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+.el-pagination {
+    text-align: center;
+}
+.search {
+  margin-bottom: 0;
+  .el-input-group__append {
+    background-color: #fc6767;
+    color: white;
+  }
+  .search__top {
+    background: #F0F0F0;
+    overflow: hidden;
+    .el-row {
+      padding: 10px;
+      margin: 10px 0 10px 0px;
+      background: #fff;
+      div:first-child {
+        input::-webkit-input-placeholder {
+          color: #000;
+        }
+      }
+      .el-select{
+         margin-right: 10px;
+      }
+      .el-input{
+         margin-right: 10px;
+      }
+      .fr {
+        float: right;
+      }
+    }
+    .btn {
+      overflow: hidden;
+      padding: 10px 0 10px 10px;
+      span {
+        &:nth-child(1) {
+          float: left;
+        }
+        &:nth-child(2) {
+          float: right;
+          margin-right: 10px;
+        }
+        .el-button {
+          border-radius: 0;
+          margin-left: 0;
+        }
+      }
+    }
+  }
+}
+</style>

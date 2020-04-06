@@ -1,0 +1,258 @@
+<template>
+  <div>
+    <el-tabs tab-position="left" @tab-click="onTabsClick" >
+      <el-tab-pane label="物业位置图">
+        <dropzone
+          id="pic1"
+          :url="uploadUrl"
+          :default-img="imgUrls_add"
+          :params="params_address"
+          @dropzone-removedFile="handleRemoveAttachment"
+          @dropzone-success="handleUploadFile"/>
+      </el-tab-pane>
+      <el-tab-pane label="估价对象照片">
+        <el-row v-for="index in propertyPic_index" :key="index" :gutter="10">
+          <el-col :xs="24" :sm="24" :lg="12" :xl="12">
+            <div class="pic_desc">{{ params_property[index*2].shot_part }}</div>
+            <dropzone
+              :id="index*2"
+              :url="uploadUrl"
+              :params="params_property[index*2]"
+              :default-img="imgUrls_pics[index*2]"
+              @dropzone-removedFile="handleRemoveAttachment"
+              @dropzone-success="handleUploadFile"/>
+          </el-col>
+          <el-col :xs="24" :sm="24" :lg="12" :xl="12">
+            <div class="pic_desc">{{ params_property[index*2+1].shot_part }}</div>
+            <dropzone
+              :id="index*2+1"
+              :url="uploadUrl"
+              :params="params_property[index*2+1]"
+              :default-img="imgUrls_pics[index*2+1]"
+              @dropzone-removedFile="handleRemoveAttachment"
+              @dropzone-success="handleUploadFile"/>
+
+          </el-col>
+        </el-row>
+      </el-tab-pane>
+      <el-tab-pane label="权属证明资料">
+        <dropzone
+          id="myVueDropzone3"
+          :url="uploadUrl"
+          :params="params_right"
+          :default-img="imgUrls_right"
+          @dropzone-removedFile="handleRemoveAttachment"
+          @dropzone-success="handleUploadFile"/>
+      </el-tab-pane>
+    </el-tabs>
+  </div>
+</template>
+<script>
+import Dropzone from '@/components/Dropzone'
+import { getSurveyAttachment, deleteSurveyAttachment } from '@/api/survey'
+export default {
+  components: { Dropzone },
+  props: {
+    task_id: {
+      type: String,
+      default: function() {
+        return ''
+      }
+    }
+  },
+  data() {
+    return {
+      matrl_type: '物业位置图',
+      attachment_add: [],
+      attachment_pic: [],
+      attachment_right: [],
+      imgUrls_add: [],
+      imgUrls_pics: [],
+      imgUrls_right: [],
+      params_property: [
+        {
+          task_id: this.task_id,
+          matrl_type: '估价对象照片',
+          shot_part: '外部'
+        },
+        {
+          task_id: this.task_id,
+          matrl_type: '估价对象照片',
+          shot_part: '外立面'
+        },
+        {
+          task_id: this.task_id,
+          matrl_type: '估价对象照片',
+          shot_part: '景观'
+        },
+        {
+          task_id: this.task_id,
+          matrl_type: '估价对象照片',
+          shot_part: '入户大堂'
+        },
+        {
+          task_id: this.task_id,
+          matrl_type: '估价对象照片',
+          shot_part: '入户门'
+        },
+        {
+          task_id: this.task_id,
+          matrl_type: '估价对象照片',
+          shot_part: '电梯'
+        },
+        {
+          task_id: this.task_id,
+          matrl_type: '估价对象照片',
+          shot_part: '厨房'
+        },
+        {
+          task_id: this.task_id,
+          matrl_type: '估价对象照片',
+          shot_part: '客厅'
+        },
+        {
+          task_id: this.task_id,
+          matrl_type: '估价对象照片',
+          shot_part: '房内楼梯'
+        },
+        {
+          task_id: this.task_id,
+          matrl_type: '估价对象照片',
+          shot_part: '卧室'
+        },
+        {
+          task_id: this.task_id,
+          matrl_type: '估价对象照片',
+          shot_part: '卫生间'
+        },
+        {
+          task_id: this.task_id,
+          matrl_type: '估价对象照片',
+          shot_part: '阳台'
+        }
+      ],
+      propertyPic_index: [0, 1, 2, 3, 4, 5],
+      params_address: {
+        task_id: this.task_id,
+        matrl_type: '物业位置图'
+      },
+      params_right: {
+        task_id: this.task_id,
+        matrl_type: '权属证明资料'
+      }
+    }
+  },
+  computed: {
+    uploadUrl() {
+      return `${process.env.BASE_API1}/survey/material`
+    }
+  },
+  created() {
+    this.init()
+  },
+  mounted() {
+    // 获取附件
+    this.getSurveyAttachment({ matrl_type: '物业位置图' })
+  },
+  methods: {
+    init() {
+      for (let i = 0; i < this.params_property.length; i++) {
+        this.imgUrls_pics.push([])
+      }
+    },
+    onTabsClick(tab, event) {
+      switch (tab.label) {
+        case '物业位置图':
+          this.getSurveyAttachment({ matrl_type: '物业位置图' })
+          break
+        case '估价对象照片':
+          this.getSurveyAttachment({ matrl_type: '估价对象照片' })
+          break
+        case '权属证明资料':
+          this.getSurveyAttachment({ matrl_type: '权属证明资料' })
+          break
+      }
+    },
+    handleUploadFile() {
+      /* this.getSurveyAttachment({ matrl_type: item.matrl_type }) */
+      this.$message({ message: '上传成功！', type: 'success' })
+    },
+    handleRemoveAttachment(file) {
+      let matrl_name = ''
+      if (file.url) {
+        matrl_name = file.url.substring(file.url.lastIndexOf('/') + 1)
+      } else {
+        const url = JSON.parse(file.xhr.response).url
+        matrl_name = url.substring(url.lastIndexOf('/') + 1)
+      }
+      if (matrl_name === '') {
+        alert('url为空！')
+        return
+      }
+
+      const params = {
+        matrl_name: matrl_name
+      }
+      deleteSurveyAttachment(this.task_id, params).then(response => {
+        if (response.code === 200) {
+          this.$message({ message: '删除图片成功', type: 'success' })
+        } else {
+          this.$message({ message: response.msg, type: 'success' })
+        }
+      })
+    },
+    getSurveyAttachment(params) {
+      getSurveyAttachment(this.task_id, { matrl_type: params.matrl_type }).then(response => {
+        if (response.code === 200) {
+          const data = response.data
+          if (data.length > 0) {
+            switch (data[0].matrl_type) {
+              case '位置示意图':
+                this.attachment_add = data
+                this.imgUrls_add = []
+                break
+              case '权属证明资料':
+                this.attachment_right = data
+                this.imgUrls_right = []
+                break
+              case '估价对象照片':
+                this.attachment_pic = data
+                this.imgUrls_pics = []
+                this.init()
+                break
+            }
+          }
+
+          for (let i = 0; i < data.length; i++) {
+            if (data[i].matrl_type === '物业位置图') {
+              this.imgUrls_add.push(data[i].url)
+            } else if (data[i].matrl_type === '权属证明资料') {
+              this.imgUrls_right.push(data[i].url)
+            } else if (data[i].matrl_type === '估价对象照片') {
+              for (let j = 0; j < this.params_property.length; j++) {
+                if (data[i].shot_part === this.params_property[j].shot_part) {
+                  this.imgUrls_pics[j].push(data[i].url)
+                }
+              }
+            }
+          }
+        } else {
+          this.$notify({
+            title: '错误',
+            message: response.msg,
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+.pic_desc {
+  line-height: 30px;
+  font: 20px;
+  font-weight: bold;
+}
+</style>

@@ -1,0 +1,700 @@
+<template>
+  <div style="margin:10px;">
+    <el-row v-if="!detail">
+      <el-col :span="24">
+        <div class="title"/>
+      </el-col>
+    </el-row>
+    <table class="table">
+      <tr class="tr-title">
+        <td class="td-desc">
+          <span class="normal">因素名称</span>
+        </td>
+        <td class="td-content">
+          <span class="normal">评估对象</span>
+        </td>
+        <td v-for="cc in caseNum" :span="24/(caseNum)" :key="cc" class="td-content" style="height:35px">
+          <span class="normal" style="margin-top: 8px;">可比实例{{ cc }}</span>
+        </td>
+        <td class="td-btn"/>
+      </tr>
+      <tr class="tr">
+        <td class="td-desc">
+          <span class="normal">物业名称</span>
+        </td>
+        <td class="td-content">
+          <textarea v-model="property.prop_name" class="textarea" size="small" readonly/>
+        </td>
+        <td v-for="item in comparablesList" :span="24/caseNum" :key="item.case_no" class="td-content">
+          <textarea v-model="item.prop_name" class="textarea" size="small" readonly/>
+        </td>
+        <td class="td-btn"/>
+      </tr>
+      <tr class="tr">
+        <td class="td-desc">
+          <span class="normal">地理位置</span>
+        </td>
+        <td class="td-content">
+          <textarea v-model="property.address" class="textarea" size="small" readonly/>
+        </td>
+        <td v-for="item in comparablesList" :span="24/caseNum" :key="item.case_no" class="td-content">
+          <textarea v-model="item.address" class="textarea" size="small" readonly/>
+        </td>
+        <td class="td-btn"/>
+      </tr>
+      <tr id="1f" class="tr-title">
+        <td colspan="10" class="td-desc">
+          <span class="title-small">交易状况 </span>
+          <el-button v-if="!detail" class="btn-add" type="text" @click="onAddFactorClick('交易状况')">添加</el-button>
+        </td>
+      </tr>
+      <tr class="tr">
+        <td class="td-desc">
+          <span class="normal">交易单价</span>
+        </td>
+        <td class="td-content">
+          <el-input value="-" class="noborder" size="small" readonly/>
+        </td>
+        <td v-for="c in comparablesList" :span="24/caseNum" :key="c.case_no" class="td-content" >
+          <el-input v-model="c.each_price" class="noborder" size="small"/>
+        </td>
+        <td class="td-btn"/>
+      </tr>
+      <tr v-for="s in getSaleFactors" :key="s.name" class="tr">
+        <td class="td-desc">
+          <span class="normal">{{ s.description }}</span>
+        </td>
+        <td class="td-content">
+          <el-input v-model="defaultvalue" class="noborder" size="small"/>
+        </td>
+        <td v-for="c in comparablesList" :span="24/caseNum" :key="c.case_no" class="td-content">
+          <el-input-number v-model="c[s.name].index" :min="80" :max="120" class="noborder" size="small" @change="onIndexInputChange(total_sale,'交易状况')"/>
+        </td>
+        <td class="td-btn">
+          <el-button v-if="!detail" type="text" size="small" @click="onRemoveFactorClick(s, total_sale, '交易状况')">删除</el-button>
+        </td>
+      </tr>
+      <tr class="tr">
+        <td class="td-desc">
+          <span class="normal">合计:</span>
+        </td>
+        <td class="td-content">
+          <el-input v-model="defaultvalue" readonly class="noborder" size="small"/>
+        </td>
+        <td v-for="o in caseNum" :span="24/caseNum" :key="o" class="td-content">
+          <el-input v-model="total_sale.comparables[o-1]" readonly class="noborder" size="small"/>
+        </td>
+        <td class="td-btn"/>
+      </tr>
+      <tr id="2f" class="tr-title">
+        <td colspan="10" class="td-desc">
+          <span class="title-small">区位状况 </span>
+          <el-button v-if="!detail" class="btn-add" type="text" @click="onAddFactorClick('区位状况')">添加</el-button>
+        </td>
+      </tr>
+      <tr v-for="l in getLocationFactors" :key="l.name" class="tr"> <!-- v-if="l.used" -->
+        <td class="td-desc">
+          <span class="normal">{{ l.description }}</span>
+        </td>
+        <td class="td-content">
+          <el-input v-model="defaultvalue" readonly size="small" class="noborder" />
+        </td>
+        <td v-for="c in comparablesList" :span="24/caseNum" :key="c.case_no" class="td-content">
+          <el-input-number v-model="c[l.name].index" :min="80" :max="120" class="noborder" size="small" @change="onIndexInputChange(total_location,'区位状况')"/>
+        </td>
+        <td class="td-btn" >
+          <el-button v-if="!detail" type="text" size="small" @click="onRemoveFactorClick(l, total_location, '区位状况')">删除</el-button>
+        </td>
+      </tr>
+      <tr class="tr">
+        <td class="td-desc">
+          <span class="normal">合计:</span>
+        </td>
+        <td class="td-content">
+          <el-input v-model="defaultvalue" class="noborder" size="small" readonly/>
+        </td>
+        <td v-for="o in caseNum" :span="24/caseNum" :key="o" class="td-content">
+          <el-input v-model="total_location.comparables[o-1]" class="noborder" size="small" readonly/>
+        </td>
+        <td class="td-btn"/>
+      </tr>
+      <tr id="3f" class="tr-title">
+        <td colspan="10" class="td-desc">
+          <span class="title-small">权益状况 </span>
+          <el-button v-if="!detail" class="btn-add" type="text" @click="onAddFactorClick('权益状况')">添加</el-button>
+        </td>
+      </tr>
+      <tr v-for="r in getRightFactors" :key="r.name" class="tr"> <!-- v-if="r.used" -->
+        <td class="td-desc">
+          <span class="normal">{{ r.description }}</span>
+        </td>
+        <td class="td-content">
+          <el-input v-model="defaultvalue" readonly size="small" class="noborder" />
+        </td>
+        <td v-for="c in comparablesList" :span="24/caseNum" :key="c.case_no" class="td-content">
+          <el-input-number v-model="c[r.name].index" :min="80" :max="120" class="noborder" size="small" @change="onIndexInputChange(total_right,'权益状况')"/>
+        </td>
+        <td class="td-btn">
+          <el-button v-if="!detail" type="text" size="small" @click="onRemoveFactorClick(r, total_right, '权益状况')">删除</el-button>
+        </td>
+      </tr>
+      <tr class="tr">
+        <td class="td-desc">
+          <span class="normal">合计:</span>
+        </td>
+        <td class="td-content">
+          <el-input v-model="defaultvalue" class="noborder" size="small" readonly/>
+        </td>
+        <td v-for="o in caseNum" :span="24/caseNum" :key="o" class="td-content">
+          <el-input v-model="total_right.comparables[o-1]" class="noborder" size="small" readonly/>
+        </td>
+        <td class="td-btn"/>
+      </tr>
+      <tr id="4f" class="tr-title">
+        <td colspan="10" class="td-desc">
+          <span class="title-small">实物状况 </span>
+
+          <el-button v-if="!detail" class="btn-add" type="text" @click="onAddFactorClick('实物状况')">添加</el-button>
+        </td>
+      </tr>
+      <tr v-for="o in getObjectFactors" :key="o.name" class="tr">
+        <td class="td-desc">
+          <span class="normal">{{ o.description }}</span>
+        </td>
+        <td class="td-content">
+          <el-input v-model="defaultvalue" readonly size="small" class="noborder" />
+        </td>
+        <td v-for="c in comparablesList" :span="24/caseNum" :key="c.case_no" class="td-content">
+          <el-input-number v-model="c[o.name].index" :min="80" :max="120" class="noborder" size="small" @change="onIndexInputChange(total_object,'实物状况')"/>
+        </td>
+        <td class="td-btn">
+          <el-button v-if="!detail" type="text" size="small" @click="onRemoveFactorClick(o, total_object, '实物状况')">删除</el-button>
+        </td>
+      </tr>
+      <tr class="tr">
+        <td class="td-desc">
+          <span class="normal">合计:</span>
+        </td>
+        <td class="td-content">
+          <el-input v-model="defaultvalue" class="noborder" size="small" readonly/>
+        </td>
+        <td v-for="o in caseNum" :span="24/caseNum" :key="o" class="td-content">
+          <el-input v-model="total_object.comparables[o-1]" class="noborder" size="small" readonly/>
+        </td>
+        <td class="td-btn"/>
+      </tr>
+      <tr class="tr-title">
+        <td colspan="10" class="td-desc">
+          <span class="title-small">比准价格 </span>
+        </td>
+      </tr>
+      <tr class="tr">
+        <td class="td-desc">
+          <span class="normal">交易状况调整:</span>
+        </td>
+        <td class="td-content">
+          <el-input v-model="defaultvalue" readonly class="noborder" size="small"/>
+        </td>
+        <td v-for="o in caseNum" :span="24/caseNum" :key="o" class="td-content">
+          <el-input v-model="total_sale.comparables[o-1]" readonly class="noborder" size="small"/>
+        </td>
+        <td class="td-btn">
+          <a href="#1f">
+            <el-button size="small" type="text">跳转</el-button>
+          </a>
+        </td>
+      </tr>
+      <tr class="tr">
+        <td class="td-desc">
+          <span class="normal">区位状况调整:</span>
+        </td>
+        <td class="td-content">
+          <el-input v-model="defaultvalue" readonly class="noborder" size="small"/>
+        </td>
+        <td v-for="o in caseNum" :span="24/caseNum" :key="o" class="td-content">
+          <el-input v-model="total_location.comparables[o-1]" readonly class="noborder" size="small"/>
+        </td>
+        <td class="td-btn">
+          <a href="#2f">
+            <el-button size="small" type="text">跳转</el-button>
+          </a>
+        </td>
+      </tr>
+      <tr class="tr">
+        <td class="td-desc">
+          <span class="normal">权益状况调整:</span>
+        </td>
+        <td class="td-content">
+          <el-input v-model="defaultvalue" readonly class="noborder" size="small"/>
+        </td>
+        <td v-for="o in caseNum" :span="24/caseNum" :key="o" class="td-content">
+          <el-input v-model="total_right.comparables[o-1]" readonly class="noborder" size="small"/>
+        </td>
+        <td class="td-btn">
+          <a href="#3f">
+            <el-button size="small" type="text">跳转</el-button>
+          </a>
+        </td>
+      </tr>
+      <tr class="tr">
+        <td class="td-desc">
+          <span class="normal">实物状况调整:</span>
+        </td>
+        <td class="td-content">
+          <el-input v-model="defaultvalue" readonly class="noborder" size="small"/>
+        </td>
+        <td v-for="o in caseNum" :span="24/caseNum" :key="o" class="td-content">
+          <el-input v-model="total_object.comparables[o-1]" readonly class="noborder" size="small"/>
+        </td>
+        <td class="td-btn">
+          <a href="#4f">
+            <el-button size="small" type="text">跳转</el-button>
+          </a>
+        </td>
+      </tr>
+      <tr class="tr">
+        <td class="td-desc">
+          <span class="normal">比准价格（元/m²）</span>
+        </td>
+        <td class="td-content">
+          <el-input class="noborder" size="small" readonly/>
+        </td>
+        <td v-for="o in caseNum" :span="24/caseNum" :key="o" class="td-content">
+          <el-input v-model="price_bz.comparables[o-1]" class="noborder" size="small" readonly/>
+        </td>
+        <td class="td-btn"/>
+      </tr>
+      <tr class="tr">
+        <td class="td-desc">
+          <span class="normal">评估价格（元/m²）</span>
+        </td>
+        <td class="td-content">
+          <el-input class="noborder" size="small" readonly/>
+        </td>
+        <td :colspan="caseNum" class="td-content">
+          <el-input v-model="price" class="noborder" size="small" readonly/>
+        </td>
+        <td class="td-btn"/>
+      </tr>
+    </table>
+    <el-row v-if="!detail" style="margin-top:20px">
+      <el-col :span="24">
+        <el-button v-if="editEnabled" :disabled="disabledButton" size="small" class="btn-right" @click="onNextStepClick(false)">保存</el-button>
+        <el-button v-if="editEnabled" :disabled="disabledButton" size="small" class="btn-right" type="primary" @click="onNextStepClick(true)">提交</el-button>
+        <el-button v-if="editEnabled" size="small" class="btn-right" type="primary" @click="onPreviousStepClick">上一步</el-button>
+      </el-col>
+    </el-row>
+    <el-row v-else style="margin-top:20px">
+      <el-col :span="24">
+        <el-button size="small" style="float: right;  margin-right:30px;" type="primary" @click="onBackClick">返回</el-button>
+      </el-col>
+    </el-row>
+    <el-dialog :title="'添加'+ type+'因素' " :visible.sync="dialog">
+      <div v-if="factor.length > 0">
+        <div v-for="o in factor" :key="o.name" class="fa">
+          <el-checkbox v-model="o.used" :label="o.description" class="ck"/>
+        </div>
+      </div>
+      <div v-else>没有需要添加的因素</div>
+      <div slot="footer" class="dialog-footer">
+        <el-button size="small" type="primary" @click="onAddDialogCloseClick(factor_total,factor)">关 闭</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+<script>
+import { getFactorInfo, getTaskInfo, editAppraisal, gotoback, getProperty } from '@/api/singleapp'
+export default {
+  data() {
+    return {
+      detail: false,
+      taskId: '',
+      method: '',
+      taskInfo: {},
+      factorList: [],
+      property: {},
+      caseNum: 3,
+      comparablesList: [],
+      list: [],
+      type: '',
+      factor: [],
+      basic: [],
+      location: [],
+      right: [],
+      object: [],
+      sale: [],
+      defaultvalue: 100,
+      factor_total: {
+        comparables: [100, 100, 100, 100, 100]
+      },
+      dialog: false,
+      total_location: {
+        comparables: [100, 100, 100, 100, 100]
+      },
+      total_right: {
+        comparables: [100, 100, 100, 100, 100]
+      },
+      total_object: {
+        comparables: [100, 100, 100, 100, 100]
+      },
+      total_sale: {
+        comparables: [100, 100, 100, 100, 100]
+      },
+      price_bz: {
+        comparables: []
+      },
+      price: 0,
+      editEnabled: true,
+      disabledButton: false
+    }
+  },
+  computed: {
+    getSaleFactors: function() {
+      const result = []
+      for (let i = 0; i < this.factorList.length; i++) {
+        if (this.factorList[i].type === '交易状况' && this.factorList[i].used) {
+          result.push(this.factorList[i])
+        }
+      }
+      return result
+    },
+    getLocationFactors: function() {
+      const result = []
+      for (let i = 0; i < this.factorList.length; i++) {
+        if (this.factorList[i].type === '区位状况' && this.factorList[i].used) {
+          result.push(this.factorList[i])
+        }
+      }
+      return result
+    },
+    getRightFactors: function() {
+      const result = []
+      for (let i = 0; i < this.factorList.length; i++) {
+        if (this.factorList[i].type === '权益状况' && this.factorList[i].used) {
+          result.push(this.factorList[i])
+        }
+      }
+      return result
+    },
+    getObjectFactors: function() {
+      const result = []
+      for (let i = 0; i < this.factorList.length; i++) {
+        if (this.factorList[i].type === '实物状况' && this.factorList[i].used) {
+          result.push(this.factorList[i])
+        }
+      }
+      return result
+    }
+  },
+  mounted() {
+    this.taskId = this.$route.query.taskId
+    this.method = this.$route.query.method
+    if (this.$route.query.detail === true) {
+      this.detail = true
+    }
+    if (this.taskId) {
+      this.getFactors()
+      this.getTaskInfo()
+    } else {
+      this.$notify({
+        title: '错误',
+        message: '缺少任务编号！',
+        type: 'error',
+        duration: 2000
+      })
+    }
+  },
+  methods: {
+    // 获取影响因素
+    getFactors() {
+      getFactorInfo(this.taskId).then(response => {
+        if (response.code === 200) {
+          this.factorList = response.factors
+          this.comparablesList = response.comparables
+          this.property = response.property
+          this.caseNum = this.comparablesList.length
+          // 初始化计算分享总和
+          this.onIndexInputChange(this.total_sale, '交易状况')
+          this.onIndexInputChange(this.total_location, '区位状况')
+          this.onIndexInputChange(this.total_right, '权益状况')
+          this.onIndexInputChange(this.total_object, '实物状况')
+        } else {
+          this.$notify({
+            title: '获取信息失败',
+            message: response.msg,
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    },
+    // 获取任务信息
+    getTaskInfo() {
+      getTaskInfo(this.taskId).then(response => {
+        if (response.code === 200) {
+          this.taskInfo = response.data
+          if (this.taskInfo.status === '任务完成') {
+            this.editEnabled = false
+          }
+        } else {
+          this.$notify({
+            title: '获取信息失败',
+            message: response.msg,
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    },
+    // 通过名称获取影响因素
+    getFactorsByName(name) {
+      const result = []
+      for (let i = 0; i < this.factorList.length; i++) {
+        if (this.factorList[i].type === name && this.factorList[i].used) {
+          result.push(this.factorList[i])
+        }
+      }
+      return result
+    },
+    // 通过类型获取已添加的影响因素
+    getUsedFactorsByType(type) {
+      const result = []
+      for (let i = 0; i < this.factorList.length; i++) {
+        if (this.factorList[i].type === type && !this.factorList[i].used) {
+          result.push(this.factorList[i])
+        }
+      }
+      return result
+    },
+    // 计算比准价格
+    computeTotal() {
+      let sum = 0
+      this.price_bz.comparables = []
+      for (let i = 0; i < this.comparablesList.length; i++) {
+        this.price_bz.comparables.push(this.comparablesList[i].each_price)
+      }
+      for (let i = 0; i < this.caseNum; i++) {
+        this.price_bz.comparables[i] = Math.round(
+          this.price_bz.comparables[i] *
+            this.total_sale.comparables[i] /
+            100 *
+            this.total_location.comparables[i] /
+            100 *
+            this.total_right.comparables[i] /
+            100 *
+            this.total_object.comparables[i] /
+            100
+        )
+        sum += this.price_bz.comparables[i]
+      }
+      this.price = Math.round(sum / this.caseNum)
+    },
+    // 数值变化时同步变化合计值和比准价格
+    onIndexInputChange(totalList, key) {
+      totalList.comparables = [100, 100, 100, 100, 100]
+      for (let i = 0; i < this.caseNum; i++) {
+        const factors = this.getFactorsByName(key)
+        for (let j = 0; j < factors.length; j++) {
+          totalList.comparables[i] += this.comparablesList[i][factors[j].name].index - 100
+          if (totalList.comparables[i] < 0) {
+            this.$message({ message: '不允许为负数，调整不成功,不可提交或转为保存！', type: 'warning' })
+            this.disabledButton = true
+            return
+          }
+        }
+      }
+      this.disabledButton = false
+      this.computeTotal()
+    },
+    // 删除某个影响因素
+    onRemoveFactorClick(factor, total_list, key) {
+      factor.used = false
+      this.onIndexInputChange(total_list, key)
+    },
+    // 添加影响因素
+    onAddFactorClick(type) {
+      this.factor = this.getUsedFactorsByType(type)
+      this.dialog = true
+      switch (type) {
+        case '区位状况':
+          this.type = '区位状况'
+          this.factor_total = this.total_location
+          break
+        case '权益状况':
+          this.type = '权益状况'
+          this.factor_total = this.total_right
+          break
+        case '实物状况':
+          this.type = '实物状况'
+          this.factor_total = this.total_object
+          break
+        case '交易状况':
+          this.type = '交易状况'
+          this.factor_total = this.total_sale
+          break
+        default:
+          break
+      }
+    },
+    // 保存添加的影响因素   添加影响因素的关闭按钮触发
+    onAddDialogCloseClick(factor_total, factor) {
+      this.dialog = false
+      this.onIndexInputChange(factor_total, factor)
+    },
+    // 上一步按钮
+    onPreviousStepClick(val) {
+      gotoback(this.taskId).then(response => {
+        if (response.code === 200) {
+          getProperty({ task_id: this.taskId }).then(response => {
+            this.$router.push({ name: 'CaseSearch', query: { caller: 'singleapp', prj_no: response.data.prj_no, taskId: this.taskId, method: this.method }})
+          })
+        } else {
+          alert(response.msg)
+        }
+      })
+    },
+    // 下一步按钮
+    onNextStepClick(type) {
+      for (let index = 0; index < this.comparablesList.length; index++) {
+        this.comparablesList[index].adjust_value = this.price_bz.comparables[index]
+      }
+      var form = {
+        task_id: this.taskId,
+        submit: type,
+        adjust_value: Math.round(this.price),
+        adjust_total: Math.round(this.price * this.property.built_in_area),
+        factors: this.factorList,
+        comparables: this.comparablesList
+      }
+      editAppraisal(form).then(response => {
+        if (response.code === 200) {
+          if (type) {
+            this.$message({ message: '提交成功', type: 'success' })
+          } else {
+            this.$message({ message: '保存成功', type: 'success' })
+          }
+          if (response.status === '报告撰写') {
+            const routerData = {
+              name: 'SingleappReport',
+              query: { taskId: this.taskId, status: '报告撰写' }
+            }
+            this.$router.push(routerData)
+          }
+          if (response.status === '收益测算') {
+            this.$router.push({ name: 'SingleappAppraisedRent', query: { taskId: this.taskId }})
+          }
+        } else {
+          alert(response.msg)
+        }
+      })
+    },
+    // 返回按钮
+    onBackClick() {
+      this.$router.push({ name: 'SingleTaskDetail', query: { id: this.taskId }})
+    }
+  }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss" >
+.fa {
+  float: left;
+  width: 33.33%;
+}
+.btn-right{
+  float: right;
+  margin-right:20px;
+}
+.title{
+  font-size: 14px;
+  font-weight:bold;
+  margin-top: 10px;
+  margin-left:25px;
+  margin-bottom: 10px;
+}
+%td {
+  margin-top: 0px;
+  margin-bottom: 0px;
+  border: 0.2px solid #c0c4cc;
+  // width: 6%;
+  align-content: center;
+  height: 33px;
+}
+.table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  margin-left: 2%;
+  margin-top: 10px;
+  width: 96%;
+  .tr-title{
+    margin-top:2%;
+    margin-bottom: 0px;
+    background:#f5f7fa;
+    height: 35px;
+  }
+  .td-desc{
+    @extend %td;
+    width: 10%;
+  }
+  .td-content {
+    @extend %td;
+    width: 15%;
+  }
+  .td-btn {
+    @extend %td;
+    width: 3%;
+  }
+  .title-small {
+    margin-left: 20px;
+    font-size: 14px ;
+    font-weight: bold;
+  }
+  // .btn-add {
+
+  // }
+  .normal {
+    // width: -webkit-fill-available;
+    width: 100%;
+    text-align: center;
+    display: inline-block;
+    // width: 130px;
+    // margin-left:3px;
+    color:#7b7676;
+    font-size: 15px;
+  }
+  .el-input-number {
+    width: 100%;
+  }
+  .el-icon-delete {
+    margin-left: 10px;
+  }
+  // .el-input.is-disabled .el-input__inner {
+  //   background: white;
+  // }
+  .el-button--text {
+    margin-left: 10px;
+  }
+  .noborder.el-input__inner {
+    border: none;
+  }
+  .el-input.is-disabled .el-input__inner {
+    border: none;
+  }
+  .el-input--small .el-input__inner {
+    border: none;
+    text-align: center;
+  }
+  .ck {
+    margin-left: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+  .textarea{
+    width: 100%;
+    border: none;
+    text-align: center;
+    font-size: 13px;
+    color: grey;
+  }
+}
+
+</style>

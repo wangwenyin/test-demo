@@ -1,0 +1,37 @@
+import request from '@/utils/request'
+
+// 获取模糊匹配的推荐小区名称列表
+export function getSuggestionProjectName(params) {
+  return request({
+    url: '/enquiry/project',
+    method: 'get',
+    params
+  })
+}
+
+// 获取模糊匹配的推荐楼栋名称列表
+export function getSuggestionBuildingName(params) {
+  return request({
+    url: '/enquiry/building',
+    method: 'get',
+    params
+  })
+}
+
+// 获取模糊匹配的推荐户名称列表
+export function getSuggestionHouseName(params) {
+  return request({
+    url: '/enquiry/house',
+    method: 'get',
+    params
+  })
+}
+
+// 获取楼盘信息
+export function getProjectInfo(prj_no, data) {
+  return request({
+    url: '/data/projects/' + prj_no,
+    method: 'post',
+    data
+  })
+}

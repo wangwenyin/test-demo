@@ -1,0 +1,469 @@
+<template>
+  <div style="margin:10px">
+    <el-row :gutter="10">
+      <el-col :span="22" :offset="1">
+        <table class="table-form">
+          <tr class="table-form__row">
+            <td class="table-form__col w10"><span class="table-form__col__text">估价对象</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text">  <el-input v-model="form.prop_name" class="el-input--noborder" size="small" readonly/></span></td>
+            <td class="table-form__col w10"> <span class="table-form__col__text">地址</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text"> <el-input v-model="form.address" class="el-input--noborder" size="small" readonly/></span></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w10"><span class="table-form__col__text">建筑面积</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text"><el-input v-model="form.built_in_area" class="el-input--noborder" size="small" readonly/></span></td>
+            <td class="table-form__col w10"><span class="table-form__col__text">物业用途</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text"> <el-input v-model="form.house_usage" class="el-input--noborder" size="small" readonly/></span></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w10"><span class="table-form__col__text">出租方</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text"> <div style="margin-left:20px;">
+              <el-radio v-model="form.owner_attr" label="单位" class="radio-btn">单位</el-radio>
+              <el-radio v-model="form.owner_attr" label="个人" class="radio-btn">个人</el-radio>
+            </div></span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text">房产原值</span></td>
+            <td class="table-form__col"><span class="table-form__col__text"><el-input-number v-model="form.reg_price" class="el-input--noborder" size="small" /></span></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w10"><span class="table-form__col__text">土地使用年限</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text"> <el-input-number v-model="form.land_term" class="el-input--noborder" size="small"/></span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text">土地取得日期</span></td>
+            <td class="table-form__col"><span class="table-form__col__text">
+              <el-date-picker v-model="form.start_date" class="el-input--noborder" style="width:100%;" size="small" type="date" value-format="yyyy-MM-dd" placeholder="起始日期" />
+            </span></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w10"><span class="table-form__col__text">剩余使用年限</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text"><el-input v-model="form.land_surplus" class="el-input--noborder" size="small" readonly/></span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text">年租金</span></td>
+            <td class="table-form__col"><span class="table-form__col__text"> <el-input v-model="form.rent_year" class="el-input--noborder" size="small" /></span></td>
+          </tr>
+        </table>
+      </el-col>
+    </el-row>
+    <el-row >
+      <el-col :span="22" :offset="1">
+        <table class="table-form">
+          <tr class="table-form__row__title">
+            <td colspan="4" class="table-form__col__title"><span style="margin-left:20px;">求取年净租金收益 </span>
+            </td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w10"><span class="table-form__col__text">项目名称</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text">计算结果</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text">费用比率</span></td>
+            <td class="table-form__col"><span class="table-form__col__text">计算说明</span></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w10"><span class="table-form__col__text">空置率</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text">{{ form.kzl.value }}</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text"><el-input-number v-model="form.kzl.rate" class="el-input--noborder" size="small" /></span></td>
+            <td class="table-form__col"><span class="table-form__col__text">区域或项目内部的平均出租空置率</span></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w10"><span class="table-form__col__text">租赁押金月份</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text">{{ form.zlyjyf.value }}</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text"><el-input-number v-model="form.zlyjyf.rate" class="el-input--noborder" size="small" /></span></td>
+            <td class="table-form__col"><span class="table-form__col__text">以两个月的租赁押金 × 一年期存款利率</span></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w10"><span class="table-form__col__text">租赁押金收益</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text">{{ form.zlyjsy.value }}</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text"><el-input-number v-model="form.zlyjsy.rate" class="el-input--noborder" size="small" /></span></td>
+            <td class="table-form__col"><span class="table-form__col__text"/></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w10"><span class="table-form__col__text">房产税</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text">{{ form.fcs.value }}</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text"><el-input-number v-model="form.fcs.rate" class="el-input--noborder" size="small" /></span></td>
+            <td class="table-form__col"><span class="table-form__col__text">经营自用：房产原值 × 70% × 1.2%；出租房屋：房产租金收入 × 12%</span></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w10"><span class="table-form__col__text">增值税</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text">{{ form.zzs.value }}</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text"><el-input-number v-model="form.zzs.rate" class="el-input--noborder" size="small" /></span></td>
+            <td class="table-form__col"><span class="table-form__col__text">[含税销售额/(1 + 5%)]×5%</span></td>
+          </tr>
+          <tr class="table-form__row"><td class="table-form__col w10"><span class="table-form__col__text">城建维护税</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text">{{ form.cjwhs.value }}</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text"><el-input-number v-model="form.cjwhs.rate" class="el-input--noborder" size="small" /></span></td>
+            <td class="table-form__col"><span class="table-form__col__text">增值税 × 7%</span></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w10"><span class="table-form__col__text">教育费附加</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text">{{ form.jyffj.value }}</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text"><el-input-number v-model="form.jyffj.rate " class="el-input--noborder" size="small" /></span></td>
+            <td class="table-form__col"><span class="table-form__col__text">增值税 × 5%</span></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w10"><span class="table-form__col__text">印花税</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text">{{ form.yhs.value }}</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text"><el-input-number v-model="form.yhs.rate" class="el-input--noborder" size="small" /></span></td>
+            <td class="table-form__col"><span class="table-form__col__text">年收入 × 0.1%</span></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w10"><span class="table-form__col__text">维修费</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text">{{ form.wxf.value }}</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text"><el-input-number v-model="form.wxf.value" class="el-input--noborder" size="small" /></span></td>
+            <td class="table-form__col"><span class="table-form__col__text">年收入 × 2%</span></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w10"><span class="table-form__col__text">管理费</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text">{{ form.glf.value }}</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text"><el-input-number v-model="form.glf.rate" class="el-input--noborder" size="small" /></span></td>
+            <td class="table-form__col"><span class="table-form__col__text">年收入 × 3%</span></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w10"><span class="table-form__col__text">保险费</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text">{{ form.bxf.value }}</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text"><el-input-number v-model="form.bxf.rate" class="el-input--noborder" size="small" /></span></td>
+            <td class="table-form__col"><span class="table-form__col__text">房屋重置成本或房屋原值 × 0.2%</span></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w10"><span class="table-form__col__text">年净租金收益</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text">{{ form.njzjsy.value }}</span></td>
+            <td class="table-form__col w20"><span class="table-form__col__text"><el-input-number v-model="form.njzjsy.rate" class="el-input--noborder" size="small" /></span></td>
+            <td class="table-form__col"><span class="table-form__col__text">（年租金收益 - 运营费用 ） ×  空置率</span></td>
+          </tr>
+        </table>
+      </el-col>
+    </el-row>
+    <el-row >
+      <el-col :span="22" :offset="1">
+        <table class="table-form">
+          <tr class="table-form__row__title">
+            <td colspan="6" class="table-form__col__title"><span style="margin-left:20px">求取报酬率 -- 累加法 </span></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w16"><span class="table-form__col__text">无风险报酬率</span></td>
+            <td class="table-form__col w16"><span class="table-form__col__text">投资风险补偿率</span></td>
+            <td class="table-form__col w16"><span class="table-form__col__text">管理负担补偿率</span></td>
+            <td class="table-form__col w16"><span class="table-form__col__text">缺乏流动性补偿率</span></td>
+            <td class="table-form__col w16"><span class="table-form__col__text">易于获得融资的优惠率</span></td>
+            <td class="table-form__col w16"><span class="table-form__col__text">所得税抵扣的优惠率</span></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w16"><span class="table-form__col__text">  <el-input-number v-model="form.wfxbcl" class="el-input--noborder" size="small" /></span></td>
+            <td class="table-form__col w16"><span class="table-form__col__text"><el-input-number v-model="form.tzfxbcl" class="el-input--noborder" size="small" /></span></td>
+            <td class="table-form__col w16"><span class="table-form__col__text"><el-input-number v-model="form.glfdbcl" class="el-input--noborder" size="small" /></span></td>
+            <td class="table-form__col w16"><span class="table-form__col__text"><el-input-number v-model="form.qfldxbcl" class="el-input--noborder" size="small" /></span></td>
+            <td class="table-form__col w16"><span class="table-form__col__text"><el-input-number v-model="form.yyhdrzdyhl" class="el-input--noborder" size="small" /></span></td>
+            <td class="table-form__col w16"><span class="table-form__col__text"><el-input-number v-model="form.sdsdkdyhl" class="el-input--noborder" size="small" /></span></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w16"><span class="table-form__col__text"> 报酬率</span></td>
+            <td class="table-form__col w16"><span class="table-form__col__text">{{ form.bcl }}</span></td>
+            <td class="table-form__col" colspan="4"><span class="table-form__col__text">报酬率 = 无风险报酬率＋投资风险补偿＋管理负担补偿＋缺乏流动性补偿－易于获得融资的优惠率 - 所得税抵扣的优惠率</span></td>
+          </tr>
+        </table>
+      </el-col>
+    </el-row>
+    <el-row >
+      <el-col :span="22" :offset="1">
+        <table class="table-form">
+          <tr class="table-form__row__title">
+            <td colspan="6" class="table-form__col__title"><span style="margin-left:20px">求取收益价值</span></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w16"><span class="table-form__col__text">年净租金收益</span></td>
+            <td class="table-form__col w16"><span class="table-form__col__text">报酬率</span></td>
+            <td class="table-form__col w16"><span class="table-form__col__text">剩余收益年限</span></td>
+            <td class="table-form__col w16"><span class="table-form__col__text"/><span/></td>
+            <td class="table-form__col w16"><span class="table-form__col__text"/></td>
+            <td class="table-form__col w16"><span class="table-form__col__text"/></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w16"><span class="table-form__col__text"> {{ form.njzjsy }}</span></td>
+            <td class="table-form__col w16"><span class="table-form__col__text"> {{ form.bcl }}</span></td>
+            <td class="table-form__col w16"><span class="table-form__col__text"> {{ form.land_surplus }}</span></td>
+            <td class="table-form__col w16"><span class="table-form__col__text"/></td>
+            <td class="table-form__col w16"><span class="table-form__col__text"/></td>
+            <td class="table-form__col w16"><span class="table-form__col__text"/></td>
+          </tr>
+          <tr class="table-form__row">
+            <td class="table-form__col w16"><span class="table-form__col__text"> 收益价值</span></td>
+            <td class="table-form__col w16"><span class="table-form__col__text">{{ form.syjz }}</span></td>
+            <td class="table-form__col " colspan="4"><span class="table-form__col__text">报酬率 = 无风险报酬率＋投资风险补偿＋管理负担补偿＋缺乏流动性补偿－易于获得融资的优惠率 - 所得税抵扣的优惠率</span></td>
+          </tr>
+        </table>
+      </el-col>
+    </el-row>
+    <el-row v-if="!detail" style="margin-top:20px">
+      <el-col :span="24">
+        <el-button v-if="editEnabled" size="small" class="btn--right" @click="onCancelClick">取消</el-button>
+        <el-button v-if="editEnabled" size="small" class="btn--right" @click="onNextStepClick(false)">保存</el-button>
+        <el-button v-if="editEnabled" size="small" class="btn--right" type="primary" @click="onNextStepClick(true)">提交</el-button>
+        <el-button v-if="editEnabled" size="small" class="btn--right" type="primary" @click="onPreviousStepClick">上一步</el-button>
+      </el-col>
+    </el-row>
+  </div>
+</template>
+<script>
+// import { getTaskInfo } from '@/api/singleapp'
+export default {
+  data() {
+    return {
+      form: {},
+      taskId: '',
+      detail: false,
+      editEnabled: true
+    }
+  },
+  computed: {
+    // 根据物业用途来判断是住宅还是非住宅
+    getHouseUsageType() {
+      if (this.form.house_usage === '住宅' && this.form.house_usage === '') {
+        return '住宅'
+      } else {
+        return '非住宅'
+      }
+    },
+    // 根据单价和面积计算总价
+    getTotalPrice() {
+      console.log()
+      return Math.round(this.form.each_price * this.form.built_in_area)
+    },
+    getDeedTaxRate() {
+      if (this.form.owner_attr === '个人') {
+        if (this.form.afford_house === '1') {
+          return 1.5
+        } else {
+          if (this.form.house_usage === '住宅') {
+            if (this.form.built_in_area <= 90) {
+              return 1
+            } else {
+              return 1.5
+            }
+          } else {
+            return 3
+          }
+        }
+      } else {
+        return 3
+      }
+    },
+    // 计算契税
+    getDeedTax() {
+      return Math.round(this.getTotalPrice * this.getDeedTaxRate / 100)
+    },
+    // 计算净值1
+    getNetValue1() {
+      return Math.round(this.getTotalPrice * (1 - this.getDeedTaxRate / 100))
+    },
+    // 计算增值税
+    getZZS() {
+      if (this.form.owner_attr === '个人') {
+        if (this.form.house_usage === '住宅') {
+          if (this.form.full_two_year === '1' && this.form.ordinary_house === '1') { // 个人普通住宅，满2年
+            return 0
+          } else if (this.form.purchasePeriod === '1' && this.form.ordinary_house === '0') { // 个人非普通住宅， 满2年
+            return Math.round((this.getTotalPrice - this.form.reg_price) * 0.05 / 1.05)
+          } else { // 个人普通或非普通住宅，未满2年
+            return Math.round(this.getTotalPrice * 0.05 / 1.05)
+          }
+        } else { // 个人非住宅
+          return Math.round((this.getTotalPrice - this.form.reg_price) * 0.05 / 1.05)
+        }
+      } else { // 企业房产
+        return Math.round((this.getTotalPrice - this.form.reg_price) * 0.05 / 1.05)
+      }
+    },
+    // 计算城建税
+    getCJS() {
+      return Math.round(this.getZZS * 0.07)
+    },
+    // 计算教育费附加
+    getJYFFJ() {
+      return Math.round(this.getZZS * 0.05)
+    },
+    // 计算印花税
+    getYHS() {
+      if (this.form.owner_attr === '企业' || this.form.house_usage !== '住宅') {
+        return Math.round(this.getTotalPrice * 0.0005)
+      } else {
+        return 0
+      }
+    },
+    // 计算扣除项目金额
+    getKCXMJE() {
+      if (this.form.owner_attr === '个人') {
+        if (this.form.full_two_year === '1' && this.form.ordinary_house === '1') {
+          return Math.round(parseFloat(this.form.reg_price) + this.getZZS + this.getCJS + this.getJYFFJ + this.getYHS)
+        } else if (this.form.full_two_year === '1' && this.form.ordinary_house === '0') {
+          return Math.round(parseFloat(this.form.reg_price) + this.getZZS + this.getCJS + this.getJYFFJ + this.getYHS)
+        } else {
+          return Math.round(parseFloat(this.form.reg_price) + this.form.repay_price + this.form.improve_fee + this.getZZS + this.getCJS + this.getJYFFJ + this.getYHS)
+        }
+      } else {
+        return Math.round(parseFloat(this.form.reg_price) + this.getZZS + this.getCJS + this.getJYFFJ + this.getYHS)
+      }
+    },
+    // 计算土地增值额
+    getTDZZE() {
+      return Math.round(this.getTotalPrice - this.getKCXMJE)
+    },
+    // 计算增值率
+    getZZL() {
+      return Math.abs(this.getTDZZE / this.getKCXMJE).toFixed(2)
+    },
+    // 计算土地增值税
+    getTDZZS() {
+      const zzl = this.getZZL
+      if (this.form.owner_attr === '个人' && this.form.house_usage === '住宅') {
+        return 0
+      } else {
+        if (zzl <= 0.5) {
+          return Math.round(this.getTDZZE * 0.3)
+        } else if (zzl > 0.5 && zzl <= 1) {
+          return Math.round(this.getTDZZE * 0.4 - this.getKCXMJE * 0.05)
+        } else if (zzl > 1 && zzl <= 2) {
+          return Math.round(this.getTDZZE * 0.5 - this.getKCXMJE * 0.15)
+        } else {
+          return Math.round(this.getTDZZE * 0.6 - this.getKCXMJE * 0.35)
+        }
+      }
+    },
+    // 计算所得税
+    getSDS() {
+      if (this.form.owner_attr === '个人') {
+        return Math.round((this.getTotalPrice - this.form.reg_price - this.form.repay_price - this.form.improve_fee - this.getZZS - this.getCJS -
+          this.getJYFFJ - this.getYHS - this.getTDZZS) * 0.2)
+      } else {
+        return 0
+      }
+    },
+    // 计算税费合计
+    getSFHJ() {
+      return this.getZZS + this.getCJS + this.getJYFFJ + this.getYHS + this.getTDZZS + this.getSDS
+    },
+    // 计算抵押价值
+    getDYJZ() {
+      return Math.round(this.getTotalPrice - this.getSFHJ - this.form.repay_price)
+    }
+  },
+  watch: {
+    // 计算剩余使用年限
+    'form.land_term'(val) {
+      this.form.land_surplus = val - (new Date().getFullYear() - new Date(this.form.start_date).getFullYear())
+    },
+    'form.start_date'(val) {
+      this.form.land_surplus = this.form.land_term - (new Date().getFullYear() - new Date(val).getFullYear())
+    }
+  },
+  mounted() {
+    this.taskId = this.$route.query.taskId
+    if (this.taskId) {
+      this.getTaskInfo()
+    } else {
+      this.$notify({
+        title: '错误',
+        message: '缺少任务编号！',
+        type: 'error',
+        duration: 2000
+      })
+    }
+  },
+  methods: {
+    // 获取任务信息
+    getTaskInfo() {
+      this.form = {
+        prop_name: '君悦阁2102',
+        address: '福田区燕南路',
+        built_in_area: 78.71,
+        house_usage: '商业',
+        owner_attr: '个人',
+        reg_price: 856433,
+        land_term: 70,
+        start_date: '1995,6,21',
+        land_surplus: '46年',
+        rent_year: '1143元/平方米',
+        kzl: { 'value': 0, 'rate': 10 },
+        zlyjyf: { 'value': 15000, 'rate': '2月' },
+        zlyjsy: { 'value': 225, 'rate': 1.5 },
+        fcs: { 'value': 10800, 'rate': 12 },
+        zzs: { 'value': 4286, 'rate': 5 },
+        cjwhs: { 'value': 300, 'rate': 7 },
+        jyffj: { 'value': 214, 'rate': 5 },
+        yhs: { 'value': 900, 'rate': 0.1 },
+        wxf: { 'value': 1800, 'rate': 2 },
+        glf: { 'value': 2700, 'rate': 3 },
+        bxf: { 'value': 180, 'rate': 0.02 },
+        njzjsy: 68820,
+        wfxbcl: 1.50,
+        tzfxbcl: 3.02,
+        glfdbcl: 1.9,
+        qfldxbcl: 1.6,
+        yyhdrzdyhl: 0.5,
+        sdsdkdyhl: 0,
+        bcl: 7.52,
+        syjz: 13820
+      }
+    }
+  }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss" scoped>
+.table-form {
+  border-spacing: 0;
+  border-collapse: collapse;
+  width: 100%;
+  .radio-btn{
+    width: 70px;
+  }
+}
+.table-form__row{
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+.table-form__row__title{
+    margin-left: 10px;
+    background:#3C3B3F;
+    color: white;
+    height: 35px;
+    .td{
+        border: 0.2px solid #c0c4cc;
+        text-align: left;
+        height: 33px;
+    }
+}
+.table-form__col{
+    margin: 0px auto 0px auto;
+    border: 0.2px solid #c0c4cc;
+    text-align: center;
+    height: 33px;
+}
+ .table-form__col.w10{
+   width: 10%;
+  }
+ .table-form__col.w16{
+    width: 16.6%;
+  }
+ .table-form__col.w20{
+    width: 20%;
+  }
+.table-form__col__title{
+    margin: 0px auto 0px auto;
+    border: 0.2px solid #c0c4cc;
+    text-align: left;
+    height: 33px;
+}
+.btn--right{
+  float: right;
+  margin-right:20px;
+}
+.table-form__col__text {
+  color:#a89292;
+    text-align: center;
+    font-size: 15px;
+}
+.el-input-number {
+    width: 100%;
+}
+</style>
+<style>
+.el-input--noborder .el-input__inner {
+  border: 0px solid #b2b2b2;
+  width: 100%;
+  text-align: center
+}
+</style>

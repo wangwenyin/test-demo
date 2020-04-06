@@ -1,0 +1,74 @@
+<template>
+  <div style="margin:10px">
+    <el-tabs :tab-position="tabPosition" v-model="activeTabName" style="margin-top:10px;" >
+      <el-tab-pane
+        v-for="item in marketInfoList"
+        :key="item.name"
+        :label="item.name"
+        :name="item.name">
+        <!-- <span style="font-size:14px">{{ item.description }}</span> -->
+        <el-input v-model="item.description" :autosize="{ minRows: 5, maxRows: 10}" type="textarea"/>
+        <el-button type="primary" size="small" style="float: right; margin-right:20px;margin-top:10px;" @click="onSaveMarketInfo(item)">保存</el-button>
+      </el-tab-pane>
+    </el-tabs>
+  </div>
+</template>
+<script>
+import { getParameter, saveAppraisalParameters } from '@/api/singleapp'
+export default {
+  data() {
+    return {
+      activeTabName: '罗湖区',
+      tabPosition: 'left',
+      marketInfoList: []
+    }
+  },
+  mounted() {
+    this.getMarketAnalysisInfo()
+  },
+  methods: {
+    onSaveMarketInfo(data) {
+      data.item = '房地产市场状况'
+      saveAppraisalParameters(data).then(response => {
+        if (response.code === 200) {
+          this.$notify({
+            title: '成功',
+            message: response.msg,
+            type: 'success',
+            duration: 2000
+          })
+        } else {
+          this.$notify({
+            title: '错误',
+            message: response.msg,
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    },
+    getMarketAnalysisInfo() {
+      const params = {
+        item: '房地产市场状况'
+      }
+      getParameter(params).then(response => {
+        if (response.code === 200) {
+          this.marketInfoList = response.data
+        } else {
+          this.$notify({
+            title: '错误',
+            message: response.msg,
+            type: 'error',
+            duration: 2000
+          })
+        }
+      })
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+  .update{
+
+  }
+</style>

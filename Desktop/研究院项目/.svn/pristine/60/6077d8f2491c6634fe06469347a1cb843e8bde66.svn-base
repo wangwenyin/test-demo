@@ -1,0 +1,154 @@
+<template>
+  <el-row style="padding:20px 5px 0 5px" >
+    <el-col :span="14" :offset="8">
+      <el-form ref="form" :model="form" :rules="rules" label-width="100px" label-position="right">
+        <el-row >
+          <el-col :span="24">
+            <el-form-item label="物业名称：" prop="property_name">
+              <el-input v-model="form.property_name" auto-complete="off" style="width: 50%;" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row >
+          <el-col :span="24">
+            <el-form-item label="任务类型：" prop="task_type">
+              <el-radio-group v-model="form.task_type">
+                <el-radio label="估价任务" />
+                <el-radio label="复核任务" />
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row >
+          <el-col :span="24">
+            <el-form-item label="查勘类型：" prop="survey_type">
+              <el-radio-group v-model="form.survey_type">
+                <el-radio label="住宅性房地产" />
+                <el-radio label="经营性房地产" />
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row >
+          <el-col :span="24">
+            <el-form-item label="任务编号：" prop="task_no">
+              <el-select v-model="form.task_no" style="width:50%;" placeholder="请选择任务编号">
+                <el-option label="CK2018-01" value="CK2018-01" />
+                <el-option label="CK2018-02" value="CK2018-02" />
+                <el-option label="CK2018-02" value="CK2018-02" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row >
+          <el-col :span="24">
+            <el-form-item label="查勘人：" prop="surveyor">
+              <el-select v-model="form.surveyor" style="width:50%;" placeholder="请选择查勘人">
+                <el-option label="张三" value="张三" />
+                <el-option label="李四" value="李四" />
+                <el-option label="王五" value="王五" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row >
+          <el-col :span="24">
+            <el-form-item label="完成时间：" prop="finish_date">
+              <el-date-picker v-model="form.finish_date" type="date" size="small" value-format="yyyy-MM-dd" placeholder="选择日期" style="width: 50%;" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="备注：" prop="remark">
+              <el-input v-model="form.remark" auto-complete="off" rows="6" type="textarea" style="width: 50%;" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="14">
+            <el-form-item>
+              <el-button size="small" class="row-button" @click="onCancelClick">取消</el-button>
+              <el-button size="small" type="primary" class="row-button" @click="onSaveClick('form')">保存</el-button>
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-form>
+    </el-col>
+  </el-row>
+</template>
+<script>
+import { mapGetters } from 'vuex'
+export default {
+  data() {
+    return {
+      form: {
+        task_type: '估价任务',
+        survey_type: '住宅房地产',
+        task_no: '',
+        surveyor: '',
+        finish_date: '',
+        remark: '',
+        region: ''
+      },
+      rules: {
+        task_type: [{ required: true, message: '请输入任务类型', trigger: 'change' }],
+        survey_type: [
+          { required: true, message: '请选择查勘类型', trigger: 'change' }
+        ],
+        task_no: [
+          { required: true, message: '请选择任务编号', trigger: 'change' }
+        ],
+        surveyor: [{ required: true, message: '请选择查勘人', trigger: 'change' }],
+        finish_date: [
+          { required: true, message: '请选择预计完成时间', trigger: 'change' }
+        ]
+      }
+    }
+  },
+  computed: {
+    ...mapGetters(['name', 'roles'])
+  },
+  mounted() {
+    if (this.$route.query.id) {
+      this.getTaskById()
+    }
+  },
+  methods: {
+    getSaveParams() {
+      const params = {
+        task_type: this.form.task_type,
+        survey_type: this.form.survey_type,
+        task_no: this.form.task_no,
+        surveyor: this.form.surveyor,
+        finish_date: this.form.finish_date,
+        remark: this.form.remark
+      }
+      this.params = params
+    },
+    getTaskById() {
+    },
+    onCancelClick() {
+      this.$router.push({ name: 'SurveyList' })
+    },
+    onSaveClick(formName) {
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          alert('submit!')
+        } else {
+          console.log('error submit!!')
+          return false
+        }
+      })
+    }
+  }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss" scoped>
+.row-button {
+  float: right;
+  margin-left: 10px;
+  margin-top: 3px;
+}
+</style>

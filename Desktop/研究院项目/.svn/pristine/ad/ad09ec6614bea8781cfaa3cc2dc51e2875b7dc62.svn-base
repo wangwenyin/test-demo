@@ -1,0 +1,100 @@
+.fa {
+  float: left;
+  width: 33.33%;
+}
+.btn-right{
+  float: right;
+  margin-right:20px;
+}
+.title{
+  font-size: 14px;
+  font-weight:bold;
+  margin-top: 10px;
+  margin-left:25px;
+  margin-bottom: 10px;
+}
+%td {
+  margin-top: 0px;
+  margin-bottom: 0px;
+  border: 0.2px solid #c0c4cc;
+  // width: 6%;
+  align-content: center;
+  height: 33px;
+}
+.table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  margin-left: 2%;
+  margin-top: 10px;
+  width: 96%;
+  .tr-title{
+    margin-top:2%;
+    margin-bottom: 0px;
+    background:#f5f7fa;
+    height: 35px;
+  }
+  .td-desc{
+    @extend %td;
+    width: 10%;
+  }
+  .td-content {
+    @extend %td;
+    width: 15%;
+  }
+  .td-btn {
+    @extend %td;
+    width: 3%;
+  }
+  .title-small {
+    margin-left: 20px;
+    font-size: 14px ;
+    font-weight: bold;
+  }
+  .btn-add {
+
+  }
+  .normal {
+    // width: -webkit-fill-available;
+    width: 100%;
+    text-align: center;
+    display: inline-block;
+    // width: 130px;
+    // margin-left:3px;
+    color:#7b7676;
+    font-size: 15px;
+  }
+  .el-input-number {
+    width: 100%;
+  }
+  .el-icon-delete {
+    margin-left: 10px;
+  }
+  // .el-input.is-disabled .el-input__inner {
+  //   background: white;
+  // }
+  .el-button--text {
+    margin-left: 10px;
+  }
+  .noborder .el-input__inner {
+    border: none;
+  }
+  .el-input.is-disabled .el-input__inner {
+    border: none;
+  }
+  .el-input--small .el-input__inner {
+    border: none;
+    text-align: center;
+  }
+  .ck {
+    margin-left: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+  .textarea{
+    width: 100%;
+    border: none;
+    text-align: center;
+    font-size: 13px;
+    color: grey;
+  }
+}

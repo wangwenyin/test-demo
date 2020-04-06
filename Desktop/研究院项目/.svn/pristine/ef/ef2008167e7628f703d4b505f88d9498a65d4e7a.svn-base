@@ -1,0 +1,230 @@
+<template>
+  <div class="app">
+    <div class="margin10 maxdialog">
+      <div class="btn">
+        <el-button size="mini" type="primary" @click="backStep" >上一步</el-button>
+        <el-button size="mini" @click="createReport" >生成报告</el-button>
+        <el-button size="mini" @click="dg_rateResult=true" >检验完毕</el-button>
+      </div>
+      <el-tabs ref="tabs" v-model="activeName" type="card" style="margin-left:20px" @tab-click="onTabClick">
+        <el-tab-pane v-if="method.indexOf('总体情况')!==-1" label="总体情况" name="总体情况" style="padding-left:20px">
+          <RateOverall :form="ztqk" :histogram-data="histogramData" :width="width" @save="save" />
+        </el-tab-pane>
+        <el-tab-pane v-if="method.indexOf('用途主类')!==-1" label="用途主类分组" name="用途主类" >
+          <RatePrimaryUse :form="ytzl" :histogram-data="histogramData" :width="width" @onUsageChange="onUsageChange" @save="save" />
+        </el-tab-pane>
+        <el-tab-pane v-if="method.indexOf('用途细类')!==-1" label="用途细类分组" name="用途细类" >
+          <RateSecondUse :form="ytxl" :histogram-data="histogramData" :width="width" @save="save" @onUsageSubChange="onUsageSubChange" />
+        </el-tab-pane>
+        <el-tab-pane v-if="method.indexOf('行政区')!==-1" label="行政区分组" name="行政区" >
+          <RateDistrict :form="xzq" :histogram-data="histogramData" :width="width" @save="save" @onDistrictChange="onDistrictChange" />
+        </el-tab-pane>
+      </el-tabs>
+    </div>
+    <el-dialog :visible.sync="dg_rateResult" title="检验结果" >
+      <div>
+        <el-radio v-model="rateResult" label="合格">合格</el-radio>
+        <el-radio v-model="rateResult" label="不合格">不合格</el-radio>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dg_rateResult = false">取 消</el-button>
+        <el-button type="primary" @click="onSubmit">确 定</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+<script>
+import {
+  getTestTaskById,
+  getCaseHistogram,
+  getRatioResult,
+  saveRatioResult,
+  downloadReopot,
+  submitResult
+} from '@/api/ratio'
+import RateOverall from '@/views/resultaudit/RateOverall'
+import RatePrimaryUse from '@/views/resultaudit/RatePrimaryUse'
+import RateSecondUse from '@/views/resultaudit/RateSecondUse'
+import RateDistrict from '@/views/resultaudit/RateDistrict'
+export default {
+  components: {
+    RateOverall,
+    RatePrimaryUse,
+    RateSecondUse,
+    RateDistrict
+  },
+  data() {
+    return {
+      form: {},
+      ztqk: {},
+      ytzl: {},
+      ytxl: {},
+      xzq: {},
+      method: [],
+      activeName: '总体情况',
+      dg_rateResult: false,
+      rateResult: '合格',
+      width: '500px',
+      usage1: '住宅', // 用途主类
+      checkedUsageList: {},
+      usage2: '', // 用途细类
+      district: '罗湖区', // 行政区
+      histogramData: []
+    }
+  },
+  mounted() {
+    this.getTestTaskById()
+    this.width = document.documentElement.clientWidth * 0.5 + 'px'
+  },
+  methods: {
+    // 用途主类
+    onUsageChange(val) {
+      this.usage1 = val
+    },
+    // 行政区
+    onDistrictChange(val) {
+      this.district = val
+    },
+    // 用途细类
+    onUsageSubChange(val) {
+      this.usage2 = val
+    },
+    // 标签点击事件
+    onTabClick(tab, event) {
+      const param = {}
+      if (event.target.innerText === '总体情况') {
+        this.fetchData(1)
+      }
+      if (event.target.innerText === '用途主类分组') {
+        param.usage1 = this.usage1
+        this.fetchData(2, param)
+      }
+      if (event.target.innerText === '用途细类分组') {
+        param.usage2 = this.usage2
+        this.fetchData(2, param)
+      }
+      if (event.target.innerText === '行政区分组') {
+        param.district = this.district
+        this.fetchData(2, param)
+      }
+    },
+    fetchData: function(type, params) {
+      this.histogramData = []
+      if (type === 1) { // 总体情况
+        getCaseHistogram(this.$route.query.id).then(response => {
+          this.histogramData = response.data
+        })
+      }
+      if (type === 2) { // 用途主类 ，用途细类 ，行政区分组
+        getCaseHistogram(this.$route.query.id, params).then(response => {
+          this.histogramData = response.data
+        })
+      }
+    },
+    save(params) {
+      saveRatioResult(this.$route.query.id, params).then(response => {
+        if (response.code === 200) {
+          this.$message({ message: '保存成功', type: 'success' })
+        } else {
+          alert(response.msg)
+        }
+      })
+    },
+    getRatioResult() {
+      getRatioResult(this.$route.query.id).then(response => {
+        if (response.code === 200) {
+          this.form = response.data
+          if (this.form.length > 0) {
+            this.form.forEach(element => {
+              if (element.group === '总体情况') {
+                this.ztqk = element
+                this.ztqk.id = this.$route.query.id
+              }
+              if (element.group === '用途主类') {
+                this.ytzl = element
+                this.ytzl.id = this.$route.query.id
+                // console.log(this.ytzl)
+              }
+              if (element.group === '用途细类') {
+                this.ytxl = element
+                this.ytxl.id = this.$route.query.id
+              }
+              if (element.group === '行政区') {
+                this.xzq = element
+                this.xzq.id = this.$route.query.id
+              }
+            })
+            this.fetchData(1)
+          }
+        } else {
+          this.$message({ message: response.msg, type: 'error' })
+        }
+        // this.onTabClick()
+      })
+    },
+    getTestTaskById() {
+      // 获取评估的方法，确定所要显示的tab
+      getTestTaskById(this.$route.query.id).then(response => {
+        this.method = response.data.method
+        // this.activeName = this.method[0]
+        this.getRatioResult()
+      })
+    },
+    backStep() {
+      this.$router.push({
+        name: 'paramset',
+        query: { id: this.$route.query.id }
+      })
+    },
+    createReport() {
+      downloadReopot(this.$route.query.id).then(response => {
+        if (response.code === 200) {
+          this.$message({ message: '保存成功', type: 'success' })
+          window.location.href = response.data
+        } else {
+          alert(response.msg)
+        }
+      })
+    },
+    onSubmit() {
+      var data = {
+        id: this.$route.query.id,
+        result: this.rateResult
+      }
+      submitResult(data).then(response => {
+        if (response.code === 200) {
+          this.$message({ message: '保存成功', type: 'success' })
+          this.dg_rateResult = false
+        } else {
+          alert(response.msg)
+        }
+      })
+    }
+  }
+}
+</script>
+<style rel="stylesheet/scss" lang="scss" scoped>
+@import "../../styles/app.scss";
+.margin60 {
+  position: relative;
+  margin-left: 60px;
+  margin-right: 60px;
+}
+.btn {
+  position: absolute;
+  top: 16px;
+  right: 30px;
+  z-index: 999;
+}
+.el-row {
+  margin-top: 5px;
+  margin-bottom: 0px;
+}
+tr {
+  text-align: center;
+  height: 40px;
+}
+td {
+  width: 40px;
+}
+</style>

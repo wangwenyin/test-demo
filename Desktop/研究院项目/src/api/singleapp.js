@@ -1,0 +1,223 @@
+import request from '@/utils/request'
+
+// 创建个案估价任务
+export function createSingleappTask(data) {
+  return request({
+    url: '/singleapp/tasks',
+    method: 'post',
+    data
+  })
+}
+
+// 根据任务编号查询该任务下的估价对象及可比实例信息
+export function getFactorInfo(taskId) {
+  return request({
+    url: '/singleapp/comparative/' + taskId,
+    method: 'get'
+  })
+}
+
+// 根据任务编号查询个案估价任务详情
+export function getTaskInfo(taskId) {
+  return request({
+    url: '/singleapp/tasks/' + taskId,
+    method: 'get'
+  })
+}
+
+// 根据任务编号查询该任务下的可比实例
+export function getComparables(taskId) {
+  return request({
+    url: '/singleapp/comparable/' + taskId,
+    method: 'get'
+  })
+}
+
+// 添加可比实例到指定任务编号下的任务
+export function saveComparable(data) {
+  return request({
+    url: '/singleapp/comparable',
+    method: 'post',
+    data
+  })
+}
+
+// 删除指定任务编号指定交易编号的可比实例记录
+export function deleteComparable(taskId, data) {
+  return request({
+    url: `/singleapp/comparable/${taskId}`,
+    method: 'delete',
+    data
+  })
+}
+
+// 实例选取完毕，下一步
+export function gotoAppraisal(taskId) {
+  return request({
+    url: `/singleapp/comparable/next/${taskId}`,
+    method: 'post'
+  })
+}
+
+// 根据单项条件查询个案估价任务列表
+// params = { name: '任务名称。模糊查询', creator: '创建人。精确查询', members: '参与人员。模糊查询', usage: '物业用途。模糊查询' }
+export function searchTasks(params) {
+  return request({
+    url: '/singleapp/tasks',
+    method: 'get',
+    params
+  })
+}
+
+// 更新估价对象及其可比实例的说明和指数信息、评估价值和任务进度（价格评估页面保存和下一步按钮功能）
+export function editAppraisal(data) {
+  return request({
+    url: '/singleapp/comparative',
+    method: 'post',
+    data
+  })
+}
+
+// 根据任务编号删除个案估价任务记录及相关评估表信息
+export function deleteTask(id) {
+  return request({
+    url: `/singleapp/tasks/${id}`,
+    method: 'delete'
+  })
+}
+
+// 按照任务编号查询估价对象的基本信息
+export function getProperty(params) {
+  return request({
+    url: '/singleapp/property',
+    method: 'get',
+    params
+  })
+}
+
+// 报告撰写相关接口
+// 根据任务编号查询估价报告内容
+export function getReport(taskId) {
+  return request({
+    url: `/singleapp/report/${taskId}`,
+    method: 'get'
+  })
+}
+
+// 更新报告内容
+export function saveReport(id, data) {
+  return request({
+    url: `/singleapp/report/${id}`,
+    method: 'put',
+    data
+  })
+}
+
+// 完成估价报告撰写
+export function completeReport(data) {
+  return request({
+    url: `/singleapp/report`,
+    method: 'post',
+    data
+  })
+}
+// 获取报告下载url
+export function downloadReport(taskId) {
+  return request({
+    url: `/singleapp/report/download/${taskId}`,
+    method: 'get'
+  })
+}
+
+// 获取估价报告参数
+export function getParameter(params) {
+  return request({
+    url: `/singleapp/parameter`,
+    method: 'get',
+    params
+  })
+}
+
+// 获取估价报告附件
+export function getReportAttachment(taskId, params) {
+  return request({
+    url: `/singleapp/material/${taskId}`,
+    method: 'get',
+    params
+  })
+}
+
+// 保存估价参数
+export function saveAppraisalParameters(data) {
+  return request({
+    url: '/singleapp/parameter',
+    method: 'post',
+    data
+  })
+}
+
+// 修改默认因素设置
+export function saveParameterDefaultValue(name, data) {
+  return request({
+    url: `/singleapp/parameter/${name}`,
+    method: 'put',
+    data
+  })
+}
+
+// 通过任务编号和资料名称删除数据表和文件夹中的资料记录
+export function deleteReportAttachment(taskId, data) {
+  return request({
+    url: `/singleapp/material/${taskId}`,
+    method: 'delete',
+    data
+  })
+}
+
+// 选择估价方法
+export function setMethod(id, data) {
+  return request({
+    url: `/singleapp/tasks/${id}`,
+    method: 'put',
+    data
+  })
+}
+
+// 获取收益参数
+export function getIncome(Id) {
+  return request({
+    url: `/singleapp/income/${Id}`,
+    method: 'get'
+  })
+}
+// 提交收益参数
+export function submitIncome(data) {
+  return request({
+    url: '/singleapp/income',
+    method: 'post',
+    data
+  })
+}
+// 获取成本参数
+export function getCost(task_id) {
+  return request({
+    url: `/singleapp/cost/${task_id}`,
+    method: 'get'
+  })
+}
+// 提交成本参数
+export function submitCost(data) {
+  return request({
+    url: '/singleapp/cost',
+    method: 'post',
+    data
+  })
+}
+
+// 回退到上一步骤
+export function gotoback(Id) {
+  return request({
+    url: `/singleapp/tasks/gotoback/${Id}`,
+    method: 'put'
+  })
+}

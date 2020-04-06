@@ -1,0 +1,313 @@
+<template>
+  <div>
+    <el-row class="search-container" style="padding: 5px" >
+      <el-select
+        v-model="searchOption.logType"
+        style="width:120px;float:left;margin-left:10px;"
+        placeholder="请选择"
+        size="small"
+        @change="onChangeValue" >
+        <el-option label="登录日志" value="login" />
+        <el-option label="数据日志" value="data" />
+        <el-option label="异常日志" value="error" />
+      </el-select>
+      <date-picker ref="datePicker" :no-default-value="false" style="float:left;margin-left:10px;" @dateChange="onDateChange" />
+      <el-input
+        v-model="searchOption.text"
+        placeholder="请输入查询内容"
+        size="small"
+        style="width:400px;float:left;margin-left:10px;"
+        @keyup.enter.native="onInputEnter">
+        <el-select slot="prepend" v-model="searchOption.clause" style="width:120px;" placeholder="请选择" >
+          <el-option
+            v-for="item in sampleData[searchOption.logType].filterColumns"
+            :label="item.label"
+            :value="item.value"
+            :key="item.value" />
+        </el-select>
+        <el-button slot="append" icon="el-icon-search" @click="onBtnLogSearchClick" />
+      </el-input>
+    </el-row>
+    <div style="margin:10px;">
+      <el-table :data="list" :header-cell-style="changeHeaderStyle" style="width: 100%;" border fit size="small" >
+        <el-table-column label="序号" type="index" width="50" align="center" />
+        <el-table-column v-for="item in sampleData[searchOption.logType].columns" :label="item.label" :key="item.label" >
+          <template slot-scope="scope">
+            <span style="margin-left: 10px">{{ scope.row[item.value] }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column v-if="searchOption.logType === 'error'" label="操作" width="150" >
+          <template slot-scope="scope">
+            <el-button size="mini" type="primary" @click="onBtnViewClick(scope.$index, scope.row)">查看</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-row type="flex" justify="center" style="margin-top:5px" >
+        <pagination
+          :total="listQuery.total"
+          :page.sync="listQuery.page"
+          :limit.sync="listQuery.limit"
+          :page-sizes="listQuery.pageSizes"
+          @pagination="getLogsList"
+        />
+      </el-row>
+    </div>
+    <el-dialog :visible.sync="editDialogFormVisible" :title="editForm.title" width="40%">
+      <el-form ref="editForm" :model="editForm" label-width="100px" size="small" >
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="用户名" prop="login_name" >
+              <el-input v-model="editForm.login_name" disabled auto-complete="off"/>
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="时间" prop="time" >
+              <el-input v-model="editForm.time" disabled auto-complete="off" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="模块" prop="module">
+              <el-input v-model="editForm.time" disabled auto-complete="off" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+          <el-col :span="24">
+            <el-form-item label="异常说明" prop="roles" >
+              <el-input v-model="editForm.description" :rows="3" disabled auto-complete="off" type="textarea" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="详情" prop="note" >
+          <el-input v-model="editForm.detail" :rows="9" disabled auto-complete="off" type="textarea" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer" >
+        <el-button @click="onBtnCancelClick">取 消</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+<script>
+import Pagination from '@/components/Pagination'
+import DatePicker from '@/components/DateTimePicker'
+import { getLogs } from '@/api/log'
+export default {
+  components: { DatePicker, Pagination },
+  props: {
+    sampleData: {
+      // 示例数据，开发完成后删除
+      type: Object,
+      required: false,
+      default() {
+        return {
+          login: {
+            columns: [
+              { label: '登录时间', value: 'time' },
+              { label: '用户名', value: 'login_name' },
+              { label: '姓名', value: 'real_name' },
+              { label: '登录状态', value: 'state' },
+              { label: 'IP', value: 'ip' }
+            ],
+            filterColumns: [
+              { label: '用户名', value: 'login_name' },
+              { label: '登录状态', value: 'state' },
+              { label: 'IP', value: 'ip' }
+            ]
+          },
+          data: {
+            columns: [
+              { label: '修改时间', value: 'time' },
+              { label: '用户名', value: 'login_name' },
+              { label: '修改对象', value: 'target' },
+              { label: '修改字段', value: 'field' },
+              { label: '修改前', value: 'old_value' },
+              { label: '修改后', value: 'new_value' },
+              { label: '说明', value: 'description' },
+              { label: '备注', value: 'note' }
+            ],
+            filterColumns: [
+              { label: '用户名', value: 'login_name' },
+              { label: '修改对象', value: 'target' },
+              { label: '修改字段', value: 'field' }
+            ]
+          },
+          error: {
+            columns: [
+              { label: '时间', value: 'time' },
+              { label: '用户名', value: 'login_name' },
+              { label: '模块', value: 'module' },
+              { label: '说明', value: 'description' }
+            ],
+            filterColumns: [
+              { label: '用户名', value: 'login_name' },
+              { label: '模块', value: 'module' }
+            ]
+          }/* ,
+          backup: {
+            columns: [
+              { label: '执行时间', value: 'time' },
+              { label: '备份类型', value: 'type' },
+              { label: '存储路径', value: 'path' },
+              { label: '执行结果', value: 'result' },
+              { label: '备注', value: 'note' }
+            ],
+            filterColumns: [
+              { label: '执行结果', value: 'login_name' },
+              { label: '备注', value: 'note' }
+            ]
+          } */
+        }
+      }
+    }
+  },
+  data() {
+    return {
+      searchOption: {
+        logType: 'login',
+        clause: '请选择',
+        text: null
+      },
+      list: [],
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        pageSizes: [10, 20, 30, 50]
+      },
+      colNames: [],
+      filterColumns: [],
+      longTextColumns: [],
+      editDialogFormVisible: false,
+      editForm: {}
+    }
+  },
+  mounted() {
+    this.getLogsList()
+  },
+  methods: {
+    onInputEnter() {
+      this.getLogsList({ page: 1, limit: 10 })
+    },
+    onBtnCancelClick() {
+      this.editDialogFormVisible = false
+      this.getLogsList({ page: 1, limit: 10 })
+    },
+    onBtnViewClick(index, row) {
+      this.editForm = {
+        title: '查看',
+        login_name: row.login_name,
+        time: row.time,
+        module: row.module,
+        description: row.description,
+        detail: row.detail
+      }
+      /* getLogsById(row.id,{ type: 'error'}).then(response => {
+        if (response.code === 200) {
+          this.editForm = {
+        title: '查看',
+        login_name: response.data.error.login_name,
+        time: response.data.error.time,
+        module: response.data.error.module,
+        description: response.data.error.description,
+        detail: response.data.error.detail
+      }
+        } else {
+          this.$message({
+            type: 'error',
+            message: '获取数据失败!',
+            duration: 5 * 1000
+          })
+        }
+      }) */
+      this.editDialogFormVisible = true
+    },
+    onChangeValue() {
+      this.searchOption.clause = '请选择'
+      this.searchOption.text = ''
+      this.getLogsList({ page: 1, limit: 10 })
+    },
+    onDateChange() {
+      this.getLogsList({ page: 1, limit: 10 })
+    },
+    getLogsList(val) {
+      this.list = []
+      if (val) {
+        this.listQuery.limit = val.limit
+        this.listQuery.page = val.page
+      }
+      const params = {
+        type: this.searchOption.logType,
+        page: this.listQuery.page,
+        limit: this.listQuery.limit,
+        start_date: this.$refs.datePicker.value ? (this.$refs.datePicker.value[0] ? this.$refs.datePicker.value[0] : null) : null,
+        end_date: this.$refs.datePicker.value ? (this.$refs.datePicker.value[1] ? this.$refs.datePicker.value[1] : null) : null,
+        login_name:
+          this.searchOption.clause === 'login_name' ? this.searchOption.text : null,
+        state:
+          this.searchOption.clause === 'state' ? this.searchOption.text : null,
+        ip:
+          this.searchOption.clause === 'ip' ? this.searchOption.text : null,
+        module:
+          this.searchOption.clause === 'module' ? this.searchOption.text : null,
+        target:
+          this.searchOption.clause === 'target' ? this.searchOption.text : null,
+        field:
+          this.searchOption.clause === 'field' ? this.searchOption.text : null
+        /* result:
+          this.searchOption.clause === 'result' ? this.searchOption.text : null,
+        note:
+          this.searchOption.clause === 'note' ? this.searchOption.text : null */
+      }
+      getLogs(params).then(response => {
+        if (response.code === 200) {
+          if (this.searchOption.logType === 'login') {
+            this.list = response.data.login
+          }
+          if (this.searchOption.logType === 'error') {
+            console.log(response.data.error)
+            this.list = response.data.error
+          }
+          if (this.searchOption.logType === 'data') {
+            this.list = response.data.data
+          }
+          this.listQuery.total = response.cnt
+        } else {
+          this.$message({
+            type: 'error',
+            message: '获取数据失败!',
+            duration: 5 * 1000
+          })
+        }
+      })
+    },
+    onBtnLogSearchClick() {
+      this.getLogsList({ page: 1, limit: 10 })
+    },
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    },
+    showChart() {
+      this.isChartVisible = !this.isChartVisible
+    }
+  }
+}
+</script>
+<style lang="scss" scoped>
+.table-expand {
+  font-size: 0;
+}
+.table-expand label {
+  width: 200px;
+  color: #99a9bf;
+}
+.table-expand .el-form-item {
+  margin-right: 0;
+  margin-bottom: 0;
+  white-space: pre-line;
+}
+</style>

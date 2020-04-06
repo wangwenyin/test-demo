@@ -1,0 +1,222 @@
+<template>
+  <div>
+    <el-row
+      class="search-container"
+      style="padding: 5px"
+    >
+      <el-button
+        type="primary"
+        size="small"
+        round
+        style="float:left;margin-left:10px;"
+        @click="onBtnPublishClick"
+      >添加问答</el-button>
+      <el-input
+        placeholder="请输入查询内容"
+        size="small"
+        style="float:right;margin-right:10px;width:400px"
+      >
+        <el-select
+          slot="prepend"
+          v-model="searchOption.clause"
+          style="width:120px;"
+          placeholder="请选择"
+        >
+          <el-option
+            label="问题"
+            value="问题"
+          />
+          <el-option
+            label="答案"
+            value="答案"
+          />
+          <el-option
+            label="状态"
+            value="状态"
+          />
+        </el-select>
+        <el-button
+          slot="append"
+          icon="el-icon-search"
+          @click="onSearchTaskClick"
+        />
+      </el-input>
+      <date-picker
+        :no-default-value="false"
+        style="float:right;margin-right:10px;"
+      />
+    </el-row>
+    <div style="margin:10px;">
+      <el-table
+        :data="list"
+        :header-cell-style="changeHeaderStyle"
+        style="width: 100%;"
+        border
+        fit
+        size="small"
+      >
+        <el-table-column type="selection"/>
+        <el-table-column
+          prop="问题"
+          label="问题"
+          width="200px"
+          show-overflow-tooltip
+        />
+        <el-table-column type="expand">
+          <template slot-scope="props">
+            <el-form
+              size="mini"
+              label-position="left"
+              inline
+              class="table-expand"
+            >
+              <el-form-item label="答案">
+                <span>{{ props.row.答案 }}</span>
+              </el-form-item>
+            </el-form>
+          </template>
+        </el-table-column>
+        <el-table-column
+          prop="答案"
+          label="答案"
+          show-overflow-tooltip
+        />
+        <el-table-column
+          prop="热度"
+          label="热度"
+          sortable
+          width="80px"
+        />
+        <el-table-column
+          align="center"
+          prop="status"
+          label="状态"
+          width="80px"
+        />
+        <el-table-column
+          prop="操作"
+          label="操作"
+          width="180px"
+        >
+          <template slot-scope="scope">
+            <el-button
+              size="mini"
+              @click="onBtnEditClick(scope.$index, scope.row)"
+            >修改</el-button>
+            <el-button
+              v-if="scope.row.status !== '已删除'"
+              size="mini"
+              type="warning"
+              @click="onBtnDeleteClickClick(scope.$index, scope.row)"
+            >
+              删除
+            </el-button>
+            <el-button
+              v-if="scope.row.status === '已删除'"
+              size="mini"
+              @click="onBtnRestoreClick(scope.$index, scope.row)"
+            >
+              恢复
+            </el-button>
+          </template>
+        </el-table-column>
+
+      </el-table>
+      <el-row
+        type="flex"
+        justify="center"
+        style="margin-top:5px"
+      >
+        <el-pagination
+          :current-page="listQuery.page"
+          :page-sizes="[10,20,30, 50]"
+          :page-size="listQuery.limit"
+          :total="listQuery.total"
+          background
+          layout="total, sizes, prev, pager, next, jumper"
+          @size-change="onSizeChange"
+          @current-change="onCurrentChange"
+        />
+      </el-row>
+    </div>
+  </div>
+</template>
+<script>
+import DatePicker from '@/components/DateTimePicker'
+export default {
+  components: { DatePicker },
+  data() {
+    return {
+      searchOption: {
+        clause: '标题',
+        text: null
+      },
+      listQuery: {
+        page: 1,
+        limit: 10,
+        total: 0
+      },
+      list: [
+        {
+          问题: '为什么查不到评估价？',
+          答案:
+            '(1）.新登记房产没有评估价。对于新登记的房产，我中心会定期进行评估，在评估期间业主暂时查询不到评估价格。如需要查询价格，直接在线提交申请。 (2）.境外身份证查询不到评估价。如果港、澳、台同胞及外国人的身份证查不到房产评估价格，则在输入时采用半角输入法输入查询信息；如果还查不到，则切换用全角输入法。 (3）.旧产权证查不到评估价。有些产权证历史悠久，所输入信息需与房产证上信息的保持一致，例如新旧身份证号的区别。 (4）如需要我中心工作人员帮助查询评估价格，请将房产证及业主身份证原件上传至Email:XXX@163.com会有工作人员予以回复。',
+          热度: '88',
+          status: ''
+        },
+        {
+          问题: '怎么查不到评估价？',
+          答案:
+            '(1）.新登记房产没有评估价。对于新登记的房产，我中心会定期进行评估，在评估期间业主暂时查询不到评估价格。如需要查询价格，直接在线提交申请。 (2）.境外身份证查询不到评估价。如果港、澳、台同胞及外国人的身份证查不到房产评估价格，则在输入时采用半角输入法输入查询信息；如果还查不到，则切换用全角输入法。 (3）.旧产权证查不到评估价。有些产权证历史悠久，所输入信息需与房产证上信息的保持一致，例如新旧身份证号的区别。 (4）如需要我中心工作人员帮助查询评估价格，请将房产证及业主身份证原件上传至Email:XXX@163.com会有工作人员予以回复。',
+          热度: '25',
+          status: ''
+        },
+        {
+          问题: '没有评估价？',
+          答案:
+            '(1）.新登记房产没有评估价。对于新登记的房产，我中心会定期进行评估，在评估期间业主暂时查询不到评估价格。如需要查询价格，直接在线提交申请。 (2）.境外身份证查询不到评估价。如果港、澳、台同胞及外国人的身份证查不到房产评估价格，则在输入时采用半角输入法输入查询信息；如果还查不到，则切换用全角输入法。 (3）.旧产权证查不到评估价。有些产权证历史悠久，所输入信息需与房产证上信息的保持一致，例如新旧身份证号的区别。 (4）如需要我中心工作人员帮助查询评估价格，请将房产证及业主身份证原件上传至Email:XXX@163.com会有工作人员予以回复。',
+          热度: '1',
+          status: ''
+        },
+        {}
+      ]
+    }
+  },
+  methods: {
+    changeHeaderStyle() {
+      return { backgroundColor: '#3C3B3F', width: '100%', color: '#FFFFFF' }
+    },
+    onBtnPublishClick() {
+      this.$router.push({ name: 'FAQPublish' })
+    },
+    onBtnEditClick() {
+      this.$router.push({ name: 'FAQModify' })
+    },
+    onBtnDeleteClickClick(index, row) {
+      row.status = '已删除'
+    },
+    onBtnRestoreClick(index, row) {
+      row.status = ''
+    },
+    onSizeChange() {},
+    onCurrentChange() {},
+    onSearchTaskClick() {}
+  }
+}
+</script>
+<style lang="scss" scoped>
+.table-expand {
+  font-size: 0;
+}
+
+.table-expand label {
+  width: 200px;
+  color: #99a9bf;
+}
+.table-expand .el-form-item {
+  margin-right: 0;
+  margin-bottom: 0;
+  width: 50%;
+}
+</style>
+
